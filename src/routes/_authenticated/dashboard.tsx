@@ -83,7 +83,12 @@ function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {businesses.map((b) => (
-              <div key={b.id} className="rounded-xl border border-border bg-card p-6 hover:shadow-md transition-shadow">
+              <Link
+                key={b.id}
+                to="/workspaces/$businessId/calendar"
+                params={{ businessId: b.id }}
+                className="block rounded-xl border border-border bg-card p-6 hover:shadow-md hover:border-accent/40 transition-all"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
                     <Building2 className="h-5 w-5" />
@@ -102,7 +107,7 @@ function DashboardPage() {
                   <Stat icon={<Calendar className="h-4 w-4" />} label="Today" />
                   <Stat icon={<Users className="h-4 w-4" />} label="Staff" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
