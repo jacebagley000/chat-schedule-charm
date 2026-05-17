@@ -393,6 +393,33 @@ function AppointmentDialog({
     const startsAt = new Date(date); startsAt.setHours(hh, mm, 0, 0);
     const endsAt = addMinutes(startsAt, duration);
 
+    if (endsAt <= startsAt) {
+      setSaving(false);
+      return toast.error("End time must be after start time");
+    }
+
+    // Conflict check: same staff, overlapping time, active statuses only
+    if (staffId && status !== "cancelled" && status !== "no_show") {
+      let q = supabase
+        .from("appointments")
+        .select("id, starts_at, ends_at, status, customer_id")
+        .eq("business_id", businessId)
+        .eq("staff_id", staffId)
+        .not("status", "in", "(cancelled,no_show)")
+        .lt("starts_at", endsAt.toISOString())
+        .gt("ends_at", startsAt.toISOString());
+      if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+      const { data: clashes, error: clashErr } = await q;
+      if (clashErr) { setSaving(false); return toast.error(clashErr.message); }
+      if (clashes && clashes.length > 0) {
+        setSaving(false);
+        const c = clashes[0];
+        const who = staff.find((s) => s.id === staffId)?.name ?? "this staff member";
+        const when = `${format(parseISO(c.starts_at), "h:mm a")}–${format(parseISO(c.ends_at), "h:mm a")}`;
+        return toast.error(`Time conflict: ${who} is already booked ${when}`);
+      }
+    }
+
     const payload = {
       business_id: businessId,
       customer_id: cid,
