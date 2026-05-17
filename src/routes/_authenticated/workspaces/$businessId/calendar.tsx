@@ -1,0 +1,537 @@
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { format, addDays, startOfDay, addMinutes, parseISO } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
+  component: CalendarPage,
+  head: () => ({ meta: [{ title: "Calendar — FrontDesk AI" }] }),
+});
+
+type Business = { id: string; name: string };
+type Staff = { id: string; name: string; color: string | null };
+type Service = { id: string; name: string; duration_minutes: number; color: string | null };
+type Customer = { id: string; name: string | null; phone: string | null };
+type Appointment = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
+  source: string;
+  notes: string | null;
+  customer_id: string | null;
+  staff_id: string | null;
+  service_id: string | null;
+};
+
+const STATUS_STYLES: Record<Appointment["status"], string> = {
+  pending: "bg-amber-100 text-amber-900 border-amber-300",
+  confirmed: "bg-emerald-100 text-emerald-900 border-emerald-300",
+  completed: "bg-stone-200 text-stone-700 border-stone-300",
+  cancelled: "bg-rose-100 text-rose-900 border-rose-300 line-through",
+  no_show: "bg-rose-50 text-rose-700 border-rose-200",
+};
+
+const HOUR_START = 7;
+const HOUR_END = 21;
+const PX_PER_MIN = 1.2;
+
+function CalendarPage() {
+  const { businessId } = useParams({ from: "/_authenticated/workspaces/$businessId/calendar" });
+  const navigate = useNavigate();
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [day, setDay] = useState<Date>(startOfDay(new Date()));
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [creating, setCreating] = useState<{ start: Date } | null>(null);
+
+  const loadCore = async () => {
+    const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
+      supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle(),
+      supabase.from("staff").select("id, name, color").eq("business_id", businessId).eq("active", true).order("name"),
+      supabase.from("services").select("id, name, duration_minutes, color").eq("business_id", businessId).eq("active", true).order("name"),
+      supabase.from("customers").select("id, name, phone").eq("business_id", businessId).order("name"),
+    ]);
+    if (!b) { toast.error("Workspace not found"); navigate({ to: "/dashboard" }); return; }
+    setBusiness(b as Business);
+    setStaff((s ?? []) as Staff[]);
+    setServices((sv ?? []) as Service[]);
+    setCustomers((cu ?? []) as Customer[]);
+  };
+
+  const loadAppointments = async (d: Date) => {
+    const from = startOfDay(d).toISOString();
+    const to = addDays(startOfDay(d), 1).toISOString();
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("id, starts_at, ends_at, status, source, notes, customer_id, staff_id, service_id")
+      .eq("business_id", businessId)
+      .gte("starts_at", from)
+      .lt("starts_at", to)
+      .order("starts_at");
+    if (error) return toast.error(error.message);
+    setAppointments((data ?? []) as Appointment[]);
+  };
+
+  useEffect(() => { loadCore(); }, [businessId]);
+  useEffect(() => { loadAppointments(day); }, [businessId, day]);
+
+  const hours = useMemo(
+    () => Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i),
+    []
+  );
+
+  const positioned = useMemo(() => {
+    return appointments.map((a) => {
+      const start = parseISO(a.starts_at);
+      const end = parseISO(a.ends_at);
+      const startMin = start.getHours() * 60 + start.getMinutes() - HOUR_START * 60;
+      const duration = Math.max(15, (end.getTime() - start.getTime()) / 60000);
+      return { appt: a, top: startMin * PX_PER_MIN, height: duration * PX_PER_MIN };
+    });
+  }, [appointments]);
+
+  const customerName = (id: string | null) =>
+    customers.find((c) => c.id === id)?.name || customers.find((c) => c.id === id)?.phone || "Walk-in";
+  const staffName = (id: string | null) => staff.find((s) => s.id === id)?.name || "Unassigned";
+  const serviceName = (id: string | null) => services.find((s) => s.id === id)?.name || "Service";
+
+  const needsSetup = !staff.length || !services.length;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">Calendar</p>
+              <h1 className="font-serif text-xl tracking-tight truncate">{business?.name ?? "…"}</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setDay(addDays(day, -1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <DatePopover value={day} onChange={(d) => d && setDay(startOfDay(d))} />
+            <Button variant="outline" size="sm" onClick={() => setDay(addDays(day, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setDay(startOfDay(new Date()))}>Today</Button>
+            <Button
+              size="sm"
+              disabled={needsSetup}
+              onClick={() => {
+                const start = new Date(day);
+                start.setHours(9, 0, 0, 0);
+                setCreating({ start });
+              }}
+            >
+              <Plus className="h-4 w-4" /> New appointment
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {needsSetup && (
+        <SetupPanel
+          businessId={businessId}
+          staff={staff}
+          services={services}
+          onChanged={loadCore}
+        />
+      )}
+
+      <main className="mx-auto max-w-7xl px-6 py-6">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="grid grid-cols-[64px_1fr]">
+            <div className="border-r border-border">
+              {hours.map((h) => (
+                <div
+                  key={h}
+                  className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground px-2 pt-1"
+                  style={{ height: `${60 * PX_PER_MIN}px` }}
+                >
+                  {format(new Date().setHours(h, 0, 0, 0), "h a")}
+                </div>
+              ))}
+            </div>
+            <div className="relative">
+              {hours.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  className="block w-full border-b border-border/60 hover:bg-accent/5 transition-colors"
+                  style={{ height: `${60 * PX_PER_MIN}px` }}
+                  onClick={() => {
+                    if (needsSetup) return toast.message("Add staff and services first");
+                    const start = new Date(day);
+                    start.setHours(h, 0, 0, 0);
+                    setCreating({ start });
+                  }}
+                />
+              ))}
+
+              {positioned.map(({ appt, top, height }) => (
+                <button
+                  key={appt.id}
+                  type="button"
+                  onClick={() => setEditing(appt)}
+                  className={cn(
+                    "absolute left-2 right-2 rounded-md border px-2 py-1 text-left text-xs shadow-sm hover:shadow-md transition-shadow",
+                    STATUS_STYLES[appt.status]
+                  )}
+                  style={{ top, height: Math.max(28, height) }}
+                >
+                  <div className="font-medium truncate">{customerName(appt.customer_id)}</div>
+                  <div className="opacity-75 truncate">
+                    {serviceName(appt.service_id)} · {staffName(appt.staff_id)}
+                  </div>
+                  <div className="opacity-60 text-[10px] mt-0.5 font-mono">
+                    {format(parseISO(appt.starts_at), "h:mm a")} – {format(parseISO(appt.ends_at), "h:mm a")}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {creating && (
+        <AppointmentDialog
+          mode="create"
+          businessId={businessId}
+          initialStart={creating.start}
+          staff={staff}
+          services={services}
+          customers={customers}
+          onClose={() => setCreating(null)}
+          onSaved={() => { setCreating(null); loadAppointments(day); loadCore(); }}
+        />
+      )}
+
+      {editing && (
+        <AppointmentDialog
+          mode="edit"
+          businessId={businessId}
+          appointment={editing}
+          staff={staff}
+          services={services}
+          customers={customers}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); loadAppointments(day); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function DatePopover({ value, onChange }: { value: Date; onChange: (d: Date | undefined) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="font-medium">
+          <CalendarIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">{format(value, "EEE, MMM d")}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={onChange}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function SetupPanel({
+  businessId, staff, services, onChanged,
+}: {
+  businessId: string;
+  staff: Staff[];
+  services: Service[];
+  onChanged: () => void;
+}) {
+  const [staffName, setStaffName] = useState("");
+  const [svcName, setSvcName] = useState("");
+  const [svcDuration, setSvcDuration] = useState(30);
+
+  const addStaff = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!staffName.trim()) return;
+    const { error } = await supabase.from("staff").insert({ business_id: businessId, name: staffName.trim() });
+    if (error) return toast.error(error.message);
+    setStaffName(""); onChanged();
+  };
+  const addService = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!svcName.trim()) return;
+    const { error } = await supabase.from("services").insert({
+      business_id: businessId, name: svcName.trim(), duration_minutes: svcDuration,
+    });
+    if (error) return toast.error(error.message);
+    setSvcName(""); setSvcDuration(30); onChanged();
+  };
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 pt-6">
+      <div className="rounded-xl border border-dashed border-border bg-card p-6">
+        <h2 className="font-serif text-lg mb-1">Set up your shop</h2>
+        <p className="text-sm text-muted-foreground mb-5">Add at least one staff member and one service to start booking.</p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div>
+            <p className="text-xs font-mono uppercase tracking-wide text-muted-foreground mb-2">
+              Staff {staff.length > 0 && `· ${staff.length}`}
+            </p>
+            <form onSubmit={addStaff} className="flex gap-2">
+              <Input placeholder="Stylist name" value={staffName} onChange={(e) => setStaffName(e.target.value)} />
+              <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
+            </form>
+            <ul className="mt-3 text-sm space-y-1">
+              {staff.map((s) => <li key={s.id} className="text-muted-foreground">· {s.name}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-mono uppercase tracking-wide text-muted-foreground mb-2">
+              Services {services.length > 0 && `· ${services.length}`}
+            </p>
+            <form onSubmit={addService} className="flex gap-2">
+              <Input placeholder="Haircut" value={svcName} onChange={(e) => setSvcName(e.target.value)} />
+              <Input
+                type="number" min={5} step={5} className="w-20"
+                value={svcDuration} onChange={(e) => setSvcDuration(Number(e.target.value) || 30)}
+              />
+              <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
+            </form>
+            <ul className="mt-3 text-sm space-y-1">
+              {services.map((s) => <li key={s.id} className="text-muted-foreground">· {s.name} ({s.duration_minutes}m)</li>)}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AppointmentDialog({
+  mode, businessId, appointment, initialStart, staff, services, customers, onClose, onSaved,
+}: {
+  mode: "create" | "edit";
+  businessId: string;
+  appointment?: Appointment;
+  initialStart?: Date;
+  staff: Staff[];
+  services: Service[];
+  customers: Customer[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const start0 = appointment ? parseISO(appointment.starts_at) : initialStart!;
+  const end0 = appointment ? parseISO(appointment.ends_at) : addMinutes(start0, services[0]?.duration_minutes ?? 30);
+
+  const [date, setDate] = useState<Date>(startOfDay(start0));
+  const [time, setTime] = useState<string>(format(start0, "HH:mm"));
+  const [duration, setDuration] = useState<number>(Math.max(5, Math.round((end0.getTime() - start0.getTime()) / 60000)));
+  const [staffId, setStaffId] = useState<string>(appointment?.staff_id ?? staff[0]?.id ?? "");
+  const [serviceId, setServiceId] = useState<string>(appointment?.service_id ?? services[0]?.id ?? "");
+  const [customerId, setCustomerId] = useState<string>(appointment?.customer_id ?? "");
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [notes, setNotes] = useState(appointment?.notes ?? "");
+  const [status, setStatus] = useState<Appointment["status"]>(appointment?.status ?? "confirmed");
+  const [saving, setSaving] = useState(false);
+
+  const onServiceChange = (id: string) => {
+    setServiceId(id);
+    const svc = services.find((s) => s.id === id);
+    if (svc && mode === "create") setDuration(svc.duration_minutes);
+  };
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    let cid = customerId || null;
+    if (!cid && (newCustomerName.trim() || newCustomerPhone.trim())) {
+      const { data, error } = await supabase.from("customers").insert({
+        business_id: businessId,
+        name: newCustomerName.trim() || null,
+        phone: newCustomerPhone.trim() || null,
+      }).select("id").single();
+      if (error) { setSaving(false); return toast.error(error.message); }
+      cid = data.id;
+    }
+
+    const [hh, mm] = time.split(":").map(Number);
+    const startsAt = new Date(date); startsAt.setHours(hh, mm, 0, 0);
+    const endsAt = addMinutes(startsAt, duration);
+
+    const payload = {
+      business_id: businessId,
+      customer_id: cid,
+      staff_id: staffId || null,
+      service_id: serviceId || null,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      status,
+      notes: notes.trim() || null,
+    };
+
+    const { error } = mode === "create"
+      ? await supabase.from("appointments").insert({ ...payload, source: "manual" })
+      : await supabase.from("appointments").update(payload).eq("id", appointment!.id);
+
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success(mode === "create" ? "Appointment booked" : "Appointment updated");
+    onSaved();
+  };
+
+  const remove = async () => {
+    if (!appointment) return;
+    if (!confirm("Delete this appointment?")) return;
+    const { error } = await supabase.from("appointments").delete().eq("id", appointment.id);
+    if (error) return toast.error(error.message);
+    toast.success("Appointment deleted");
+    onSaved();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-2xl">
+            {mode === "create" ? "New appointment" : "Edit appointment"}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={save} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" className="w-full justify-start font-normal">
+                    <CalendarIcon className="h-4 w-4" />
+                    {format(date, "EEE, MMM d")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(startOfDay(d))} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Start time</Label>
+              <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Service</Label>
+              <Select value={serviceId} onValueChange={onServiceChange}>
+                <SelectTrigger><SelectValue placeholder="Pick a service" /></SelectTrigger>
+                <SelectContent>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name} · {s.duration_minutes}m</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration (min)</Label>
+              <Input id="duration" type="number" min={5} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value) || 30)} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Staff</Label>
+            <Select value={staffId} onValueChange={setStaffId}>
+              <SelectTrigger><SelectValue placeholder="Pick a staff member" /></SelectTrigger>
+              <SelectContent>
+                {staff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Customer</Label>
+            <Select value={customerId || "__new"} onValueChange={(v) => setCustomerId(v === "__new" ? "" : v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__new">+ New customer</SelectItem>
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name || c.phone || "Unnamed"}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!customerId && (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Input placeholder="Name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
+                <Input placeholder="Phone" type="tel" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="no_show">No show</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            {mode === "edit" && (
+              <Button type="button" variant="ghost" onClick={remove} className="text-destructive mr-auto">
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : mode === "create" ? "Book appointment" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
