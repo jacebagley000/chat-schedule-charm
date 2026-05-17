@@ -115,12 +115,17 @@ function Index() {
               FAQ
             </a>
           </div>
-          <a
-            href="#pricing"
-            className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
-          >
-            Start free trial
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/login" className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline">
+              Sign in
+            </a>
+            <a
+              href="/signup"
+              className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+            >
+              Start free trial
+            </a>
+          </div>
         </div>
       </nav>
 
@@ -140,7 +145,7 @@ function Index() {
           </p>
           <div className="flex flex-wrap gap-4">
             <a
-              href="#pricing"
+              href="/signup"
               className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
             >
               Start free trial
