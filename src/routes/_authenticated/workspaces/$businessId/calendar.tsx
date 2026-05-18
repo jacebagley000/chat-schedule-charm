@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2,
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
