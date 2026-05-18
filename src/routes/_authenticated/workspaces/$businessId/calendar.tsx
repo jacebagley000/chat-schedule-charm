@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2,
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -367,11 +367,77 @@ function AppointmentDialog({
   const [notes, setNotes] = useState(appointment?.notes ?? "");
   const [status, setStatus] = useState<Appointment["status"]>(appointment?.status ?? "confirmed");
   const [saving, setSaving] = useState(false);
+  const [conflict, setConflict] = useState<{
+    clashes: Array<{ id: string; starts_at: string; ends_at: string; customer_id: string | null; service_id: string | null }>;
+    suggested: Date | null;
+    attemptedStart: Date;
+    attemptedEnd: Date;
+  } | null>(null);
 
   const onServiceChange = (id: string) => {
     setServiceId(id);
     const svc = services.find((s) => s.id === id);
     if (svc && mode === "create") setDuration(svc.duration_minutes);
+  };
+
+  const findNextAvailableSlot = async (
+    sid: string,
+    durationMin: number,
+    fromDate: Date,
+  ): Promise<Date | null> => {
+    const horizon = addDays(startOfDay(fromDate), 14);
+    const { data } = await supabase
+      .from("appointments")
+      .select("id, starts_at, ends_at")
+      .eq("business_id", businessId)
+      .eq("staff_id", sid)
+      .not("status", "in", "(cancelled,no_show)")
+      .gte("ends_at", fromDate.toISOString())
+      .lte("starts_at", horizon.toISOString())
+      .order("starts_at");
+
+    const busy = (data ?? [])
+      .filter((a) => !(mode === "edit" && appointment && a.id === appointment.id))
+      .map((a) => [parseISO(a.starts_at).getTime(), parseISO(a.ends_at).getTime()] as [number, number]);
+
+    const STEP = 5 * 60 * 1000;
+    const durMs = durationMin * 60 * 1000;
+
+    for (let i = 0; i < 14; i++) {
+      const day = addDays(startOfDay(fromDate), i);
+      const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
+      const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
+      let cursor = Math.max(i === 0 ? fromDate.getTime() : 0, dayStart.getTime());
+      cursor = Math.ceil(cursor / STEP) * STEP;
+      const dayBusy = busy
+        .filter(([s, e]) => e > dayStart.getTime() && s < dayEnd.getTime())
+        .sort((a, b) => a[0] - b[0]);
+      while (cursor + durMs <= dayEnd.getTime()) {
+        const overlap = dayBusy.find(([s, e]) => s < cursor + durMs && e > cursor);
+        if (!overlap) return new Date(cursor);
+        cursor = Math.ceil(overlap[1] / STEP) * STEP;
+      }
+    }
+    return null;
+  };
+
+  const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
+    let q = supabase
+      .from("appointments")
+      .select("id, starts_at, ends_at, customer_id, service_id")
+      .eq("business_id", businessId)
+      .eq("staff_id", sid)
+      .not("status", "in", "(cancelled,no_show)")
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString())
+      .order("starts_at");
+    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+    const { data: clashes, error } = await q;
+    if (error) { toast.error(error.message); return true; }
+    if (!clashes || clashes.length === 0) return false;
+    const suggested = await findNextAvailableSlot(sid, duration, endsAt);
+    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt });
+    return true;
   };
 
   const save = async (e: FormEvent) => {
@@ -398,26 +464,9 @@ function AppointmentDialog({
       return toast.error("End time must be after start time");
     }
 
-    // Conflict check: same staff, overlapping time, active statuses only
     if (staffId && status !== "cancelled" && status !== "no_show") {
-      let q = supabase
-        .from("appointments")
-        .select("id, starts_at, ends_at, status, customer_id")
-        .eq("business_id", businessId)
-        .eq("staff_id", staffId)
-        .not("status", "in", "(cancelled,no_show)")
-        .lt("starts_at", endsAt.toISOString())
-        .gt("ends_at", startsAt.toISOString());
-      if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
-      const { data: clashes, error: clashErr } = await q;
-      if (clashErr) { setSaving(false); return toast.error(clashErr.message); }
-      if (clashes && clashes.length > 0) {
-        setSaving(false);
-        const c = clashes[0];
-        const who = staff.find((s) => s.id === staffId)?.name ?? "this staff member";
-        const when = `${format(parseISO(c.starts_at), "h:mm a")}–${format(parseISO(c.ends_at), "h:mm a")}`;
-        return toast.error(`Time conflict: ${who} is already booked ${when}`);
-      }
+      const hasConflict = await checkAndSurfaceConflict(staffId, startsAt, endsAt);
+      if (hasConflict) { setSaving(false); return; }
     }
 
     const payload = {
@@ -439,12 +488,8 @@ function AppointmentDialog({
     if (error) {
       const msg = error.message || "";
       if (/time conflict/i.test(msg) || /staff member is already booked/i.test(msg)) {
-        const range = msg.match(/from (\d{1,2}:\d{2}) to (\d{1,2}:\d{2})/i);
-        const who = staff.find((s) => s.id === staffId)?.name ?? "This staff member";
-        const when = range ? `${range[1]}–${range[2]}` : "that time";
-        return toast.error("Time conflict", {
-          description: `${who} is already booked ${when}. Pick a different time or staff member.`,
-        });
+        await checkAndSurfaceConflict(staffId, startsAt, endsAt);
+        return;
       }
       if (/end time must be after start time/i.test(msg)) {
         return toast.error("End time must be after start time");
@@ -453,6 +498,12 @@ function AppointmentDialog({
     }
     toast.success(mode === "create" ? "Appointment booked" : "Appointment updated");
     onSaved();
+  };
+
+  const applySuggestedSlot = (slot: Date) => {
+    setDate(startOfDay(slot));
+    setTime(format(slot, "HH:mm"));
+    setConflict(null);
   };
 
   const remove = async () => {
@@ -464,115 +515,182 @@ function AppointmentDialog({
     onSaved();
   };
 
-  return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">
-            {mode === "create" ? "New appointment" : "Edit appointment"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={save} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button type="button" variant="outline" className="w-full justify-start font-normal">
-                    <CalendarIcon className="h-4 w-4" />
-                    {format(date, "EEE, MMM d")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(startOfDay(d))} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Start time</Label>
-              <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
-            </div>
-          </div>
+  const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
+  const custNameOf = (id: string | null) =>
+    customers.find((c) => c.id === id)?.name || customers.find((c) => c.id === id)?.phone || "Walk-in";
+  const svcNameOf = (id: string | null) => services.find((s) => s.id === id)?.name ?? "Service";
 
-          <div className="grid grid-cols-2 gap-3">
+  return (
+    <>
+      <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl">
+              {mode === "create" ? "New appointment" : "Edit appointment"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={save} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full justify-start font-normal">
+                      <CalendarIcon className="h-4 w-4" />
+                      {format(date, "EEE, MMM d")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(startOfDay(d))} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="time">Start time</Label>
+                <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Service</Label>
+                <Select value={serviceId} onValueChange={onServiceChange}>
+                  <SelectTrigger><SelectValue placeholder="Pick a service" /></SelectTrigger>
+                  <SelectContent>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} · {s.duration_minutes}m</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration (min)</Label>
+                <Input id="duration" type="number" min={5} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value) || 30)} />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Service</Label>
-              <Select value={serviceId} onValueChange={onServiceChange}>
-                <SelectTrigger><SelectValue placeholder="Pick a service" /></SelectTrigger>
+              <Label>Staff</Label>
+              <Select value={staffId} onValueChange={setStaffId}>
+                <SelectTrigger><SelectValue placeholder="Pick a staff member" /></SelectTrigger>
                 <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name} · {s.duration_minutes}m</SelectItem>
-                  ))}
+                  {staff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (min)</Label>
-              <Input id="duration" type="number" min={5} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value) || 30)} />
+              <Label>Customer</Label>
+              <Select value={customerId || "__new"} onValueChange={(v) => setCustomerId(v === "__new" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__new">+ New customer</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name || c.phone || "Unnamed"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!customerId && (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Input placeholder="Name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
+                  <Input placeholder="Phone" type="tel" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} />
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Staff</Label>
-            <Select value={staffId} onValueChange={setStaffId}>
-              <SelectTrigger><SelectValue placeholder="Pick a staff member" /></SelectTrigger>
-              <SelectContent>
-                {staff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="no_show">No show</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label>Customer</Label>
-            <Select value={customerId || "__new"} onValueChange={(v) => setCustomerId(v === "__new" ? "" : v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__new">+ New customer</SelectItem>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name || c.phone || "Unnamed"}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!customerId && (
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <Input placeholder="Name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
-                <Input placeholder="Phone" type="tel" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} />
-              </div>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="no_show">No show</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-2">
-            {mode === "edit" && (
-              <Button type="button" variant="ghost" onClick={remove} className="text-destructive mr-auto">
-                <Trash2 className="h-4 w-4" /> Delete
+            <DialogFooter className="gap-2 sm:gap-2">
+              {mode === "edit" && (
+                <Button type="button" variant="ghost" onClick={remove} className="text-destructive mr-auto">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving…" : mode === "create" ? "Book appointment" : "Save changes"}
               </Button>
-            )}
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving…" : mode === "create" ? "Book appointment" : "Save changes"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!conflict} onOpenChange={(o) => { if (!o) setConflict(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Time conflict
+            </DialogTitle>
+          </DialogHeader>
+          {conflict && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{staffNameOf(staffId)}</span> is already booked during{" "}
+                <span className="font-mono">
+                  {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
+                </span>{" "}
+                on {format(conflict.attemptedStart, "EEE, MMM d")}.
+              </p>
+
+              <div className="rounded-md border border-border divide-y divide-border">
+                {conflict.clashes.map((c) => (
+                  <div key={c.id} className="px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium truncate">{custNameOf(c.customer_id)}</span>
+                      <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                        {format(parseISO(c.starts_at), "h:mm a")}–{format(parseISO(c.ends_at), "h:mm a")}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{svcNameOf(c.service_id)}</div>
+                  </div>
+                ))}
+              </div>
+
+              {conflict.suggested ? (
+                <div className="rounded-md bg-accent/10 border border-accent/30 px-3 py-2 text-sm">
+                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground mb-1">
+                    Next available
+                  </p>
+                  <p className="font-medium">
+                    {format(conflict.suggested, "EEE, MMM d")} · {format(conflict.suggested, "h:mm a")}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No openings found in the next 14 days for {staffNameOf(staffId)}.</p>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={() => setConflict(null)}>
+                  Pick another time
+                </Button>
+                {conflict.suggested && (
+                  <Button type="button" onClick={() => applySuggestedSlot(conflict.suggested!)}>
+                    Use suggested slot
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
