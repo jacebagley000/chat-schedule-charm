@@ -515,115 +515,182 @@ function AppointmentDialog({
     onSaved();
   };
 
-  return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">
-            {mode === "create" ? "New appointment" : "Edit appointment"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={save} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button type="button" variant="outline" className="w-full justify-start font-normal">
-                    <CalendarIcon className="h-4 w-4" />
-                    {format(date, "EEE, MMM d")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(startOfDay(d))} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Start time</Label>
-              <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
-            </div>
-          </div>
+  const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
+  const custNameOf = (id: string | null) =>
+    customers.find((c) => c.id === id)?.name || customers.find((c) => c.id === id)?.phone || "Walk-in";
+  const svcNameOf = (id: string | null) => services.find((s) => s.id === id)?.name ?? "Service";
 
-          <div className="grid grid-cols-2 gap-3">
+  return (
+    <>
+      <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl">
+              {mode === "create" ? "New appointment" : "Edit appointment"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={save} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full justify-start font-normal">
+                      <CalendarIcon className="h-4 w-4" />
+                      {format(date, "EEE, MMM d")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(startOfDay(d))} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="time">Start time</Label>
+                <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Service</Label>
+                <Select value={serviceId} onValueChange={onServiceChange}>
+                  <SelectTrigger><SelectValue placeholder="Pick a service" /></SelectTrigger>
+                  <SelectContent>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} · {s.duration_minutes}m</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration (min)</Label>
+                <Input id="duration" type="number" min={5} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value) || 30)} />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Service</Label>
-              <Select value={serviceId} onValueChange={onServiceChange}>
-                <SelectTrigger><SelectValue placeholder="Pick a service" /></SelectTrigger>
+              <Label>Staff</Label>
+              <Select value={staffId} onValueChange={setStaffId}>
+                <SelectTrigger><SelectValue placeholder="Pick a staff member" /></SelectTrigger>
                 <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name} · {s.duration_minutes}m</SelectItem>
-                  ))}
+                  {staff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (min)</Label>
-              <Input id="duration" type="number" min={5} step={5} value={duration} onChange={(e) => setDuration(Number(e.target.value) || 30)} />
+              <Label>Customer</Label>
+              <Select value={customerId || "__new"} onValueChange={(v) => setCustomerId(v === "__new" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__new">+ New customer</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name || c.phone || "Unnamed"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!customerId && (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Input placeholder="Name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
+                  <Input placeholder="Phone" type="tel" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} />
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Staff</Label>
-            <Select value={staffId} onValueChange={setStaffId}>
-              <SelectTrigger><SelectValue placeholder="Pick a staff member" /></SelectTrigger>
-              <SelectContent>
-                {staff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="no_show">No show</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label>Customer</Label>
-            <Select value={customerId || "__new"} onValueChange={(v) => setCustomerId(v === "__new" ? "" : v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__new">+ New customer</SelectItem>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name || c.phone || "Unnamed"}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!customerId && (
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <Input placeholder="Name" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
-                <Input placeholder="Phone" type="tel" value={newCustomerPhone} onChange={(e) => setNewCustomerPhone(e.target.value)} />
-              </div>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="no_show">No show</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Input id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-2">
-            {mode === "edit" && (
-              <Button type="button" variant="ghost" onClick={remove} className="text-destructive mr-auto">
-                <Trash2 className="h-4 w-4" /> Delete
+            <DialogFooter className="gap-2 sm:gap-2">
+              {mode === "edit" && (
+                <Button type="button" variant="ghost" onClick={remove} className="text-destructive mr-auto">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving…" : mode === "create" ? "Book appointment" : "Save changes"}
               </Button>
-            )}
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving…" : mode === "create" ? "Book appointment" : "Save changes"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!conflict} onOpenChange={(o) => { if (!o) setConflict(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Time conflict
+            </DialogTitle>
+          </DialogHeader>
+          {conflict && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{staffNameOf(staffId)}</span> is already booked during{" "}
+                <span className="font-mono">
+                  {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
+                </span>{" "}
+                on {format(conflict.attemptedStart, "EEE, MMM d")}.
+              </p>
+
+              <div className="rounded-md border border-border divide-y divide-border">
+                {conflict.clashes.map((c) => (
+                  <div key={c.id} className="px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium truncate">{custNameOf(c.customer_id)}</span>
+                      <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                        {format(parseISO(c.starts_at), "h:mm a")}–{format(parseISO(c.ends_at), "h:mm a")}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{svcNameOf(c.service_id)}</div>
+                  </div>
+                ))}
+              </div>
+
+              {conflict.suggested ? (
+                <div className="rounded-md bg-accent/10 border border-accent/30 px-3 py-2 text-sm">
+                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground mb-1">
+                    Next available
+                  </p>
+                  <p className="font-medium">
+                    {format(conflict.suggested, "EEE, MMM d")} · {format(conflict.suggested, "h:mm a")}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No openings found in the next 14 days for {staffNameOf(staffId)}.</p>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="outline" onClick={() => setConflict(null)}>
+                  Pick another time
+                </Button>
+                {conflict.suggested && (
+                  <Button type="button" onClick={() => applySuggestedSlot(conflict.suggested!)}>
+                    Use suggested slot
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
