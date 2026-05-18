@@ -436,7 +436,21 @@ function AppointmentDialog({
       : await supabase.from("appointments").update(payload).eq("id", appointment!.id);
 
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = error.message || "";
+      if (/time conflict/i.test(msg) || /staff member is already booked/i.test(msg)) {
+        const range = msg.match(/from (\d{1,2}:\d{2}) to (\d{1,2}:\d{2})/i);
+        const who = staff.find((s) => s.id === staffId)?.name ?? "This staff member";
+        const when = range ? `${range[1]}–${range[2]}` : "that time";
+        return toast.error("Time conflict", {
+          description: `${who} is already booked ${when}. Pick a different time or staff member.`,
+        });
+      }
+      if (/end time must be after start time/i.test(msg)) {
+        return toast.error("End time must be after start time");
+      }
+      return toast.error(msg);
+    }
     toast.success(mode === "create" ? "Appointment booked" : "Appointment updated");
     onSaved();
   };
