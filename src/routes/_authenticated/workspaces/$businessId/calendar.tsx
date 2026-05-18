@@ -367,11 +367,77 @@ function AppointmentDialog({
   const [notes, setNotes] = useState(appointment?.notes ?? "");
   const [status, setStatus] = useState<Appointment["status"]>(appointment?.status ?? "confirmed");
   const [saving, setSaving] = useState(false);
+  const [conflict, setConflict] = useState<{
+    clashes: Array<{ id: string; starts_at: string; ends_at: string; customer_id: string | null; service_id: string | null }>;
+    suggested: Date | null;
+    attemptedStart: Date;
+    attemptedEnd: Date;
+  } | null>(null);
 
   const onServiceChange = (id: string) => {
     setServiceId(id);
     const svc = services.find((s) => s.id === id);
     if (svc && mode === "create") setDuration(svc.duration_minutes);
+  };
+
+  const findNextAvailableSlot = async (
+    sid: string,
+    durationMin: number,
+    fromDate: Date,
+  ): Promise<Date | null> => {
+    const horizon = addDays(startOfDay(fromDate), 14);
+    const { data } = await supabase
+      .from("appointments")
+      .select("id, starts_at, ends_at")
+      .eq("business_id", businessId)
+      .eq("staff_id", sid)
+      .not("status", "in", "(cancelled,no_show)")
+      .gte("ends_at", fromDate.toISOString())
+      .lte("starts_at", horizon.toISOString())
+      .order("starts_at");
+
+    const busy = (data ?? [])
+      .filter((a) => !(mode === "edit" && appointment && a.id === appointment.id))
+      .map((a) => [parseISO(a.starts_at).getTime(), parseISO(a.ends_at).getTime()] as [number, number]);
+
+    const STEP = 5 * 60 * 1000;
+    const durMs = durationMin * 60 * 1000;
+
+    for (let i = 0; i < 14; i++) {
+      const day = addDays(startOfDay(fromDate), i);
+      const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
+      const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
+      let cursor = Math.max(i === 0 ? fromDate.getTime() : 0, dayStart.getTime());
+      cursor = Math.ceil(cursor / STEP) * STEP;
+      const dayBusy = busy
+        .filter(([s, e]) => e > dayStart.getTime() && s < dayEnd.getTime())
+        .sort((a, b) => a[0] - b[0]);
+      while (cursor + durMs <= dayEnd.getTime()) {
+        const overlap = dayBusy.find(([s, e]) => s < cursor + durMs && e > cursor);
+        if (!overlap) return new Date(cursor);
+        cursor = Math.ceil(overlap[1] / STEP) * STEP;
+      }
+    }
+    return null;
+  };
+
+  const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
+    let q = supabase
+      .from("appointments")
+      .select("id, starts_at, ends_at, customer_id, service_id")
+      .eq("business_id", businessId)
+      .eq("staff_id", sid)
+      .not("status", "in", "(cancelled,no_show)")
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString())
+      .order("starts_at");
+    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+    const { data: clashes, error } = await q;
+    if (error) { toast.error(error.message); return true; }
+    if (!clashes || clashes.length === 0) return false;
+    const suggested = await findNextAvailableSlot(sid, duration, endsAt);
+    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt });
+    return true;
   };
 
   const save = async (e: FormEvent) => {
@@ -398,26 +464,9 @@ function AppointmentDialog({
       return toast.error("End time must be after start time");
     }
 
-    // Conflict check: same staff, overlapping time, active statuses only
     if (staffId && status !== "cancelled" && status !== "no_show") {
-      let q = supabase
-        .from("appointments")
-        .select("id, starts_at, ends_at, status, customer_id")
-        .eq("business_id", businessId)
-        .eq("staff_id", staffId)
-        .not("status", "in", "(cancelled,no_show)")
-        .lt("starts_at", endsAt.toISOString())
-        .gt("ends_at", startsAt.toISOString());
-      if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
-      const { data: clashes, error: clashErr } = await q;
-      if (clashErr) { setSaving(false); return toast.error(clashErr.message); }
-      if (clashes && clashes.length > 0) {
-        setSaving(false);
-        const c = clashes[0];
-        const who = staff.find((s) => s.id === staffId)?.name ?? "this staff member";
-        const when = `${format(parseISO(c.starts_at), "h:mm a")}–${format(parseISO(c.ends_at), "h:mm a")}`;
-        return toast.error(`Time conflict: ${who} is already booked ${when}`);
-      }
+      const hasConflict = await checkAndSurfaceConflict(staffId, startsAt, endsAt);
+      if (hasConflict) { setSaving(false); return; }
     }
 
     const payload = {
@@ -439,12 +488,8 @@ function AppointmentDialog({
     if (error) {
       const msg = error.message || "";
       if (/time conflict/i.test(msg) || /staff member is already booked/i.test(msg)) {
-        const range = msg.match(/from (\d{1,2}:\d{2}) to (\d{1,2}:\d{2})/i);
-        const who = staff.find((s) => s.id === staffId)?.name ?? "This staff member";
-        const when = range ? `${range[1]}–${range[2]}` : "that time";
-        return toast.error("Time conflict", {
-          description: `${who} is already booked ${when}. Pick a different time or staff member.`,
-        });
+        await checkAndSurfaceConflict(staffId, startsAt, endsAt);
+        return;
       }
       if (/end time must be after start time/i.test(msg)) {
         return toast.error("End time must be after start time");
@@ -453,6 +498,12 @@ function AppointmentDialog({
     }
     toast.success(mode === "create" ? "Appointment booked" : "Appointment updated");
     onSaved();
+  };
+
+  const applySuggestedSlot = (slot: Date) => {
+    setDate(startOfDay(slot));
+    setTime(format(slot, "HH:mm"));
+    setConflict(null);
   };
 
   const remove = async () => {
