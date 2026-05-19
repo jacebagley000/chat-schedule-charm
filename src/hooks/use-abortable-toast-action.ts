@@ -76,17 +76,25 @@ export function useAbortableToastAction() {
   }, []);
 
   const run = useCallback(async <T,>(opts: AbortableToastRunOptions<T>): Promise<void> => {
-    if (runningRef.current) return; // single-flight
+    const mode = opts.mode ?? "single-flight";
+    if (runningRef.current) {
+      if (mode === "single-flight") return;
+      // "replace" — abort the previous run so this one can take over.
+      controllerRef.current?.abort();
+      if (toastIdRef.current) toast.dismiss(toastIdRef.current);
+    }
     runningRef.current = true;
     const controller = new AbortController();
     controllerRef.current = controller;
     const toastId = `abortable-toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    toastIdRef.current = toastId;
+    toastIdRef.current = opts.silent ? null : toastId;
 
-    toast.loading(opts.loadingMessage, {
-      id: toastId,
-      action: { label: "Cancel", onClick: () => controller.abort() },
-    });
+    if (!opts.silent) {
+      toast.loading(opts.loadingMessage, {
+        id: toastId,
+        action: { label: "Cancel", onClick: () => controller.abort() },
+      });
+    }
 
     const retryAction = opts.onRetry
       ? {
@@ -104,7 +112,7 @@ export function useAbortableToastAction() {
       if (controller.signal.aborted) {
         throw new DOMException("Aborted", "AbortError");
       }
-      if (mountedRef.current) {
+      if (mountedRef.current && !opts.silent) {
         if (opts.successMessage) {
           toast.success(opts.successMessage, { id: toastId });
         } else {
@@ -117,17 +125,21 @@ export function useAbortableToastAction() {
       if (!mountedRef.current) {
         toast.dismiss(toastId);
       } else if (err instanceof DOMException && err.name === "AbortError") {
-        if (opts.cancelledMessage) {
+        if (opts.cancelledMessage && !opts.silent) {
           toast.message(opts.cancelledMessage, { id: toastId, action: retryAction });
         } else {
           toast.dismiss(toastId);
         }
       } else {
-        console.error("Abortable toast action failed", err);
-        toast.error(opts.errorMessage ?? "Something went wrong. Please try again.", {
-          id: toastId,
-          action: retryAction,
-        });
+        if (opts.silent) {
+          console.error("Abortable toast action failed", err);
+        } else {
+          console.error("Abortable toast action failed", err);
+          toast.error(opts.errorMessage ?? "Something went wrong. Please try again.", {
+            id: toastId,
+            action: retryAction,
+          });
+        }
       }
     } finally {
       runningRef.current = false;
