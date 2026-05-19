@@ -444,14 +444,39 @@ function AvailabilityPanel({
   };
 
   const resettingRef = useRef(false);
+  const cancelResetRef = useRef(false);
   const clearSavedPreferences = async () => {
     if (resettingRef.current) return; // guard against concurrent retries
     resettingRef.current = true;
+    cancelResetRef.current = false;
     setResetting(true);
-    const loadingId = toast.loading("Resetting filters…");
+    const loadingId = `reset-loading-${Date.now()}`;
+    toast.loading("Resetting filters…", {
+      id: loadingId,
+      action: {
+        label: "Cancel",
+        onClick: () => {
+          cancelResetRef.current = true;
+        },
+      },
+    });
     try {
-      // Yield so the loading toast and spinner render before sync work
-      await new Promise((r) => setTimeout(r, 150));
+      // Yield so the loading toast renders and Cancel can be clicked
+      await new Promise((r) => setTimeout(r, 300));
+      if (cancelResetRef.current) {
+        toast.message("Reset cancelled", {
+          id: loadingId,
+          action: {
+            label: "Retry",
+            onClick: () => {
+              if (resettingRef.current) return;
+              toast.dismiss(loadingId);
+              void clearSavedPreferences();
+            },
+          },
+        });
+        return;
+      }
       setTimeBand("any");
       setRoleFilter("all");
       setLocationFilter("all");
@@ -463,22 +488,20 @@ function AvailabilityPanel({
       toast.success("Filters reset to defaults", { id: loadingId });
     } catch (err) {
       console.error("Failed to reset filters", err);
-      const errorId = `reset-error-${Date.now()}`;
       toast.error("Couldn't reset filters. Please try again.", {
         id: loadingId,
         action: {
           label: "Retry",
           onClick: () => {
             if (resettingRef.current) return;
-            // Remove the error toast so the Retry button can't be clicked again
             toast.dismiss(loadingId);
-            toast.dismiss(errorId);
             void clearSavedPreferences();
           },
         },
       });
     } finally {
       resettingRef.current = false;
+      cancelResetRef.current = false;
       setResetting(false);
     }
   };
