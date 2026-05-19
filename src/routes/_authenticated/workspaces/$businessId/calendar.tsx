@@ -814,16 +814,24 @@ function AvailabilityPanel({
             {searchAction.status === "cancelled" && (
               <div
                 role="status"
-                aria-live="polite"
-                className="rounded-md border border-border bg-muted/30 px-3 py-3 flex items-start justify-between gap-3 text-sm"
+                aria-live="assertive"
+                className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-3 flex items-start justify-between gap-3 text-sm"
               >
-                <div className="min-w-0">
-                  <p className="text-muted-foreground">Search cancelled before results loaded.</p>
-                  {lastAttemptDiffers && (
-                    <p className="text-xs text-muted-foreground/80 mt-0.5">
-                      Filters have changed since — Retry re-runs the previous search; Search uses current filters.
+                <div className="flex items-start gap-2 min-w-0">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wide text-amber-700 dark:text-amber-300 shrink-0">
+                    <X className="h-3 w-3" /> Cancelled
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium">Availability search was cancelled</p>
+                    <p className="text-xs text-muted-foreground">
+                      No results loaded. The previous filters are still saved — Retry to re-run them.
                     </p>
-                  )}
+                    {lastAttemptDiffers && (
+                      <p className="text-xs text-muted-foreground/80 mt-0.5">
+                        Filters have changed since — Retry re-runs the previous search; Search uses current filters.
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <Button
@@ -845,6 +853,7 @@ function AvailabilityPanel({
                 </div>
               </div>
             )}
+
 
             {searchAction.status === "error" && (
               <div
