@@ -75,11 +75,10 @@ export function useAbortableToastAction() {
     controllerRef.current?.abort();
   }, []);
 
-  const run = useCallback(async <T,>(opts: AbortableToastRunOptions<T>): Promise<void> => {
+  const run = useCallback(async <T,>(opts: AbortableToastRunOptions<T>): Promise<T | undefined> => {
     const mode = opts.mode ?? "single-flight";
     if (runningRef.current) {
-      if (mode === "single-flight") return;
-      // "replace" — abort the previous run so this one can take over.
+      if (mode === "single-flight") return undefined;
       controllerRef.current?.abort();
       if (toastIdRef.current) toast.dismiss(toastIdRef.current);
     }
@@ -108,7 +107,7 @@ export function useAbortableToastAction() {
       : undefined;
 
     try {
-      await opts.task(controller.signal);
+      const result = await opts.task(controller.signal);
       if (controller.signal.aborted) {
         throw new DOMException("Aborted", "AbortError");
       }
@@ -121,6 +120,7 @@ export function useAbortableToastAction() {
       } else {
         toast.dismiss(toastId);
       }
+      return result;
     } catch (err) {
       if (!mountedRef.current) {
         toast.dismiss(toastId);
@@ -131,16 +131,15 @@ export function useAbortableToastAction() {
           toast.dismiss(toastId);
         }
       } else {
-        if (opts.silent) {
-          console.error("Abortable toast action failed", err);
-        } else {
-          console.error("Abortable toast action failed", err);
+        console.error("Abortable toast action failed", err);
+        if (!opts.silent) {
           toast.error(opts.errorMessage ?? "Something went wrong. Please try again.", {
             id: toastId,
             action: retryAction,
           });
         }
       }
+      return undefined;
     } finally {
       runningRef.current = false;
       controllerRef.current = null;
