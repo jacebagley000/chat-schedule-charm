@@ -111,6 +111,22 @@ function DashboardPage() {
             ))}
           </div>
         )}
+
+        {businesses.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {businesses.map((b) => (
+              <Link
+                key={`live-${b.id}`}
+                to="/workspaces/$businessId/schedule"
+                params={{ businessId: b.id }}
+                className="text-xs font-mono uppercase tracking-wide text-muted-foreground hover:text-accent underline-offset-4 hover:underline"
+              >
+                {b.name} — live schedule →
+              </Link>
+            ))}
+          </div>
+        )}
+
       </main>
     </div>
   );
