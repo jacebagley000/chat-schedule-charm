@@ -829,18 +829,16 @@ function AvailabilityPanel({
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          aria-label="What does Never do?"
+                          aria-label={t("availability.autoDismiss.tooltipAriaLabel")}
                           className="text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <HelpCircle className="h-3.5 w-3.5" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-[260px] text-xs leading-snug">
-                        How long the inline "Cancelled" status and banner stay
-                        visible after you abort a search.
+                        {t("availability.autoDismiss.tooltipBody")}
                         <span className="block mt-1">
-                          <strong>Never</strong> keeps the Cancelled status on screen
-                          until you dismiss it manually, Retry, or start a fresh search.
+                          {t("availability.autoDismiss.tooltipNever")}
                         </span>
                       </TooltipContent>
                     </Tooltip>
