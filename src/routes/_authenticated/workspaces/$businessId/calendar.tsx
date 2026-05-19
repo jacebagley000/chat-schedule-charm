@@ -329,6 +329,7 @@ function AvailabilityPanel({
   services: Service[];
   onPickSlot: (start: Date) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? "");
   const [dateStr, setDateStr] = useState<string>(format(day, "yyyy-MM-dd"));
