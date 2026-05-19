@@ -302,6 +302,7 @@ function AvailabilityPanel({
   const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? "");
   const [dateStr, setDateStr] = useState<string>(format(day, "yyyy-MM-dd"));
   const [timeBand, setTimeBand] = useState<string>("any");
+  const [durationOverride, setDurationOverride] = useState<string>("service");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [results, setResults] = useState<Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> | null>(null);
@@ -362,7 +363,7 @@ function AvailabilityPanel({
       busy.set(r.staff_id as string, arr);
     });
 
-    const dur = svc.duration_minutes;
+    const dur = durationOverride === "service" ? svc.duration_minutes : Number(durationOverride);
     const MAX_SLOTS = 3;
     const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
     for (const c of candidates) {
@@ -391,6 +392,7 @@ function AvailabilityPanel({
     setServiceId(services[0]?.id ?? "");
     setDateStr(format(day, "yyyy-MM-dd"));
     setTimeBand("any");
+    setDurationOverride("service");
     setRoleFilter("all");
     setLocationFilter("all");
     setResults(null);
@@ -418,7 +420,7 @@ function AvailabilityPanel({
         </button>
         {open && (
           <div className="border-t border-border p-4 space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Service</Label>
                 <Select value={serviceId} onValueChange={setServiceId}>
@@ -440,6 +442,20 @@ function AvailabilityPanel({
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TIME_PRESETS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Duration</Label>
+                <Select value={durationOverride} onValueChange={setDurationOverride}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="service">Service default</SelectItem>
+                    {[15, 30, 45, 60, 75, 90, 120, 150, 180].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} hr` : `${Math.floor(m / 60)} hr ${m % 60} min`}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
