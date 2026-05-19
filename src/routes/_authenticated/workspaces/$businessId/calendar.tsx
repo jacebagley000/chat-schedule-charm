@@ -437,6 +437,19 @@ function AvailabilityPanel({
     setResults(null);
   };
 
+  const clearSavedPreferences = () => {
+    setTimeBand("any");
+    setRoleFilter("all");
+    setLocationFilter("all");
+    if (userId) {
+      try {
+        localStorage.removeItem(`availability:timeBand:${userId}`);
+        localStorage.removeItem(`availability:roleFilter:${userId}`);
+        localStorage.removeItem(`availability:locationFilter:${userId}`);
+      } catch { /* ignore */ }
+    }
+  };
+
   const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
   const staffMeta = (id: string) => {
     const s = staff.find((x) => x.id === id);
