@@ -599,6 +599,16 @@ function AvailabilityPanel({
               <Button type="button" size="sm" onClick={search} disabled={searching || !serviceId}>
                 {searching ? "Searching…" : "Find availability"}
               </Button>
+              {searching && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => searchAction.abort()}
+                >
+                  Cancel
+                </Button>
+              )}
               <Button type="button" size="sm" variant="ghost" onClick={reset}>Reset</Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -627,7 +637,52 @@ function AvailabilityPanel({
               </AlertDialog>
             </div>
 
-            {results !== null && (
+            {searchAction.status === "loading" && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-md border border-border bg-muted/30 px-3 py-3 flex items-center gap-2 text-sm text-muted-foreground"
+              >
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Finding availability…</span>
+              </div>
+            )}
+
+            {searchAction.status === "cancelled" && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-md border border-border bg-muted/30 px-3 py-3 flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-muted-foreground">Search cancelled.</span>
+                <Button type="button" size="sm" variant="outline" onClick={search}>
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            {searchAction.status === "error" && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-3 flex items-start justify-between gap-3 text-sm"
+              >
+                <div className="flex items-start gap-2 min-w-0">
+                  <AlertCircle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-destructive">Couldn't load availability</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {searchAction.error?.message ?? "Please try again."}
+                    </p>
+                  </div>
+                </div>
+                <Button type="button" size="sm" variant="outline" onClick={search}>
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            {searchAction.status === "success" && results !== null && (
               <div className="rounded-md border border-border divide-y divide-border">
                 {results.length === 0 ? (
                   <p className="px-3 py-3 text-sm text-muted-foreground italic">
@@ -662,6 +717,7 @@ function AvailabilityPanel({
                 )}
               </div>
             )}
+
           </div>
         )}
       </div>
