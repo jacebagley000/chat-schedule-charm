@@ -740,7 +740,10 @@ function AppointmentDialog({
               {conflict.availableStaffIds.length > 0 && (
                 <div className="rounded-md bg-primary/5 border border-primary/30 px-3 py-3 text-sm space-y-2">
                   <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground">
-                    Available at this time · {conflict.availableStaffIds.length}
+                    Available at this time · {filteredAvailableStaffIds.length}
+                    {filteredAvailableStaffIds.length !== conflict.availableStaffIds.length && (
+                      <span className="normal-case tracking-normal"> of {conflict.availableStaffIds.length}</span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Free{" "}
@@ -748,21 +751,73 @@ function AppointmentDialog({
                       {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
                     </span>
                   </p>
+
+                  {(roleOptions.length > 0 || locationOptions.length > 0) && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {roleOptions.length > 0 && (
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Role</Label>
+                          <Select value={filterRole} onValueChange={setFilterRole}>
+                            <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All roles</SelectItem>
+                              {roleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      {locationOptions.length > 0 && (
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Location</Label>
+                          <Select value={filterLocation} onValueChange={setFilterLocation}>
+                            <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All locations</SelectItem>
+                              {locationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      {(filterRole !== "all" || filterLocation !== "all") && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="self-end h-8"
+                          onClick={() => { setFilterRole("all"); setFilterLocation("all"); }}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {conflict.availableStaffIds.map((id) => (
-                      <Button
-                        key={id}
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => applySuggestedStaff(id)}
-                      >
-                        Book with {staffNameOf(id)}
-                      </Button>
-                    ))}
+                    {filteredAvailableStaffIds.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">No staff match the selected filters.</p>
+                    ) : (
+                      filteredAvailableStaffIds.map((id) => {
+                        const s = staff.find((x) => x.id === id);
+                        const meta = [s?.role, s?.location].filter(Boolean).join(" · ");
+                        return (
+                          <Button
+                            key={id}
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => applySuggestedStaff(id)}
+                            title={meta || undefined}
+                          >
+                            Book with {staffNameOf(id)}
+                            {meta && <span className="ml-1 text-[10px] opacity-70">({meta})</span>}
+                          </Button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               )}
+
 
               <DialogFooter className="gap-2 sm:gap-2 flex-wrap">
                 <Button type="button" variant="outline" onClick={() => setConflict(null)}>
