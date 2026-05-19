@@ -422,6 +422,28 @@ function AppointmentDialog({
     return null;
   };
 
+  const findAvailableStaff = async (
+    excludeStaffId: string,
+    startsAt: Date,
+    endsAt: Date,
+  ): Promise<string | null> => {
+    const candidates = staff.filter((s) => s.id !== excludeStaffId).map((s) => s.id);
+    if (candidates.length === 0) return null;
+    let q = supabase
+      .from("appointments")
+      .select("staff_id")
+      .eq("business_id", businessId)
+      .in("staff_id", candidates)
+      .not("status", "in", "(cancelled,no_show)")
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString());
+    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+    const { data, error } = await q;
+    if (error) return null;
+    const busy = new Set((data ?? []).map((r) => r.staff_id as string));
+    return candidates.find((id) => !busy.has(id)) ?? null;
+  };
+
   const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
     let q = supabase
       .from("appointments")
