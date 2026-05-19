@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { addDays, format, parseISO, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,58 @@ function SchedulePage() {
   const [connected, setConnected] = useState(false);
   const [pulse, setPulse] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const dragInfoRef = useRef<{ id: string; grabOffsetMin: number; durationMin: number } | null>(null);
+
+  const SNAP_MIN = 15;
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, colId: string) => {
+    e.preventDefault();
+    setDropTarget(null);
+    setDraggingId(null);
+    const info = dragInfoRef.current;
+    dragInfoRef.current = null;
+    if (!info) return;
+    const appt = appointments.find((a) => a.id === info.id);
+    if (!appt) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const rawMin = y / PX_PER_MIN - info.grabOffsetMin;
+    const snapped = Math.round(rawMin / SNAP_MIN) * SNAP_MIN;
+    const startMin = Math.max(0, Math.min(TOTAL_MIN - info.durationMin, snapped));
+
+    const newStart = new Date(day);
+    newStart.setHours(HOUR_START, 0, 0, 0);
+    newStart.setMinutes(newStart.getMinutes() + startMin);
+    const newEnd = new Date(newStart.getTime() + info.durationMin * 60_000);
+
+    const newStaffId = colId === "__unassigned" ? null : colId;
+
+    // No-op if nothing actually changed.
+    if (
+      newStart.toISOString() === appt.starts_at &&
+      newEnd.toISOString() === appt.ends_at &&
+      newStaffId === appt.staff_id
+    ) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        starts_at: newStart.toISOString(),
+        ends_at: newEnd.toISOString(),
+        staff_id: newStaffId,
+      })
+      .eq("id", appt.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`Moved to ${format(newStart, "h:mm a")}`);
+    }
+  };
 
   // Keep selected appointment in sync with realtime updates (or close if deleted).
   const editing = useMemo(
@@ -342,11 +394,27 @@ function SchedulePage() {
 
               {columns.map((c) => {
                 const list = apptsByStaff.get(c.id) ?? [];
+                const isOver = dropTarget === c.id;
                 return (
                   <div
                     key={c.id}
-                    className="relative border-r border-border last:border-r-0"
+                    className={cn(
+                      "relative border-r border-border last:border-r-0 transition-colors",
+                      isOver && "bg-accent/30",
+                    )}
                     style={{ height: `${TOTAL_MIN * PX_PER_MIN}px` }}
+                    onDragOver={(e) => {
+                      if (!dragInfoRef.current) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dropTarget !== c.id) setDropTarget(c.id);
+                    }}
+                    onDragLeave={(e) => {
+                      // Only clear if leaving the column itself (not bubbling from a child).
+                      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                      if (dropTarget === c.id) setDropTarget(null);
+                    }}
+                    onDrop={(e) => handleDrop(e, c.id)}
                   >
                     {hours.map((h) => (
                       <div
@@ -358,7 +426,7 @@ function SchedulePage() {
 
                     {isToday && nowMin >= 0 && nowMin <= TOTAL_MIN && (
                       <div
-                        className="absolute left-0 right-0 z-10 flex items-center"
+                        className="absolute left-0 right-0 z-10 flex items-center pointer-events-none"
                         style={{ top: nowMin * PX_PER_MIN }}
                       >
                         <span className="h-2 w-2 rounded-full bg-rose-500 -ml-1" />
@@ -377,14 +445,37 @@ function SchedulePage() {
                       );
                       const top = Math.max(0, startMin) * PX_PER_MIN;
                       const height = Math.max(28, duration * PX_PER_MIN);
+                      const isDragging = draggingId === a.id;
                       return (
                         <button
                           key={a.id}
                           type="button"
-                          onClick={() => setEditingId(a.id)}
+                          draggable
+                          onDragStart={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const grabOffsetMin = (e.clientY - rect.top) / PX_PER_MIN;
+                            dragInfoRef.current = {
+                              id: a.id,
+                              grabOffsetMin,
+                              durationMin: duration,
+                            };
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", a.id);
+                            setDraggingId(a.id);
+                          }}
+                          onDragEnd={() => {
+                            dragInfoRef.current = null;
+                            setDraggingId(null);
+                            setDropTarget(null);
+                          }}
+                          onClick={() => {
+                            if (draggingId) return;
+                            setEditingId(a.id);
+                          }}
                           className={cn(
-                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all",
+                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all cursor-grab active:cursor-grabbing",
                             STATUS_STYLES[a.status],
+                            isDragging && "opacity-40 ring-2 ring-primary",
                           )}
                           style={{ top, height }}
                         >
