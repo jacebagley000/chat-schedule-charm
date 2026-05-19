@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Json } from "@/integrations/supabase/types";
 
 /**
  * Meta (Instagram + Facebook Messenger) webhook receiver.
@@ -236,7 +237,7 @@ async function processEvent(
       direction: "inbound",
       sender: "customer",
       body: text || null,
-      metadata: event as unknown as Record<string, unknown>,
+      metadata: event as unknown as Json,
     })
     .select("id")
     .single();
@@ -261,7 +262,7 @@ async function processEvent(
     ai_requested_at: ai?.requested_at ?? null,
     ai_party_size: ai?.party_size ?? null,
     ai_notes: ai?.notes ?? null,
-    metadata: { meta_event: event } as Record<string, unknown>,
+    metadata: { meta_event: event } as unknown as Json,
   });
 
   if (reqInsert.error) throw reqInsert.error;
