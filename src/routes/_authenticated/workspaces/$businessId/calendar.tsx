@@ -659,6 +659,16 @@ function AvailabilityPanel({
                 {searching ? "Retrying…" : "Retry"}
               </Button>
             )}
+            {searching && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => searchAction.abort()}
+              >
+                Cancel
+              </Button>
+            )}
             <Button type="button" size="sm" onClick={startFreshSearch}>
               Start fresh search
             </Button>
