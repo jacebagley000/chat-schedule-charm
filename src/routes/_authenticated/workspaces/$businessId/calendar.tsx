@@ -26,6 +26,7 @@ import {
   ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle, Loader2, X, HelpCircle,
 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
