@@ -455,7 +455,12 @@ function AvailabilityPanel({
       toast.success("Filters reset to defaults");
     } catch (err) {
       console.error("Failed to reset filters", err);
-      toast.error("Couldn't reset filters. Please try again.");
+      toast.error("Couldn't reset filters. Please try again.", {
+        action: {
+          label: "Retry",
+          onClick: () => clearSavedPreferences(),
+        },
+      });
     }
   };
 
