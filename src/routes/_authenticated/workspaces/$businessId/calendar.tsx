@@ -936,6 +936,10 @@ function AppointmentDialog({
     if (svc && mode === "create") setDuration(svc.duration_minutes);
   };
 
+  const nextSlotAction = useAbortableToastAction();
+  const availableStaffAction = useAbortableToastAction();
+  const conflictCheckAction = useAbortableToastAction();
+
   const findNextAvailableSlot = async (
     sid: string,
     durationMin: number,
