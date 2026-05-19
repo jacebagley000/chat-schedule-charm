@@ -386,8 +386,9 @@ function AvailabilityPanel({
       localStorage.setItem(`availability:timeBand:${userId}`, timeBand);
       localStorage.setItem(`availability:roleFilter:${userId}`, roleFilter);
       localStorage.setItem(`availability:locationFilter:${userId}`, locationFilter);
+      localStorage.setItem(`availability:cancelledAutoDismissSec:${userId}`, String(cancelledAutoDismissSec));
     } catch { /* ignore */ }
-  }, [durationOverride, timeBand, roleFilter, locationFilter, durationHydrated, userId]);
+  }, [durationOverride, timeBand, roleFilter, locationFilter, cancelledAutoDismissSec, durationHydrated, userId]);
 
 
 
