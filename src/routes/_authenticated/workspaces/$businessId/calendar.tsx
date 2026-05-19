@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { format, addDays, startOfDay, addMinutes, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -443,7 +443,10 @@ function AvailabilityPanel({
     setResults(null);
   };
 
+  const resettingRef = useRef(false);
   const clearSavedPreferences = async () => {
+    if (resettingRef.current) return; // guard against concurrent retries
+    resettingRef.current = true;
     setResetting(true);
     const loadingId = toast.loading("Resetting filters…");
     try {
@@ -460,14 +463,22 @@ function AvailabilityPanel({
       toast.success("Filters reset to defaults", { id: loadingId });
     } catch (err) {
       console.error("Failed to reset filters", err);
+      const errorId = `reset-error-${Date.now()}`;
       toast.error("Couldn't reset filters. Please try again.", {
         id: loadingId,
         action: {
           label: "Retry",
-          onClick: () => { void clearSavedPreferences(); },
+          onClick: () => {
+            if (resettingRef.current) return;
+            // Remove the error toast so the Retry button can't be clicked again
+            toast.dismiss(loadingId);
+            toast.dismiss(errorId);
+            void clearSavedPreferences();
+          },
         },
       });
     } finally {
+      resettingRef.current = false;
       setResetting(false);
     }
   };
