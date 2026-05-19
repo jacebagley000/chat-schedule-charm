@@ -76,6 +76,58 @@ function SchedulePage() {
   const [connected, setConnected] = useState(false);
   const [pulse, setPulse] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const dragInfoRef = useRef<{ id: string; grabOffsetMin: number; durationMin: number } | null>(null);
+
+  const SNAP_MIN = 15;
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, colId: string) => {
+    e.preventDefault();
+    setDropTarget(null);
+    setDraggingId(null);
+    const info = dragInfoRef.current;
+    dragInfoRef.current = null;
+    if (!info) return;
+    const appt = appointments.find((a) => a.id === info.id);
+    if (!appt) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const rawMin = y / PX_PER_MIN - info.grabOffsetMin;
+    const snapped = Math.round(rawMin / SNAP_MIN) * SNAP_MIN;
+    const startMin = Math.max(0, Math.min(TOTAL_MIN - info.durationMin, snapped));
+
+    const newStart = new Date(day);
+    newStart.setHours(HOUR_START, 0, 0, 0);
+    newStart.setMinutes(newStart.getMinutes() + startMin);
+    const newEnd = new Date(newStart.getTime() + info.durationMin * 60_000);
+
+    const newStaffId = colId === "__unassigned" ? null : colId;
+
+    // No-op if nothing actually changed.
+    if (
+      newStart.toISOString() === appt.starts_at &&
+      newEnd.toISOString() === appt.ends_at &&
+      newStaffId === appt.staff_id
+    ) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        starts_at: newStart.toISOString(),
+        ends_at: newEnd.toISOString(),
+        staff_id: newStaffId,
+      })
+      .eq("id", appt.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`Moved to ${format(newStart, "h:mm a")}`);
+    }
+  };
 
   // Keep selected appointment in sync with realtime updates (or close if deleted).
   const editing = useMemo(
