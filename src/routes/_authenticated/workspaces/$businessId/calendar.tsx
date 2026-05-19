@@ -392,6 +392,7 @@ function AvailabilityPanel({
     setServiceId(services[0]?.id ?? "");
     setDateStr(format(day, "yyyy-MM-dd"));
     setTimeBand("any");
+    setDurationOverride("service");
     setRoleFilter("all");
     setLocationFilter("all");
     setResults(null);
