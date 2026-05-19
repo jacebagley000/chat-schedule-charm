@@ -479,6 +479,7 @@ function AvailabilityPanel({
     setRoleFilter("all");
     setLocationFilter("all");
     setResults(null);
+    searchAction.reset();
   };
 
   const resetAction = useAbortableToastAction();
