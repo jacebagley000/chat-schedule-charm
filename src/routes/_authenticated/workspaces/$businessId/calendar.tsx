@@ -302,13 +302,42 @@ function AvailabilityPanel({
   const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? "");
   const [dateStr, setDateStr] = useState<string>(format(day, "yyyy-MM-dd"));
   const [timeBand, setTimeBand] = useState<string>("any");
+  const [userId, setUserId] = useState<string | null>(null);
   const [durationOverride, setDurationOverride] = useState<string>("service");
+  const [durationHydrated, setDurationHydrated] = useState(false);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [results, setResults] = useState<Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> | null>(null);
   const [searching, setSearching] = useState(false);
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
+
+  // Load persisted duration per user
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      if (uid) {
+        try {
+          const saved = localStorage.getItem(`availability:durationOverride:${uid}`);
+          if (saved) setDurationOverride(saved);
+        } catch { /* ignore */ }
+      }
+      setDurationHydrated(true);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Persist duration when it changes
+  useEffect(() => {
+    if (!durationHydrated || !userId) return;
+    try {
+      localStorage.setItem(`availability:durationOverride:${userId}`, durationOverride);
+    } catch { /* ignore */ }
+  }, [durationOverride, durationHydrated, userId]);
+
 
   const roleOptions = useMemo(() => {
     const set = new Set<string>();
