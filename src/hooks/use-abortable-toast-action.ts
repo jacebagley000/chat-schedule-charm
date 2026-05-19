@@ -53,11 +53,27 @@ export interface AbortableToastRunOptions<T> {
  *  - dismisses the toast and aborts the task on unmount,
  *  - prevents concurrent runs.
  */
+export type AbortableActionStatus =
+  | "idle"
+  | "loading"
+  | "success"
+  | "cancelled"
+  | "error";
+
 export function useAbortableToastAction() {
   const runningRef = useRef(false);
   const controllerRef = useRef<AbortController | null>(null);
   const toastIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
+  const [status, setStatus] = useState<AbortableActionStatus>("idle");
+  const [error, setError] = useState<Error | null>(null);
+
+  const safeSetStatus = useCallback((s: AbortableActionStatus) => {
+    if (mountedRef.current) setStatus(s);
+  }, []);
+  const safeSetError = useCallback((e: Error | null) => {
+    if (mountedRef.current) setError(e);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -75,6 +91,11 @@ export function useAbortableToastAction() {
     controllerRef.current?.abort();
   }, []);
 
+  const reset = useCallback(() => {
+    safeSetStatus("idle");
+    safeSetError(null);
+  }, [safeSetStatus, safeSetError]);
+
   const run = useCallback(async <T,>(opts: AbortableToastRunOptions<T>): Promise<T | undefined> => {
     const mode = opts.mode ?? "single-flight";
     if (runningRef.current) {
@@ -83,6 +104,8 @@ export function useAbortableToastAction() {
       if (toastIdRef.current) toast.dismiss(toastIdRef.current);
     }
     runningRef.current = true;
+    safeSetStatus("loading");
+    safeSetError(null);
     const controller = new AbortController();
     controllerRef.current = controller;
     const toastId = `abortable-toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -120,6 +143,7 @@ export function useAbortableToastAction() {
       } else {
         toast.dismiss(toastId);
       }
+      safeSetStatus("success");
       return result;
     } catch (err) {
       if (!mountedRef.current) {
@@ -130,6 +154,7 @@ export function useAbortableToastAction() {
         } else {
           toast.dismiss(toastId);
         }
+        safeSetStatus("cancelled");
       } else {
         console.error("Abortable toast action failed", err);
         if (!opts.silent) {
@@ -138,6 +163,8 @@ export function useAbortableToastAction() {
             action: retryAction,
           });
         }
+        safeSetError(err instanceof Error ? err : new Error(String(err)));
+        safeSetStatus("error");
       }
       return undefined;
     } finally {
@@ -145,7 +172,7 @@ export function useAbortableToastAction() {
       controllerRef.current = null;
       toastIdRef.current = null;
     }
-  }, []);
+  }, [safeSetStatus, safeSetError]);
 
-  return { run, abort };
+  return { run, abort, reset, status, error };
 }
