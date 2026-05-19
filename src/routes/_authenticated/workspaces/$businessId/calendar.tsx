@@ -366,6 +366,11 @@ function AvailabilityPanel({
           if (rf) setRoleFilter(rf);
           const lf = localStorage.getItem(`availability:locationFilter:${uid}`);
           if (lf) setLocationFilter(lf);
+          const ad = localStorage.getItem(`availability:cancelledAutoDismissSec:${uid}`);
+          if (ad !== null) {
+            const n = Number(ad);
+            if (Number.isFinite(n) && n >= 0) setCancelledAutoDismissSec(n);
+          }
         } catch { /* ignore */ }
       }
       setDurationHydrated(true);
