@@ -281,16 +281,33 @@ function SetupPanel({
 }) {
   const [staffName, setStaffName] = useState("");
   const [staffQuery, setStaffQuery] = useState("");
+  const [staffRoleFilter, setStaffRoleFilter] = useState<string>("all");
+  const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(30);
 
+  const staffRoleOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.role && s.role.trim()) set.add(s.role.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+  const staffLocationOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.location && s.location.trim()) set.add(s.location.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+
   const filteredStaff = useMemo(() => {
     const q = staffQuery.trim().toLowerCase();
-    if (!q) return staff;
-    return staff.filter((s) =>
-      [s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))
-    );
-  }, [staff, staffQuery]);
+    return staff.filter((s) => {
+      if (staffRoleFilter !== "all" && (s.role ?? "") !== staffRoleFilter) return false;
+      if (staffLocationFilter !== "all" && (s.location ?? "") !== staffLocationFilter) return false;
+      if (q && ![s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [staff, staffQuery, staffRoleFilter, staffLocationFilter]);
+
+  const staffFiltersActive = staffQuery.trim() !== "" || staffRoleFilter !== "all" || staffLocationFilter !== "all";
 
   const addStaff = async (e: FormEvent) => {
     e.preventDefault();
@@ -324,16 +341,45 @@ function SetupPanel({
               <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
             </form>
             {staff.length > 0 && (
-              <Input
-                value={staffQuery}
-                onChange={(e) => setStaffQuery(e.target.value)}
-                placeholder="Search by name, role, or location…"
-                className="mt-2 h-8"
-              />
+              <div className="mt-2 space-y-2">
+                <Input
+                  value={staffQuery}
+                  onChange={(e) => setStaffQuery(e.target.value)}
+                  placeholder="Search by name, role, or location…"
+                  className="h-8"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Select value={staffRoleFilter} onValueChange={setStaffRoleFilter}>
+                    <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Role" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All roles</SelectItem>
+                      {staffRoleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
+                    <SelectTrigger className="h-8 w-[160px]"><SelectValue placeholder="Location" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All locations</SelectItem>
+                      {staffLocationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {staffFiltersActive && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-8"
+                      onClick={() => { setStaffQuery(""); setStaffRoleFilter("all"); setStaffLocationFilter("all"); }}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </div>
             )}
             <ul className="mt-3 space-y-2">
               {filteredStaff.length === 0 && staff.length > 0 ? (
-                <li className="text-xs text-muted-foreground italic">No staff match “{staffQuery}”.</li>
+                <li className="text-xs text-muted-foreground italic">No staff match the current filters.</li>
               ) : (
                 filteredStaff.map((s) => <StaffRow key={s.id} staff={s} onChanged={onChanged} />)
               )}
