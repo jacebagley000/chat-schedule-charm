@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 
 const SignupRoute = SignupRouteImport.update({
@@ -40,6 +41,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
+  id: '/api/public/webhooks/meta',
+  path: '/api/public/webhooks/meta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedWorkspacesBusinessIdCalendarRoute =
   AuthenticatedWorkspacesBusinessIdCalendarRouteImport.update({
     id: '/workspaces/$businessId/calendar',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/api/public/webhooks/meta'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/api/public/webhooks/meta'
   id:
     | '__root__'
     | '/'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/workspaces/$businessId/calendar'
+    | '/api/public/webhooks/meta'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,6 +112,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -139,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/webhooks/meta': {
+      id: '/api/public/webhooks/meta'
+      path: '/api/public/webhooks/meta'
+      fullPath: '/api/public/webhooks/meta'
+      preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/workspaces/$businessId/calendar': {
       id: '/_authenticated/workspaces/$businessId/calendar'
       path: '/workspaces/$businessId/calendar'
@@ -169,6 +189,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
