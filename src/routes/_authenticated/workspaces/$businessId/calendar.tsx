@@ -280,8 +280,17 @@ function SetupPanel({
   onChanged: () => void;
 }) {
   const [staffName, setStaffName] = useState("");
+  const [staffQuery, setStaffQuery] = useState("");
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(30);
+
+  const filteredStaff = useMemo(() => {
+    const q = staffQuery.trim().toLowerCase();
+    if (!q) return staff;
+    return staff.filter((s) =>
+      [s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))
+    );
+  }, [staff, staffQuery]);
 
   const addStaff = async (e: FormEvent) => {
     e.preventDefault();
