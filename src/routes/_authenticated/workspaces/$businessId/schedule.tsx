@@ -75,6 +75,14 @@ function SchedulePage() {
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const [connected, setConnected] = useState(false);
   const [pulse, setPulse] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Keep selected appointment in sync with realtime updates (or close if deleted).
+  const editing = useMemo(
+    () => appointments.find((a) => a.id === editingId) ?? null,
+    [appointments, editingId],
+  );
+
 
   // Load core entities once per business.
   useEffect(() => {
