@@ -815,6 +815,30 @@ function AvailabilityPanel({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <div className="ml-auto flex items-center gap-2">
+                <Label
+                  htmlFor="cancelled-auto-dismiss"
+                  className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground whitespace-nowrap"
+                >
+                  Auto-dismiss Cancelled
+                </Label>
+                <Select
+                  value={String(cancelledAutoDismissSec)}
+                  onValueChange={(v) => setCancelledAutoDismissSec(Number(v))}
+                >
+                  <SelectTrigger id="cancelled-auto-dismiss" className="h-8 w-[120px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 seconds</SelectItem>
+                    <SelectItem value="6">6 seconds</SelectItem>
+                    <SelectItem value="10">10 seconds</SelectItem>
+                    <SelectItem value="15">15 seconds</SelectItem>
+                    <SelectItem value="30">30 seconds</SelectItem>
+                    <SelectItem value="0">Never</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {searchAction.status === "loading" && (
