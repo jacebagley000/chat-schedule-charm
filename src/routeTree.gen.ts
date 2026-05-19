@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
+import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 
 const SignupRoute = SignupRouteImport.update({
@@ -46,6 +47,12 @@ const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
   path: '/api/public/webhooks/meta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWorkspacesBusinessIdScheduleRoute =
+  AuthenticatedWorkspacesBusinessIdScheduleRouteImport.update({
+    id: '/workspaces/$businessId/schedule',
+    path: '/workspaces/$businessId/schedule',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedWorkspacesBusinessIdCalendarRoute =
   AuthenticatedWorkspacesBusinessIdCalendarRouteImport.update({
     id: '/workspaces/$businessId/calendar',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesById {
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/_authenticated/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRouteTypes {
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   id:
     | '__root__'
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/workspaces/$businessId/calendar'
+    | '/_authenticated/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   fileRoutesById: FileRoutesById
 }
@@ -159,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/workspaces/$businessId/schedule': {
+      id: '/_authenticated/workspaces/$businessId/schedule'
+      path: '/workspaces/$businessId/schedule'
+      fullPath: '/workspaces/$businessId/schedule'
+      preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/calendar': {
       id: '/_authenticated/workspaces/$businessId/calendar'
       path: '/workspaces/$businessId/calendar'
@@ -172,12 +192,15 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  AuthenticatedWorkspacesBusinessIdScheduleRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
     AuthenticatedWorkspacesBusinessIdCalendarRoute,
+  AuthenticatedWorkspacesBusinessIdScheduleRoute:
+    AuthenticatedWorkspacesBusinessIdScheduleRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
