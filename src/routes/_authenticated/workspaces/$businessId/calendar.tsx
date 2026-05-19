@@ -23,8 +23,9 @@ import {
 import { toast } from "sonner";
 import { useAbortableToastAction, abortableDelay } from "@/hooks/use-abortable-toast-action";
 import {
-  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle, Loader2, X,
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle, Loader2, X, HelpCircle,
 } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
