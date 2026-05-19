@@ -314,8 +314,8 @@ function SetupPanel({
               <Input placeholder="Stylist name" value={staffName} onChange={(e) => setStaffName(e.target.value)} />
               <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
             </form>
-            <ul className="mt-3 text-sm space-y-1">
-              {staff.map((s) => <li key={s.id} className="text-muted-foreground">· {s.name}</li>)}
+            <ul className="mt-3 space-y-2">
+              {staff.map((s) => <StaffRow key={s.id} staff={s} onChanged={onChanged} />)}
             </ul>
           </div>
           <div>
@@ -337,6 +337,68 @@ function SetupPanel({
         </div>
       </div>
     </div>
+  );
+}
+
+function StaffRow({ staff, onChanged }: { staff: Staff; onChanged: () => void }) {
+  const [name, setName] = useState(staff.name);
+  const [role, setRole] = useState(staff.role ?? "");
+  const [location, setLocation] = useState(staff.location ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(staff.name);
+    setRole(staff.role ?? "");
+    setLocation(staff.location ?? "");
+  }, [staff.id, staff.name, staff.role, staff.location]);
+
+  const save = async (patch: { name?: string; role?: string | null; location?: string | null }) => {
+    setSaving(true);
+    const { error } = await supabase.from("staff").update(patch).eq("id", staff.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    onChanged();
+  };
+
+  const commit = (field: "name" | "role" | "location", value: string) => {
+    const trimmed = value.trim();
+    if (field === "name") {
+      if (!trimmed || trimmed === staff.name) return;
+      save({ name: trimmed });
+    } else {
+      const current = (staff[field] ?? "") as string;
+      if (trimmed === current) return;
+      save({ [field]: trimmed || null });
+    }
+  };
+
+  return (
+    <li className="grid grid-cols-1 sm:grid-cols-3 gap-2 rounded-md border border-border bg-background/50 p-2">
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onBlur={(e) => commit("name", e.target.value)}
+        placeholder="Name"
+        disabled={saving}
+        className="h-8"
+      />
+      <Input
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+        onBlur={(e) => commit("role", e.target.value)}
+        placeholder="Role (e.g. Stylist)"
+        disabled={saving}
+        className="h-8"
+      />
+      <Input
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        onBlur={(e) => commit("location", e.target.value)}
+        placeholder="Location (e.g. Downtown)"
+        disabled={saving}
+        className="h-8"
+      />
+    </li>
   );
 }
 
