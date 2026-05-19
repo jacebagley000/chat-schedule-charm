@@ -312,7 +312,7 @@ function AvailabilityPanel({
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
 
-  // Load persisted duration per user
+  // Load persisted preferences per user
   useEffect(() => {
     let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
@@ -321,8 +321,14 @@ function AvailabilityPanel({
       setUserId(uid);
       if (uid) {
         try {
-          const saved = localStorage.getItem(`availability:durationOverride:${uid}`);
-          if (saved) setDurationOverride(saved);
+          const dur = localStorage.getItem(`availability:durationOverride:${uid}`);
+          if (dur) setDurationOverride(dur);
+          const tb = localStorage.getItem(`availability:timeBand:${uid}`);
+          if (tb) setTimeBand(tb);
+          const rf = localStorage.getItem(`availability:roleFilter:${uid}`);
+          if (rf) setRoleFilter(rf);
+          const lf = localStorage.getItem(`availability:locationFilter:${uid}`);
+          if (lf) setLocationFilter(lf);
         } catch { /* ignore */ }
       }
       setDurationHydrated(true);
@@ -330,13 +336,17 @@ function AvailabilityPanel({
     return () => { cancelled = true; };
   }, []);
 
-  // Persist duration when it changes
+  // Persist preferences when they change
   useEffect(() => {
     if (!durationHydrated || !userId) return;
     try {
       localStorage.setItem(`availability:durationOverride:${userId}`, durationOverride);
+      localStorage.setItem(`availability:timeBand:${userId}`, timeBand);
+      localStorage.setItem(`availability:roleFilter:${userId}`, roleFilter);
+      localStorage.setItem(`availability:locationFilter:${userId}`, locationFilter);
     } catch { /* ignore */ }
-  }, [durationOverride, durationHydrated, userId]);
+  }, [durationOverride, timeBand, roleFilter, locationFilter, durationHydrated, userId]);
+
 
 
   const roleOptions = useMemo(() => {
