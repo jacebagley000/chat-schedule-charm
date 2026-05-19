@@ -363,21 +363,26 @@ function AvailabilityPanel({
     });
 
     const dur = svc.duration_minutes;
-    const found: Array<{ staffId: string; start: Date; end: Date }> = [];
+    const MAX_SLOTS = 3;
+    const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
     for (const c of candidates) {
       const intervals = (busy.get(c.id) ?? []).sort((a, b) => a.s.getTime() - b.s.getTime());
       let cursor = new Date(Math.max(windowStart.getTime(), dayStart.getTime()));
       const stop = new Date(Math.min(windowEnd.getTime(), dayEnd.getTime()));
-      let placed = false;
-      while (addMinutes(cursor, dur).getTime() <= stop.getTime()) {
+      const slots: Array<{ start: Date; end: Date }> = [];
+      while (slots.length < MAX_SLOTS && addMinutes(cursor, dur).getTime() <= stop.getTime()) {
         const slotEnd = addMinutes(cursor, dur);
         const clash = intervals.find((i) => i.s < slotEnd && i.e > cursor);
-        if (!clash) { found.push({ staffId: c.id, start: new Date(cursor), end: slotEnd }); placed = true; break; }
-        cursor = clash.e;
+        if (!clash) {
+          slots.push({ start: new Date(cursor), end: slotEnd });
+          cursor = addMinutes(cursor, dur);
+        } else {
+          cursor = clash.e;
+        }
         const mins = cursor.getMinutes();
         if (mins % 5 !== 0) cursor = addMinutes(cursor, 5 - (mins % 5));
       }
-      if (!placed) { /* skip */ }
+      if (slots.length > 0) found.push({ staffId: c.id, slots });
     }
     setResults(found);
   };
