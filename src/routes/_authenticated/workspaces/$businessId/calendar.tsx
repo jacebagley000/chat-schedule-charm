@@ -282,6 +282,225 @@ function DatePopover({ value, onChange }: { value: Date; onChange: (d: Date | un
   );
 }
 
+const TIME_PRESETS: { value: string; label: string }[] = [
+  { value: "any", label: "Any time" },
+  { value: "morning", label: "Morning (7a–12p)" },
+  { value: "afternoon", label: "Afternoon (12p–5p)" },
+  { value: "evening", label: "Evening (5p–9p)" },
+];
+
+function AvailabilityPanel({
+  businessId, day, staff, services, onPickSlot,
+}: {
+  businessId: string;
+  day: Date;
+  staff: Staff[];
+  services: Service[];
+  onPickSlot: (start: Date) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? "");
+  const [dateStr, setDateStr] = useState<string>(format(day, "yyyy-MM-dd"));
+  const [timeBand, setTimeBand] = useState<string>("any");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [results, setResults] = useState<Array<{ staffId: string; start: Date; end: Date }> | null>(null);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
+
+  const roleOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.role?.trim()) set.add(s.role.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.location?.trim()) set.add(s.location.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+
+  const search = async () => {
+    const svc = services.find((s) => s.id === serviceId);
+    if (!svc) return toast.error("Pick a service");
+    const [y, m, d] = dateStr.split("-").map(Number);
+    if (!y || !m || !d) return toast.error("Pick a date");
+
+    const candidates = staff.filter((s) => {
+      if (roleFilter !== "all" && (s.role ?? "") !== roleFilter) return false;
+      if (locationFilter !== "all" && (s.location ?? "") !== locationFilter) return false;
+      return true;
+    });
+    if (candidates.length === 0) { setResults([]); return; }
+
+    const dayStart = new Date(y, m - 1, d, HOUR_START, 0, 0, 0);
+    const dayEnd = new Date(y, m - 1, d, HOUR_END, 0, 0, 0);
+    const [bandStart, bandEnd] =
+      timeBand === "morning" ? [7, 12] :
+      timeBand === "afternoon" ? [12, 17] :
+      timeBand === "evening" ? [17, 21] :
+      [HOUR_START, HOUR_END];
+    const windowStart = new Date(y, m - 1, d, bandStart, 0, 0, 0);
+    const windowEnd = new Date(y, m - 1, d, bandEnd, 0, 0, 0);
+
+    setSearching(true);
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("staff_id, starts_at, ends_at, status")
+      .eq("business_id", businessId)
+      .in("staff_id", candidates.map((c) => c.id))
+      .gte("starts_at", dayStart.toISOString())
+      .lt("starts_at", addDays(dayStart, 1).toISOString())
+      .not("status", "in", "(cancelled,no_show)");
+    setSearching(false);
+    if (error) return toast.error(error.message);
+
+    const busy = new Map<string, Array<{ s: Date; e: Date }>>();
+    (data ?? []).forEach((r) => {
+      const arr = busy.get(r.staff_id as string) ?? [];
+      arr.push({ s: parseISO(r.starts_at as string), e: parseISO(r.ends_at as string) });
+      busy.set(r.staff_id as string, arr);
+    });
+
+    const dur = svc.duration_minutes;
+    const found: Array<{ staffId: string; start: Date; end: Date }> = [];
+    for (const c of candidates) {
+      const intervals = (busy.get(c.id) ?? []).sort((a, b) => a.s.getTime() - b.s.getTime());
+      let cursor = new Date(Math.max(windowStart.getTime(), dayStart.getTime()));
+      const stop = new Date(Math.min(windowEnd.getTime(), dayEnd.getTime()));
+      let placed = false;
+      while (addMinutes(cursor, dur).getTime() <= stop.getTime()) {
+        const slotEnd = addMinutes(cursor, dur);
+        const clash = intervals.find((i) => i.s < slotEnd && i.e > cursor);
+        if (!clash) { found.push({ staffId: c.id, start: new Date(cursor), end: slotEnd }); placed = true; break; }
+        cursor = clash.e;
+        const mins = cursor.getMinutes();
+        if (mins % 5 !== 0) cursor = addMinutes(cursor, 5 - (mins % 5));
+      }
+      if (!placed) { /* skip */ }
+    }
+    setResults(found);
+  };
+
+  const reset = () => {
+    setServiceId(services[0]?.id ?? "");
+    setDateStr(format(day, "yyyy-MM-dd"));
+    setTimeBand("any");
+    setRoleFilter("all");
+    setLocationFilter("all");
+    setResults(null);
+  };
+
+  const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
+  const staffMeta = (id: string) => {
+    const s = staff.find((x) => x.id === id);
+    return [s?.role, s?.location].filter(Boolean).join(" · ");
+  };
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 pt-4">
+      <div className="rounded-xl border border-border bg-card">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-accent/5 transition-colors"
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-muted-foreground">Availability</p>
+            <p className="text-sm font-medium">Find an open slot by service, day, role, or location</p>
+          </div>
+          <ChevronRight className={cn("h-4 w-4 transition-transform", open && "rotate-90")} />
+        </button>
+        {open && (
+          <div className="border-t border-border p-4 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Service</Label>
+                <Select value={serviceId} onValueChange={setServiceId}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Service" /></SelectTrigger>
+                  <SelectContent>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.duration_minutes}m)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Date</Label>
+                <Input type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} className="h-9" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Time</Label>
+                <Select value={timeBand} onValueChange={setTimeBand}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIME_PRESETS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Role</Label>
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All roles</SelectItem>
+                    {roleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Location</Label>
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {locationOptions.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" onClick={search} disabled={searching || !serviceId}>
+                {searching ? "Searching…" : "Find availability"}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={reset}>Reset</Button>
+            </div>
+
+            {results !== null && (
+              <div className="rounded-md border border-border divide-y divide-border">
+                {results.length === 0 ? (
+                  <p className="px-3 py-3 text-sm text-muted-foreground italic">
+                    No staff available for that service in the selected window.
+                  </p>
+                ) : (
+                  results.map((r) => (
+                    <div key={r.staffId} className="px-3 py-2 flex items-center justify-between gap-2 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{staffNameOf(r.staffId)}</p>
+                        {staffMeta(r.staffId) && (
+                          <p className="text-xs text-muted-foreground truncate">{staffMeta(r.staffId)}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                          {format(r.start, "h:mm a")}–{format(r.end, "h:mm a")}
+                        </span>
+                        <Button type="button" size="sm" variant="secondary" onClick={() => onPickSlot(r.start)}>
+                          Book
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SetupPanel({
   businessId, staff, services, onChanged,
 }: {
