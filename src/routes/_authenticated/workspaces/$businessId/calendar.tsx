@@ -1054,7 +1054,6 @@ function AppointmentDialog({
     });
     return result ?? false;
   };
-  };
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
