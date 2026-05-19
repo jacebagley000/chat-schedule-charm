@@ -314,8 +314,8 @@ function SetupPanel({
               <Input placeholder="Stylist name" value={staffName} onChange={(e) => setStaffName(e.target.value)} />
               <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
             </form>
-            <ul className="mt-3 text-sm space-y-1">
-              {staff.map((s) => <li key={s.id} className="text-muted-foreground">· {s.name}</li>)}
+            <ul className="mt-3 space-y-2">
+              {staff.map((s) => <StaffRow key={s.id} staff={s} onChanged={onChanged} />)}
             </ul>
           </div>
           <div>
