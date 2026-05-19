@@ -374,6 +374,34 @@ function AppointmentDialog({
     attemptedEnd: Date;
     availableStaffIds: string[];
   } | null>(null);
+  const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterLocation, setFilterLocation] = useState<string>("all");
+
+  useEffect(() => {
+    if (conflict) { setFilterRole("all"); setFilterLocation("all"); }
+  }, [conflict]);
+
+  const roleOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.role && s.role.trim()) set.add(s.role.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.location && s.location.trim()) set.add(s.location.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+
+  const filteredAvailableStaffIds = useMemo(() => {
+    if (!conflict) return [];
+    return conflict.availableStaffIds.filter((id) => {
+      const s = staff.find((x) => x.id === id);
+      if (!s) return false;
+      if (filterRole !== "all" && (s.role ?? "") !== filterRole) return false;
+      if (filterLocation !== "all" && (s.location ?? "") !== filterLocation) return false;
+      return true;
+    });
+  }, [conflict, staff, filterRole, filterLocation]);
 
   const onServiceChange = (id: string) => {
     setServiceId(id);
