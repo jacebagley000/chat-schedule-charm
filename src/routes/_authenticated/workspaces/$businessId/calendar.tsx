@@ -372,6 +372,7 @@ function AppointmentDialog({
     suggested: Date | null;
     attemptedStart: Date;
     attemptedEnd: Date;
+    availableStaffId: string | null;
   } | null>(null);
 
   const onServiceChange = (id: string) => {
