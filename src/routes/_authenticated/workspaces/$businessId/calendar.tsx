@@ -363,7 +363,7 @@ function AvailabilityPanel({
       busy.set(r.staff_id as string, arr);
     });
 
-    const dur = svc.duration_minutes;
+    const dur = durationOverride === "service" ? svc.duration_minutes : Number(durationOverride);
     const MAX_SLOTS = 3;
     const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
     for (const c of candidates) {
