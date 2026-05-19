@@ -372,7 +372,7 @@ function AppointmentDialog({
     suggested: Date | null;
     attemptedStart: Date;
     attemptedEnd: Date;
-    availableStaffId: string | null;
+    availableStaffIds: string[];
   } | null>(null);
 
   const onServiceChange = (id: string) => {
@@ -426,9 +426,9 @@ function AppointmentDialog({
     excludeStaffId: string,
     startsAt: Date,
     endsAt: Date,
-  ): Promise<string | null> => {
+  ): Promise<string[]> => {
     const candidates = staff.filter((s) => s.id !== excludeStaffId).map((s) => s.id);
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) return [];
     let q = supabase
       .from("appointments")
       .select("staff_id")
@@ -439,9 +439,9 @@ function AppointmentDialog({
       .gt("ends_at", startsAt.toISOString());
     if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
     const { data, error } = await q;
-    if (error) return null;
+    if (error) return [];
     const busy = new Set((data ?? []).map((r) => r.staff_id as string));
-    return candidates.find((id) => !busy.has(id)) ?? null;
+    return candidates.filter((id) => !busy.has(id));
   };
 
   const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
@@ -458,11 +458,11 @@ function AppointmentDialog({
     const { data: clashes, error } = await q;
     if (error) { toast.error(error.message); return true; }
     if (!clashes || clashes.length === 0) return false;
-    const [suggested, availableStaffId] = await Promise.all([
+    const [suggested, availableStaffIds] = await Promise.all([
       findNextAvailableSlot(sid, duration, endsAt),
       findAvailableStaff(sid, startsAt, endsAt),
     ]);
-    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffId });
+    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffIds });
     return true;
   };
 
@@ -709,17 +709,30 @@ function AppointmentDialog({
                 <p className="text-sm text-muted-foreground">No openings found in the next 14 days for {staffNameOf(staffId)}.</p>
               )}
 
-              {conflict.availableStaffId && (
-                <div className="rounded-md bg-primary/5 border border-primary/30 px-3 py-2 text-sm">
-                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground mb-1">
-                    Available at this time
+              {conflict.availableStaffIds.length > 0 && (
+                <div className="rounded-md bg-primary/5 border border-primary/30 px-3 py-3 text-sm space-y-2">
+                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground">
+                    Available at this time · {conflict.availableStaffIds.length}
                   </p>
-                  <p className="font-medium">
-                    {staffNameOf(conflict.availableStaffId)} is free{" "}
+                  <p className="text-xs text-muted-foreground">
+                    Free{" "}
                     <span className="font-mono">
                       {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
                     </span>
                   </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {conflict.availableStaffIds.map((id) => (
+                      <Button
+                        key={id}
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => applySuggestedStaff(id)}
+                      >
+                        Book with {staffNameOf(id)}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -727,15 +740,6 @@ function AppointmentDialog({
                 <Button type="button" variant="outline" onClick={() => setConflict(null)}>
                   Pick another time
                 </Button>
-                {conflict.availableStaffId && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => applySuggestedStaff(conflict.availableStaffId!)}
-                  >
-                    Book with {staffNameOf(conflict.availableStaffId)}
-                  </Button>
-                )}
                 {conflict.suggested && (
                   <Button type="button" onClick={() => applySuggestedSlot(conflict.suggested!)}>
                     Use suggested slot
