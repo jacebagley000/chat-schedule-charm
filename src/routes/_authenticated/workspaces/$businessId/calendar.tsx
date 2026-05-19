@@ -857,8 +857,16 @@ function AvailabilityPanel({
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Button type="button" size="sm" variant="outline" onClick={retryLastSearch}>
-                    Retry
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={retryLastSearch}
+                    disabled={searching}
+                    aria-busy={searching}
+                  >
+                    {searching && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+                    {searching ? "Retrying…" : "Retry"}
                   </Button>
                   {lastAttemptDiffers && (
                     <Button type="button" size="sm" onClick={search}>
