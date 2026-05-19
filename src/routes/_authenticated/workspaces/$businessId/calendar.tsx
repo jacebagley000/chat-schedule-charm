@@ -340,6 +340,9 @@ function AvailabilityPanel({
   const [resetting, setResetting] = useState(false);
   const [searching, setSearching] = useState(false);
   const [cancelledBannerDismissed, setCancelledBannerDismissed] = useState(false);
+  // 0 = never auto-dismiss; otherwise number of seconds before the inline
+  // Cancelled status (and banner) auto-clears.
+  const [cancelledAutoDismissSec, setCancelledAutoDismissSec] = useState<number>(6);
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
 
