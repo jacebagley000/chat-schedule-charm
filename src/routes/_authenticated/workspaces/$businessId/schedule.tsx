@@ -545,6 +545,20 @@ function EditAppointmentSheet({
   const [endsAt, setEndsAt] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const remove = async () => {
+    if (!appointment) return;
+    setDeleting(true);
+    const { error } = await supabase
+      .from("appointments")
+      .delete()
+      .eq("id", appointment.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Appointment deleted");
+    onClose();
+  };
 
   useEffect(() => {
     if (!appointment) return;
