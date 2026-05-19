@@ -394,11 +394,27 @@ function SchedulePage() {
 
               {columns.map((c) => {
                 const list = apptsByStaff.get(c.id) ?? [];
+                const isOver = dropTarget === c.id;
                 return (
                   <div
                     key={c.id}
-                    className="relative border-r border-border last:border-r-0"
+                    className={cn(
+                      "relative border-r border-border last:border-r-0 transition-colors",
+                      isOver && "bg-accent/30",
+                    )}
                     style={{ height: `${TOTAL_MIN * PX_PER_MIN}px` }}
+                    onDragOver={(e) => {
+                      if (!dragInfoRef.current) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dropTarget !== c.id) setDropTarget(c.id);
+                    }}
+                    onDragLeave={(e) => {
+                      // Only clear if leaving the column itself (not bubbling from a child).
+                      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                      if (dropTarget === c.id) setDropTarget(null);
+                    }}
+                    onDrop={(e) => handleDrop(e, c.id)}
                   >
                     {hours.map((h) => (
                       <div
@@ -410,7 +426,7 @@ function SchedulePage() {
 
                     {isToday && nowMin >= 0 && nowMin <= TOTAL_MIN && (
                       <div
-                        className="absolute left-0 right-0 z-10 flex items-center"
+                        className="absolute left-0 right-0 z-10 flex items-center pointer-events-none"
                         style={{ top: nowMin * PX_PER_MIN }}
                       >
                         <span className="h-2 w-2 rounded-full bg-rose-500 -ml-1" />
@@ -429,14 +445,37 @@ function SchedulePage() {
                       );
                       const top = Math.max(0, startMin) * PX_PER_MIN;
                       const height = Math.max(28, duration * PX_PER_MIN);
+                      const isDragging = draggingId === a.id;
                       return (
                         <button
                           key={a.id}
                           type="button"
-                          onClick={() => setEditingId(a.id)}
+                          draggable
+                          onDragStart={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const grabOffsetMin = (e.clientY - rect.top) / PX_PER_MIN;
+                            dragInfoRef.current = {
+                              id: a.id,
+                              grabOffsetMin,
+                              durationMin: duration,
+                            };
+                            e.dataTransfer.effectAllowed = "move";
+                            e.dataTransfer.setData("text/plain", a.id);
+                            setDraggingId(a.id);
+                          }}
+                          onDragEnd={() => {
+                            dragInfoRef.current = null;
+                            setDraggingId(null);
+                            setDropTarget(null);
+                          }}
+                          onClick={() => {
+                            if (draggingId) return;
+                            setEditingId(a.id);
+                          }}
                           className={cn(
-                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all",
+                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all cursor-grab active:cursor-grabbing",
                             STATUS_STYLES[a.status],
+                            isDragging && "opacity-40 ring-2 ring-primary",
                           )}
                           style={{ top, height }}
                         >
