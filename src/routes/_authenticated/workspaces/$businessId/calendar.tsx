@@ -367,6 +367,7 @@ function AvailabilityPanel({
     return Array.from(set).sort();
   }, [staff]);
 
+  const searchAction = useAbortableToastAction();
   const search = async () => {
     const svc = services.find((s) => s.id === serviceId);
     if (!svc) return toast.error("Pick a service");
@@ -391,47 +392,60 @@ function AvailabilityPanel({
     const windowEnd = new Date(y, m - 1, d, bandEnd, 0, 0, 0);
 
     setSearching(true);
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("staff_id, starts_at, ends_at, status")
-      .eq("business_id", businessId)
-      .in("staff_id", candidates.map((c) => c.id))
-      .gte("starts_at", dayStart.toISOString())
-      .lt("starts_at", addDays(dayStart, 1).toISOString())
-      .not("status", "in", "(cancelled,no_show)");
-    setSearching(false);
-    if (error) return toast.error(error.message);
+    try {
+      await searchAction.run({
+        loadingMessage: "Finding availability…",
+        cancelledMessage: "Search cancelled",
+        errorMessage: "Couldn't load availability. Please try again.",
+        onRetry: () => { void search(); },
+        task: async (signal) => {
+          const { data, error } = await supabase
+            .from("appointments")
+            .select("staff_id, starts_at, ends_at, status")
+            .eq("business_id", businessId)
+            .in("staff_id", candidates.map((c) => c.id))
+            .gte("starts_at", dayStart.toISOString())
+            .lt("starts_at", addDays(dayStart, 1).toISOString())
+            .not("status", "in", "(cancelled,no_show)")
+            .abortSignal(signal);
+          if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+          if (error) throw new Error(error.message);
 
-    const busy = new Map<string, Array<{ s: Date; e: Date }>>();
-    (data ?? []).forEach((r) => {
-      const arr = busy.get(r.staff_id as string) ?? [];
-      arr.push({ s: parseISO(r.starts_at as string), e: parseISO(r.ends_at as string) });
-      busy.set(r.staff_id as string, arr);
-    });
+          const busy = new Map<string, Array<{ s: Date; e: Date }>>();
+          (data ?? []).forEach((r) => {
+            const arr = busy.get(r.staff_id as string) ?? [];
+            arr.push({ s: parseISO(r.starts_at as string), e: parseISO(r.ends_at as string) });
+            busy.set(r.staff_id as string, arr);
+          });
 
-    const dur = durationOverride === "service" ? svc.duration_minutes : Number(durationOverride);
-    const MAX_SLOTS = 3;
-    const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
-    for (const c of candidates) {
-      const intervals = (busy.get(c.id) ?? []).sort((a, b) => a.s.getTime() - b.s.getTime());
-      let cursor = new Date(Math.max(windowStart.getTime(), dayStart.getTime()));
-      const stop = new Date(Math.min(windowEnd.getTime(), dayEnd.getTime()));
-      const slots: Array<{ start: Date; end: Date }> = [];
-      while (slots.length < MAX_SLOTS && addMinutes(cursor, dur).getTime() <= stop.getTime()) {
-        const slotEnd = addMinutes(cursor, dur);
-        const clash = intervals.find((i) => i.s < slotEnd && i.e > cursor);
-        if (!clash) {
-          slots.push({ start: new Date(cursor), end: slotEnd });
-          cursor = addMinutes(cursor, dur);
-        } else {
-          cursor = clash.e;
-        }
-        const mins = cursor.getMinutes();
-        if (mins % 5 !== 0) cursor = addMinutes(cursor, 5 - (mins % 5));
-      }
-      if (slots.length > 0) found.push({ staffId: c.id, slots });
+          const dur = durationOverride === "service" ? svc.duration_minutes : Number(durationOverride);
+          const MAX_SLOTS = 3;
+          const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
+          for (const c of candidates) {
+            const intervals = (busy.get(c.id) ?? []).sort((a, b) => a.s.getTime() - b.s.getTime());
+            let cursor = new Date(Math.max(windowStart.getTime(), dayStart.getTime()));
+            const stop = new Date(Math.min(windowEnd.getTime(), dayEnd.getTime()));
+            const slots: Array<{ start: Date; end: Date }> = [];
+            while (slots.length < MAX_SLOTS && addMinutes(cursor, dur).getTime() <= stop.getTime()) {
+              const slotEnd = addMinutes(cursor, dur);
+              const clash = intervals.find((i) => i.s < slotEnd && i.e > cursor);
+              if (!clash) {
+                slots.push({ start: new Date(cursor), end: slotEnd });
+                cursor = addMinutes(cursor, dur);
+              } else {
+                cursor = clash.e;
+              }
+              const mins = cursor.getMinutes();
+              if (mins % 5 !== 0) cursor = addMinutes(cursor, 5 - (mins % 5));
+            }
+            if (slots.length > 0) found.push({ staffId: c.id, slots });
+          }
+          setResults(found);
+        },
+      });
+    } finally {
+      setSearching(false);
     }
-    setResults(found);
   };
 
   const reset = () => {
