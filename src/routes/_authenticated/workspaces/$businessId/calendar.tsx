@@ -395,6 +395,9 @@ function AvailabilityPanel({
   }, [staff]);
 
   const searchAction = useAbortableToastAction();
+  useEffect(() => {
+    if (searchAction.status === "cancelled") setCancelledBannerDismissed(false);
+  }, [searchAction.status]);
   const lastAttemptRef = useRef<{
     serviceId: string;
     dateStr: string;
