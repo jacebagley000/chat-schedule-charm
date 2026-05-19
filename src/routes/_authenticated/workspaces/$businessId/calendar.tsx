@@ -863,8 +863,7 @@ function AvailabilityPanel({
               </div>
               {cancelledAutoDismissSec === 0 && (
                 <p className="basis-full text-[11px] text-muted-foreground -mt-1">
-                  "Never" keeps the Cancelled status visible until you dismiss it,
-                  Retry the previous search, or start a fresh one.
+                  {t("availability.autoDismiss.helperNever")}
                 </p>
               )}
             </div>
