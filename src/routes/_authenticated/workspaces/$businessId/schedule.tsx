@@ -662,14 +662,51 @@ function EditAppointmentSheet({
               />
             </div>
 
-            <SheetFooter className="mt-auto">
-              <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                {saving ? "Saving…" : "Save changes"}
-              </Button>
+            <SheetFooter className="mt-auto flex-row justify-between sm:justify-between gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    disabled={saving || deleting}
+                  >
+                    {deleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this appointment?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes the appointment from the schedule.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={remove}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={onClose} disabled={saving || deleting}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving || deleting}>
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Saving…" : "Save changes"}
+                </Button>
+              </div>
             </SheetFooter>
           </form>
         )}
