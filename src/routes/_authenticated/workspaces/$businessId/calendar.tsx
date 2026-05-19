@@ -444,111 +444,35 @@ function AvailabilityPanel({
     setResults(null);
   };
 
-  const resettingRef = useRef(false);
-  const resetAbortRef = useRef<AbortController | null>(null);
-  const activeToastIdRef = useRef<string | null>(null);
-  const mountedRef = useRef(true);
-
-  // Abortable sleep that rejects with an AbortError when signal fires.
-  const abortableDelay = (ms: number, signal: AbortSignal) =>
-    new Promise<void>((resolve, reject) => {
-      if (signal.aborted) {
-        reject(new DOMException("Aborted", "AbortError"));
-        return;
-      }
-      const t = setTimeout(() => {
-        signal.removeEventListener("abort", onAbort);
-        resolve();
-      }, ms);
-      const onAbort = () => {
-        clearTimeout(t);
-        signal.removeEventListener("abort", onAbort);
-        reject(new DOMException("Aborted", "AbortError"));
-      };
-      signal.addEventListener("abort", onAbort);
-    });
-
+  const resetAction = useAbortableToastAction();
   const clearSavedPreferences = async () => {
-    if (resettingRef.current) return; // guard against concurrent retries
-    resettingRef.current = true;
-    const controller = new AbortController();
-    resetAbortRef.current = controller;
     setResetting(true);
-    const loadingId = `reset-loading-${Date.now()}`;
-    activeToastIdRef.current = loadingId;
-    toast.loading("Resetting filters…", {
-      id: loadingId,
-      action: {
-        label: "Cancel",
-        onClick: () => controller.abort(),
-      },
-    });
     try {
-      await abortableDelay(300, controller.signal);
-      if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
-      setTimeBand("any");
-      setRoleFilter("all");
-      setLocationFilter("all");
-      if (userId) {
-        localStorage.removeItem(`availability:timeBand:${userId}`);
-        localStorage.removeItem(`availability:roleFilter:${userId}`);
-        localStorage.removeItem(`availability:locationFilter:${userId}`);
-      }
-      if (mountedRef.current) {
-        toast.success("Filters reset to defaults", { id: loadingId });
-      } else {
-        toast.dismiss(loadingId);
-      }
-    } catch (err) {
-      // If the component is gone, just clean up the toast silently.
-      if (!mountedRef.current) {
-        toast.dismiss(loadingId);
-      } else if (err instanceof DOMException && err.name === "AbortError") {
-        toast.message("Reset cancelled", {
-          id: loadingId,
-          action: {
-            label: "Retry",
-            onClick: () => {
-              if (resettingRef.current || !mountedRef.current) return;
-              toast.dismiss(loadingId);
-              void clearSavedPreferences();
-            },
-          },
-        });
-      } else {
-        console.error("Failed to reset filters", err);
-        toast.error("Couldn't reset filters. Please try again.", {
-          id: loadingId,
-          action: {
-            label: "Retry",
-            onClick: () => {
-              if (resettingRef.current || !mountedRef.current) return;
-              toast.dismiss(loadingId);
-              void clearSavedPreferences();
-            },
-          },
-        });
-      }
+      await resetAction.run({
+        loadingMessage: "Resetting filters…",
+        successMessage: "Filters reset to defaults",
+        cancelledMessage: "Reset cancelled",
+        errorMessage: "Couldn't reset filters. Please try again.",
+        onRetry: () => { void clearSavedPreferences(); },
+        task: async (signal) => {
+          // Yield so the loading toast renders and Cancel can be clicked
+          await abortableDelay(300, signal);
+          if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+          setTimeBand("any");
+          setRoleFilter("all");
+          setLocationFilter("all");
+          if (userId) {
+            localStorage.removeItem(`availability:timeBand:${userId}`);
+            localStorage.removeItem(`availability:roleFilter:${userId}`);
+            localStorage.removeItem(`availability:locationFilter:${userId}`);
+          }
+        },
+      });
     } finally {
-      resettingRef.current = false;
-      resetAbortRef.current = null;
-      activeToastIdRef.current = null;
-      if (mountedRef.current) setResetting(false);
+      setResetting(false);
     }
   };
 
-  // Abort any in-flight reset on unmount and dismiss its toast
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      resetAbortRef.current?.abort();
-      if (activeToastIdRef.current) {
-        toast.dismiss(activeToastIdRef.current);
-        activeToastIdRef.current = null;
-      }
-    };
-  }, []);
 
 
 
