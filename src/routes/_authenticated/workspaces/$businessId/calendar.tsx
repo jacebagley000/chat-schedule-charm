@@ -570,9 +570,58 @@ function AvailabilityPanel({
     return [s?.role, s?.location].filter(Boolean).join(" · ");
   };
 
+  const showCancelledBanner =
+    searchAction.status === "cancelled" && !cancelledBannerDismissed;
+
+  const startFreshSearch = () => {
+    setResults(null);
+    searchAction.reset();
+    lastAttemptRef.current = null;
+    setCancelledBannerDismissed(false);
+    setOpen(true);
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-6 pt-4">
+    <div className="mx-auto max-w-7xl px-6 pt-4 space-y-2">
+      {showCancelledBanner && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 flex items-start justify-between gap-3"
+        >
+          <div className="flex items-start gap-2 min-w-0">
+            <AlertCircle className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Last availability search was cancelled</p>
+              <p className="text-xs text-muted-foreground">
+                {lastAttemptRef.current
+                  ? "Retry the previous search, or start fresh with new filters."
+                  : "Open the panel to start a new search."}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 shrink-0 items-center">
+            {lastAttemptRef.current && (
+              <Button type="button" size="sm" variant="outline" onClick={retryLastSearch}>
+                Retry
+              </Button>
+            )}
+            <Button type="button" size="sm" onClick={startFreshSearch}>
+              Start fresh search
+            </Button>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setCancelledBannerDismissed(true)}
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="rounded-xl border border-border bg-card">
+
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
