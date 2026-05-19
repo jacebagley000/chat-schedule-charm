@@ -165,7 +165,18 @@ function CalendarPage() {
         />
       )}
 
+      {!needsSetup && (
+        <AvailabilityPanel
+          businessId={businessId}
+          day={day}
+          staff={staff}
+          services={services}
+          onPickSlot={(start) => setCreating({ start })}
+        />
+      )}
+
       <main className="mx-auto max-w-7xl px-6 py-6">
+
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="grid grid-cols-[64px_1fr]">
             <div className="border-r border-border">
