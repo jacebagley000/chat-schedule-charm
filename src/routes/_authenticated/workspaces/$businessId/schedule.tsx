@@ -378,10 +378,12 @@ function SchedulePage() {
                       const top = Math.max(0, startMin) * PX_PER_MIN;
                       const height = Math.max(28, duration * PX_PER_MIN);
                       return (
-                        <div
+                        <button
                           key={a.id}
+                          type="button"
+                          onClick={() => setEditingId(a.id)}
                           className={cn(
-                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs shadow-sm",
+                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all",
                             STATUS_STYLES[a.status],
                           )}
                           style={{ top, height }}
@@ -395,15 +397,9 @@ function SchedulePage() {
                           <div className="opacity-60 text-[10px] mt-0.5 font-mono">
                             {format(start, "h:mm a")} – {format(end, "h:mm a")}
                           </div>
-                        </div>
+                        </button>
                       );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+
 
         <p className="text-xs text-muted-foreground mt-4 font-mono">
           Updates in real time. {appointments.length} appointment
