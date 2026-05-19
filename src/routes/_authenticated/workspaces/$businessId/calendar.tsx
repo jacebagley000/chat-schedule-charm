@@ -69,7 +69,7 @@ function CalendarPage() {
   const loadCore = async () => {
     const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
       supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle(),
-      supabase.from("staff").select("id, name, color").eq("business_id", businessId).eq("active", true).order("name"),
+      supabase.from("staff").select("id, name, color, role, location").eq("business_id", businessId).eq("active", true).order("name"),
       supabase.from("services").select("id, name, duration_minutes, color").eq("business_id", businessId).eq("active", true).order("name"),
       supabase.from("customers").select("id, name, phone").eq("business_id", businessId).order("name"),
     ]);
