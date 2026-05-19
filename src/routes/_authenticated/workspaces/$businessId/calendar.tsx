@@ -479,20 +479,27 @@ function AvailabilityPanel({
                   </p>
                 ) : (
                   results.map((r) => (
-                    <div key={r.staffId} className="px-3 py-2 flex items-center justify-between gap-2 text-sm">
-                      <div className="min-w-0">
+                    <div key={r.staffId} className="px-3 py-2 flex items-start justify-between gap-3 text-sm">
+                      <div className="min-w-0 pt-0.5">
                         <p className="font-medium truncate">{staffNameOf(r.staffId)}</p>
                         {staffMeta(r.staffId) && (
                           <p className="text-xs text-muted-foreground truncate">{staffMeta(r.staffId)}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                          {format(r.start, "h:mm a")}–{format(r.end, "h:mm a")}
-                        </span>
-                        <Button type="button" size="sm" variant="secondary" onClick={() => onPickSlot(r.start)}>
-                          Book
-                        </Button>
+                      <div className="flex flex-wrap justify-end gap-1.5 shrink-0 max-w-[60%]">
+                        {r.slots.map((slot, i) => (
+                          <Button
+                            key={i}
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="h-7 px-2 font-mono text-xs"
+                            onClick={() => onPickSlot(slot.start)}
+                            title={`${format(slot.start, "h:mm a")}–${format(slot.end, "h:mm a")}`}
+                          >
+                            {format(slot.start, "h:mm a")}
+                          </Button>
+                        ))}
                       </div>
                     </div>
                   ))
