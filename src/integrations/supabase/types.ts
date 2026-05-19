@@ -338,6 +338,101 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduling_requests: {
+        Row: {
+          ai_confidence: number | null
+          ai_is_booking: boolean | null
+          ai_notes: string | null
+          ai_party_size: number | null
+          ai_requested_at: string | null
+          ai_service_hint: string | null
+          business_id: string
+          channel: Database["public"]["Enums"]["conversation_channel"]
+          conversation_id: string | null
+          created_at: string
+          customer_id: string | null
+          external_sender_id: string | null
+          external_sender_name: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          raw_text: string | null
+          status: Database["public"]["Enums"]["scheduling_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_is_booking?: boolean | null
+          ai_notes?: string | null
+          ai_party_size?: number | null
+          ai_requested_at?: string | null
+          ai_service_hint?: string | null
+          business_id: string
+          channel: Database["public"]["Enums"]["conversation_channel"]
+          conversation_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          external_sender_id?: string | null
+          external_sender_name?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          raw_text?: string | null
+          status?: Database["public"]["Enums"]["scheduling_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_is_booking?: boolean | null
+          ai_notes?: string | null
+          ai_party_size?: number | null
+          ai_requested_at?: string | null
+          ai_service_hint?: string | null
+          business_id?: string
+          channel?: Database["public"]["Enums"]["conversation_channel"]
+          conversation_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          external_sender_id?: string | null
+          external_sender_name?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          raw_text?: string | null
+          status?: Database["public"]["Enums"]["scheduling_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduling_requests_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_requests_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_requests_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           active: boolean
@@ -478,6 +573,7 @@ export type Database = {
       conversation_status: "open" | "needs_human" | "closed"
       message_direction: "inbound" | "outbound"
       message_sender: "customer" | "agent" | "human"
+      scheduling_request_status: "new" | "reviewed" | "scheduled" | "dismissed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -625,6 +721,7 @@ export const Constants = {
       conversation_status: ["open", "needs_human", "closed"],
       message_direction: ["inbound", "outbound"],
       message_sender: ["customer", "agent", "human"],
+      scheduling_request_status: ["new", "reviewed", "scheduled", "dismissed"],
     },
   },
 } as const
