@@ -445,6 +445,8 @@ function AvailabilityPanel({
 
   const resettingRef = useRef(false);
   const resetAbortRef = useRef<AbortController | null>(null);
+  const activeToastIdRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
 
   // Abortable sleep that rejects with an AbortError when signal fires.
   const abortableDelay = (ms: number, signal: AbortSignal) =>
@@ -472,6 +474,7 @@ function AvailabilityPanel({
     resetAbortRef.current = controller;
     setResetting(true);
     const loadingId = `reset-loading-${Date.now()}`;
+    activeToastIdRef.current = loadingId;
     toast.loading("Resetting filters…", {
       id: loadingId,
       action: {
@@ -480,10 +483,7 @@ function AvailabilityPanel({
       },
     });
     try {
-      // Yield so the loading toast renders and Cancel can be clicked.
-      // This await is abortable — Cancel rejects it immediately.
       await abortableDelay(300, controller.signal);
-      // Final guard before mutating state
       if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
       setTimeBand("any");
       setRoleFilter("all");
@@ -493,15 +493,22 @@ function AvailabilityPanel({
         localStorage.removeItem(`availability:roleFilter:${userId}`);
         localStorage.removeItem(`availability:locationFilter:${userId}`);
       }
-      toast.success("Filters reset to defaults", { id: loadingId });
+      if (mountedRef.current) {
+        toast.success("Filters reset to defaults", { id: loadingId });
+      } else {
+        toast.dismiss(loadingId);
+      }
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") {
+      // If the component is gone, just clean up the toast silently.
+      if (!mountedRef.current) {
+        toast.dismiss(loadingId);
+      } else if (err instanceof DOMException && err.name === "AbortError") {
         toast.message("Reset cancelled", {
           id: loadingId,
           action: {
             label: "Retry",
             onClick: () => {
-              if (resettingRef.current) return;
+              if (resettingRef.current || !mountedRef.current) return;
               toast.dismiss(loadingId);
               void clearSavedPreferences();
             },
@@ -514,7 +521,7 @@ function AvailabilityPanel({
           action: {
             label: "Retry",
             onClick: () => {
-              if (resettingRef.current) return;
+              if (resettingRef.current || !mountedRef.current) return;
               toast.dismiss(loadingId);
               void clearSavedPreferences();
             },
@@ -524,16 +531,25 @@ function AvailabilityPanel({
     } finally {
       resettingRef.current = false;
       resetAbortRef.current = null;
-      setResetting(false);
+      activeToastIdRef.current = null;
+      if (mountedRef.current) setResetting(false);
     }
   };
 
-  // Abort any in-flight reset on unmount to prevent leaked state updates
+  // Abort any in-flight reset on unmount and dismiss its toast
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       resetAbortRef.current?.abort();
+      if (activeToastIdRef.current) {
+        toast.dismiss(activeToastIdRef.current);
+        activeToastIdRef.current = null;
+      }
     };
   }, []);
+
+
 
   const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
   const staffMeta = (id: string) => {
