@@ -304,7 +304,7 @@ function AvailabilityPanel({
   const [timeBand, setTimeBand] = useState<string>("any");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
-  const [results, setResults] = useState<Array<{ staffId: string; start: Date; end: Date }> | null>(null);
+  const [results, setResults] = useState<Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> | null>(null);
   const [searching, setSearching] = useState(false);
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
