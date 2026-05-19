@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import {
@@ -35,6 +36,23 @@ function baseLang(lng: string | undefined): string {
 export function LanguagePicker({ className }: { className?: string }) {
   const { i18n } = useTranslation();
   const current = baseLang(i18n.resolvedLanguage ?? i18n.language);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromUrl = () => {
+      const lng = new URL(window.location.href).searchParams.get("lng");
+      if (!lng) return;
+      const next = baseLang(lng);
+      if (next !== baseLang(i18n.resolvedLanguage ?? i18n.language)) {
+        void i18n.changeLanguage(next).then(() => {
+          document.documentElement.lang = next;
+          document.documentElement.dir = RTL_LOCALES.has(next) ? "rtl" : "ltr";
+        });
+      }
+    };
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [i18n]);
 
   const handleChange = async (value: string) => {
     await i18n.changeLanguage(value);
