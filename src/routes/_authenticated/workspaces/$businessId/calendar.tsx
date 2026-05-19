@@ -532,6 +532,12 @@ function AppointmentDialog({
     setConflict(null);
   };
 
+  const applySuggestedStaff = (sid: string) => {
+    setStaffId(sid);
+    setConflict(null);
+    toast.message(`Switched to ${staff.find((s) => s.id === sid)?.name ?? "another staff member"}`);
+  };
+
   const remove = async () => {
     if (!appointment) return;
     if (!confirm("Delete this appointment?")) return;
