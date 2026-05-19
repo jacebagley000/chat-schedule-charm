@@ -127,12 +127,6 @@ function DashboardPage() {
           </div>
         )}
 
-        {false && (
-          <div>
-            <Link to="/dashboard">noop</Link>
-            ))}
-          </div>
-        )}
       </main>
     </div>
   );
