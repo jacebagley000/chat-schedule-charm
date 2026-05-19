@@ -426,9 +426,9 @@ function AppointmentDialog({
     excludeStaffId: string,
     startsAt: Date,
     endsAt: Date,
-  ): Promise<string | null> => {
+  ): Promise<string[]> => {
     const candidates = staff.filter((s) => s.id !== excludeStaffId).map((s) => s.id);
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) return [];
     let q = supabase
       .from("appointments")
       .select("staff_id")
@@ -439,9 +439,9 @@ function AppointmentDialog({
       .gt("ends_at", startsAt.toISOString());
     if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
     const { data, error } = await q;
-    if (error) return null;
+    if (error) return [];
     const busy = new Set((data ?? []).map((r) => r.staff_id as string));
-    return candidates.find((id) => !busy.has(id)) ?? null;
+    return candidates.filter((id) => !busy.has(id));
   };
 
   const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
