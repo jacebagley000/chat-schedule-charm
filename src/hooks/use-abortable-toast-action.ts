@@ -36,6 +36,13 @@ export interface AbortableToastRunOptions<T> {
   task: (signal: AbortSignal) => Promise<T>;
   /** Optional Retry handler attached to cancelled/error toasts. */
   onRetry?: () => void;
+  /**
+   * "single-flight" (default): if a run is already in flight, the new call is ignored.
+   * "replace": aborts the previous run before starting this one.
+   */
+  mode?: "single-flight" | "replace";
+  /** If true, no loading toast is shown (useful for background refreshes). */
+  silent?: boolean;
 }
 
 /**
