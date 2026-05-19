@@ -343,6 +343,9 @@ function AvailabilityPanel({
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
 
+  // Reset the dismissed flag every time a new cancellation occurs so the banner re-appears.
+  // searchAction status is one of "idle" | "loading" | "success" | "cancelled" | "error".
+
   // Load persisted preferences per user
   useEffect(() => {
     let cancelled = false;
