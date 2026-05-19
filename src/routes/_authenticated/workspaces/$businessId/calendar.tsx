@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle,
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
