@@ -407,14 +407,14 @@ function AvailabilityPanel({
   useEffect(() => {
     if (searchAction.status !== "cancelled") return;
     setCancelledBannerDismissed(false);
-    // Auto-dismiss the inline Cancelled status (and banner) after 6s
-    // so the panel doesn't stay stuck in a cancelled state.
+    // 0 = never auto-dismiss; otherwise clear after cancelledAutoDismissSec seconds.
+    if (cancelledAutoDismissSec <= 0) return;
     const t = setTimeout(() => {
       searchAction.reset();
       setCancelledBannerDismissed(true);
-    }, 6000);
+    }, cancelledAutoDismissSec * 1000);
     return () => clearTimeout(t);
-  }, [searchAction.status, searchAction]);
+  }, [searchAction.status, searchAction, cancelledAutoDismissSec]);
   const lastAttemptRef = useRef<{
     serviceId: string;
     dateStr: string;
