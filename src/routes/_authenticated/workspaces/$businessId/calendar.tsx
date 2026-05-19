@@ -302,6 +302,7 @@ function AvailabilityPanel({
   const [serviceId, setServiceId] = useState<string>(services[0]?.id ?? "");
   const [dateStr, setDateStr] = useState<string>(format(day, "yyyy-MM-dd"));
   const [timeBand, setTimeBand] = useState<string>("any");
+  const [durationOverride, setDurationOverride] = useState<string>("service");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [results, setResults] = useState<Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> | null>(null);
