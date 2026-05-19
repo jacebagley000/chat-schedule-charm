@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle,
+  ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -313,6 +313,7 @@ function AvailabilityPanel({
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [results, setResults] = useState<Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> | null>(null);
+  const [resetting, setResetting] = useState(false);
   const [searching, setSearching] = useState(false);
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
@@ -442,8 +443,12 @@ function AvailabilityPanel({
     setResults(null);
   };
 
-  const clearSavedPreferences = () => {
+  const clearSavedPreferences = async () => {
+    setResetting(true);
+    const loadingId = toast.loading("Resetting filters…");
     try {
+      // Yield so the loading toast and spinner render before sync work
+      await new Promise((r) => setTimeout(r, 150));
       setTimeBand("any");
       setRoleFilter("all");
       setLocationFilter("all");
@@ -452,15 +457,18 @@ function AvailabilityPanel({
         localStorage.removeItem(`availability:roleFilter:${userId}`);
         localStorage.removeItem(`availability:locationFilter:${userId}`);
       }
-      toast.success("Filters reset to defaults");
+      toast.success("Filters reset to defaults", { id: loadingId });
     } catch (err) {
       console.error("Failed to reset filters", err);
       toast.error("Couldn't reset filters. Please try again.", {
+        id: loadingId,
         action: {
           label: "Retry",
-          onClick: () => clearSavedPreferences(),
+          onClick: () => { void clearSavedPreferences(); },
         },
       });
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -566,8 +574,12 @@ function AvailabilityPanel({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={clearSavedPreferences}>
-                      Reset
+                    <AlertDialogAction
+                      onClick={(e) => { e.preventDefault(); void clearSavedPreferences(); }}
+                      disabled={resetting}
+                    >
+                      {resetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {resetting ? "Resetting…" : "Reset"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
