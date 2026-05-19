@@ -281,16 +281,33 @@ function SetupPanel({
 }) {
   const [staffName, setStaffName] = useState("");
   const [staffQuery, setStaffQuery] = useState("");
+  const [staffRoleFilter, setStaffRoleFilter] = useState<string>("all");
+  const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(30);
 
+  const staffRoleOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.role && s.role.trim()) set.add(s.role.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+  const staffLocationOptions = useMemo(() => {
+    const set = new Set<string>();
+    staff.forEach((s) => { if (s.location && s.location.trim()) set.add(s.location.trim()); });
+    return Array.from(set).sort();
+  }, [staff]);
+
   const filteredStaff = useMemo(() => {
     const q = staffQuery.trim().toLowerCase();
-    if (!q) return staff;
-    return staff.filter((s) =>
-      [s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))
-    );
-  }, [staff, staffQuery]);
+    return staff.filter((s) => {
+      if (staffRoleFilter !== "all" && (s.role ?? "") !== staffRoleFilter) return false;
+      if (staffLocationFilter !== "all" && (s.location ?? "") !== staffLocationFilter) return false;
+      if (q && ![s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [staff, staffQuery, staffRoleFilter, staffLocationFilter]);
+
+  const staffFiltersActive = staffQuery.trim() !== "" || staffRoleFilter !== "all" || staffLocationFilter !== "all";
 
   const addStaff = async (e: FormEvent) => {
     e.preventDefault();
