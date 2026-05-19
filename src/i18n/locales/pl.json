@@ -1,10 +1,10 @@
 {
   "availability": {
     "autoDismiss": {
-      "tooltipAriaLabel": "Co robi „Nigdy"?",
-      "tooltipBody": "Jak długo wbudowany status „Anulowano" i baner pozostają widoczne po przerwaniu wyszukiwania.",
-      "tooltipNever": "„Nigdy" utrzymuje status Anulowano na ekranie, aż zamkniesz go ręcznie, ponowisz próbę lub rozpoczniesz nowe wyszukiwanie.",
-      "helperNever": "„Nigdy" utrzymuje status Anulowano widoczny, aż go zamkniesz, ponowisz poprzednie wyszukiwanie lub rozpoczniesz nowe."
+      "tooltipAriaLabel": "Co robi „Nigdy\"?",
+      "tooltipBody": "Jak długo wbudowany status „Anulowano\" i baner pozostają widoczne po przerwaniu wyszukiwania.",
+      "tooltipNever": "„Nigdy\" utrzymuje status Anulowano na ekranie, aż zamkniesz go ręcznie, ponowisz próbę lub rozpoczniesz nowe wyszukiwanie.",
+      "helperNever": "„Nigdy\" utrzymuje status Anulowano widoczny, aż go zamkniesz, ponowisz poprzednie wyszukiwanie lub rozpoczniesz nowe."
     }
   }
 }
