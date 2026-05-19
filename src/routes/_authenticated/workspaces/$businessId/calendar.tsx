@@ -372,6 +372,7 @@ function AppointmentDialog({
     suggested: Date | null;
     attemptedStart: Date;
     attemptedEnd: Date;
+    availableStaffId: string | null;
   } | null>(null);
 
   const onServiceChange = (id: string) => {
@@ -421,6 +422,28 @@ function AppointmentDialog({
     return null;
   };
 
+  const findAvailableStaff = async (
+    excludeStaffId: string,
+    startsAt: Date,
+    endsAt: Date,
+  ): Promise<string | null> => {
+    const candidates = staff.filter((s) => s.id !== excludeStaffId).map((s) => s.id);
+    if (candidates.length === 0) return null;
+    let q = supabase
+      .from("appointments")
+      .select("staff_id")
+      .eq("business_id", businessId)
+      .in("staff_id", candidates)
+      .not("status", "in", "(cancelled,no_show)")
+      .lt("starts_at", endsAt.toISOString())
+      .gt("ends_at", startsAt.toISOString());
+    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+    const { data, error } = await q;
+    if (error) return null;
+    const busy = new Set((data ?? []).map((r) => r.staff_id as string));
+    return candidates.find((id) => !busy.has(id)) ?? null;
+  };
+
   const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
     let q = supabase
       .from("appointments")
@@ -435,8 +458,11 @@ function AppointmentDialog({
     const { data: clashes, error } = await q;
     if (error) { toast.error(error.message); return true; }
     if (!clashes || clashes.length === 0) return false;
-    const suggested = await findNextAvailableSlot(sid, duration, endsAt);
-    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt });
+    const [suggested, availableStaffId] = await Promise.all([
+      findNextAvailableSlot(sid, duration, endsAt),
+      findAvailableStaff(sid, startsAt, endsAt),
+    ]);
+    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffId });
     return true;
   };
 
@@ -504,6 +530,12 @@ function AppointmentDialog({
     setDate(startOfDay(slot));
     setTime(format(slot, "HH:mm"));
     setConflict(null);
+  };
+
+  const applySuggestedStaff = (sid: string) => {
+    setStaffId(sid);
+    setConflict(null);
+    toast.message(`Switched to ${staff.find((s) => s.id === sid)?.name ?? "another staff member"}`);
   };
 
   const remove = async () => {
@@ -677,10 +709,33 @@ function AppointmentDialog({
                 <p className="text-sm text-muted-foreground">No openings found in the next 14 days for {staffNameOf(staffId)}.</p>
               )}
 
-              <DialogFooter className="gap-2 sm:gap-2">
+              {conflict.availableStaffId && (
+                <div className="rounded-md bg-primary/5 border border-primary/30 px-3 py-2 text-sm">
+                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground mb-1">
+                    Available at this time
+                  </p>
+                  <p className="font-medium">
+                    {staffNameOf(conflict.availableStaffId)} is free{" "}
+                    <span className="font-mono">
+                      {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2 flex-wrap">
                 <Button type="button" variant="outline" onClick={() => setConflict(null)}>
                   Pick another time
                 </Button>
+                {conflict.availableStaffId && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => applySuggestedStaff(conflict.availableStaffId!)}
+                  >
+                    Book with {staffNameOf(conflict.availableStaffId)}
+                  </Button>
+                )}
                 {conflict.suggested && (
                   <Button type="button" onClick={() => applySuggestedSlot(conflict.suggested!)}>
                     Use suggested slot
