@@ -503,6 +503,11 @@ function AvailabilityPanel({
 
   const retryLastSearch = () => {
     const snap = lastAttemptRef.current;
+    // Re-run with the exact snapshot from the last attempt — do NOT touch
+    // serviceId/dateStr/timeBand/durationOverride/roleFilter/locationFilter
+    // so the user's current filter edits are preserved.
+    setOpen(true);
+    setCancelledBannerDismissed(true);
     if (!snap) return search();
     return runSearch(snap);
   };
