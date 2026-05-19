@@ -945,40 +945,50 @@ function AppointmentDialog({
     durationMin: number,
     fromDate: Date,
   ): Promise<Date | null> => {
-    const horizon = addDays(startOfDay(fromDate), 14);
-    const { data } = await supabase
-      .from("appointments")
-      .select("id, starts_at, ends_at")
-      .eq("business_id", businessId)
-      .eq("staff_id", sid)
-      .not("status", "in", "(cancelled,no_show)")
-      .gte("ends_at", fromDate.toISOString())
-      .lte("starts_at", horizon.toISOString())
-      .order("starts_at");
+    const result = await nextSlotAction.run<Date | null>({
+      loadingMessage: "Finding next available slot…",
+      silent: true,
+      mode: "replace",
+      task: async (signal) => {
+        const horizon = addDays(startOfDay(fromDate), 14);
+        const { data } = await supabase
+          .from("appointments")
+          .select("id, starts_at, ends_at")
+          .eq("business_id", businessId)
+          .eq("staff_id", sid)
+          .not("status", "in", "(cancelled,no_show)")
+          .gte("ends_at", fromDate.toISOString())
+          .lte("starts_at", horizon.toISOString())
+          .order("starts_at")
+          .abortSignal(signal);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
 
-    const busy = (data ?? [])
-      .filter((a) => !(mode === "edit" && appointment && a.id === appointment.id))
-      .map((a) => [parseISO(a.starts_at).getTime(), parseISO(a.ends_at).getTime()] as [number, number]);
+        const busy = (data ?? [])
+          .filter((a) => !(mode === "edit" && appointment && a.id === appointment.id))
+          .map((a) => [parseISO(a.starts_at).getTime(), parseISO(a.ends_at).getTime()] as [number, number]);
 
-    const STEP = 5 * 60 * 1000;
-    const durMs = durationMin * 60 * 1000;
+        const STEP = 5 * 60 * 1000;
+        const durMs = durationMin * 60 * 1000;
 
-    for (let i = 0; i < 14; i++) {
-      const day = addDays(startOfDay(fromDate), i);
-      const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
-      const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
-      let cursor = Math.max(i === 0 ? fromDate.getTime() : 0, dayStart.getTime());
-      cursor = Math.ceil(cursor / STEP) * STEP;
-      const dayBusy = busy
-        .filter(([s, e]) => e > dayStart.getTime() && s < dayEnd.getTime())
-        .sort((a, b) => a[0] - b[0]);
-      while (cursor + durMs <= dayEnd.getTime()) {
-        const overlap = dayBusy.find(([s, e]) => s < cursor + durMs && e > cursor);
-        if (!overlap) return new Date(cursor);
-        cursor = Math.ceil(overlap[1] / STEP) * STEP;
-      }
-    }
-    return null;
+        for (let i = 0; i < 14; i++) {
+          const day = addDays(startOfDay(fromDate), i);
+          const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
+          const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
+          let cursor = Math.max(i === 0 ? fromDate.getTime() : 0, dayStart.getTime());
+          cursor = Math.ceil(cursor / STEP) * STEP;
+          const dayBusy = busy
+            .filter(([s, e]) => e > dayStart.getTime() && s < dayEnd.getTime())
+            .sort((a, b) => a[0] - b[0]);
+          while (cursor + durMs <= dayEnd.getTime()) {
+            const overlap = dayBusy.find(([s, e]) => s < cursor + durMs && e > cursor);
+            if (!overlap) return new Date(cursor);
+            cursor = Math.ceil(overlap[1] / STEP) * STEP;
+          }
+        }
+        return null;
+      },
+    });
+    return result ?? null;
   };
 
   const findAvailableStaff = async (
@@ -988,41 +998,62 @@ function AppointmentDialog({
   ): Promise<string[]> => {
     const candidates = staff.filter((s) => s.id !== excludeStaffId).map((s) => s.id);
     if (candidates.length === 0) return [];
-    let q = supabase
-      .from("appointments")
-      .select("staff_id")
-      .eq("business_id", businessId)
-      .in("staff_id", candidates)
-      .not("status", "in", "(cancelled,no_show)")
-      .lt("starts_at", endsAt.toISOString())
-      .gt("ends_at", startsAt.toISOString());
-    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
-    const { data, error } = await q;
-    if (error) return [];
-    const busy = new Set((data ?? []).map((r) => r.staff_id as string));
-    return candidates.filter((id) => !busy.has(id));
+    const result = await availableStaffAction.run<string[]>({
+      loadingMessage: "Finding available staff…",
+      silent: true,
+      mode: "replace",
+      task: async (signal) => {
+        let q = supabase
+          .from("appointments")
+          .select("staff_id")
+          .eq("business_id", businessId)
+          .in("staff_id", candidates)
+          .not("status", "in", "(cancelled,no_show)")
+          .lt("starts_at", endsAt.toISOString())
+          .gt("ends_at", startsAt.toISOString());
+        if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+        const { data, error } = await q.abortSignal(signal);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        if (error) return [];
+        const busy = new Set((data ?? []).map((r) => r.staff_id as string));
+        return candidates.filter((id) => !busy.has(id));
+      },
+    });
+    return result ?? [];
   };
 
   const checkAndSurfaceConflict = async (sid: string, startsAt: Date, endsAt: Date) => {
-    let q = supabase
-      .from("appointments")
-      .select("id, starts_at, ends_at, customer_id, service_id")
-      .eq("business_id", businessId)
-      .eq("staff_id", sid)
-      .not("status", "in", "(cancelled,no_show)")
-      .lt("starts_at", endsAt.toISOString())
-      .gt("ends_at", startsAt.toISOString())
-      .order("starts_at");
-    if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
-    const { data: clashes, error } = await q;
-    if (error) { toast.error(error.message); return true; }
-    if (!clashes || clashes.length === 0) return false;
-    const [suggested, availableStaffIds] = await Promise.all([
-      findNextAvailableSlot(sid, duration, endsAt),
-      findAvailableStaff(sid, startsAt, endsAt),
-    ]);
-    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffIds });
-    return true;
+    const result = await conflictCheckAction.run<boolean>({
+      loadingMessage: "Checking for conflicts…",
+      errorMessage: "Couldn't check for conflicts.",
+      silent: true,
+      mode: "replace",
+      task: async (signal) => {
+        let q = supabase
+          .from("appointments")
+          .select("id, starts_at, ends_at, customer_id, service_id")
+          .eq("business_id", businessId)
+          .eq("staff_id", sid)
+          .not("status", "in", "(cancelled,no_show)")
+          .lt("starts_at", endsAt.toISOString())
+          .gt("ends_at", startsAt.toISOString())
+          .order("starts_at");
+        if (mode === "edit" && appointment) q = q.neq("id", appointment.id);
+        const { data: clashes, error } = await q.abortSignal(signal);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        if (error) { toast.error(error.message); return true; }
+        if (!clashes || clashes.length === 0) return false;
+        const [suggested, availableStaffIds] = await Promise.all([
+          findNextAvailableSlot(sid, duration, endsAt),
+          findAvailableStaff(sid, startsAt, endsAt),
+        ]);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffIds });
+        return true;
+      },
+    });
+    return result ?? false;
+  };
   };
 
   const save = async (e: FormEvent) => {
