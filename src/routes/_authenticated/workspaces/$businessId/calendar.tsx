@@ -819,9 +819,30 @@ function AvailabilityPanel({
               <div className="ml-auto flex items-center gap-2">
                 <Label
                   htmlFor="cancelled-auto-dismiss"
-                  className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground whitespace-nowrap"
+                  className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground whitespace-nowrap flex items-center gap-1"
                 >
                   Auto-dismiss Cancelled
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="What does Never do?"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <HelpCircle className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[260px] text-xs leading-snug">
+                        How long the inline "Cancelled" status and banner stay
+                        visible after you abort a search.
+                        <span className="block mt-1">
+                          <strong>Never</strong> keeps the Cancelled status on screen
+                          until you dismiss it manually, Retry, or start a fresh search.
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </Label>
                 <Select
                   value={String(cancelledAutoDismissSec)}
@@ -840,6 +861,12 @@ function AvailabilityPanel({
                   </SelectContent>
                 </Select>
               </div>
+              {cancelledAutoDismissSec === 0 && (
+                <p className="basis-full text-[11px] text-muted-foreground -mt-1">
+                  "Never" keeps the Cancelled status visible until you dismiss it,
+                  Retry the previous search, or start a fresh one.
+                </p>
+              )}
             </div>
 
             {searchAction.status === "loading" && (
