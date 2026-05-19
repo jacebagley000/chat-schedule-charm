@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "O que faz \"Nunca\"?",
+      "tooltipBody": "Quanto tempo o status \"Cancelado\" e o banner permanecem visíveis após você abortar uma busca.",
+      "tooltipNever": "\"Nunca\" mantém o status Cancelado na tela até você dispensá-lo, tentar de novo ou iniciar uma nova busca.",
+      "helperNever": "\"Nunca\" mantém o status Cancelado visível até você dispensá-lo, repetir a busca anterior ou iniciar uma nova."
+    }
+  }
+}

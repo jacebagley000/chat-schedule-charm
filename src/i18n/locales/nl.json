@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "Wat doet \"Nooit\"?",
+      "tooltipBody": "Hoe lang de inline status \"Geannuleerd\" en de banner zichtbaar blijven nadat je een zoekopdracht hebt afgebroken.",
+      "tooltipNever": "\"Nooit\" houdt de status Geannuleerd op het scherm totdat je deze sluit, opnieuw probeert of een nieuwe zoekopdracht start.",
+      "helperNever": "\"Nooit\" houdt de status Geannuleerd zichtbaar totdat je deze sluit, de vorige zoekopdracht opnieuw probeert of een nieuwe start."
+    }
+  }
+}

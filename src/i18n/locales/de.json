@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "Was bewirkt „Nie"?",
+      "tooltipBody": "Wie lange der Inline-Status „Abgebrochen" und das Banner sichtbar bleiben, nachdem du eine Suche abgebrochen hast.",
+      "tooltipNever": "„Nie" lässt den Status „Abgebrochen" auf dem Bildschirm, bis du ihn manuell schließt, wiederholst oder eine neue Suche startest.",
+      "helperNever": "„Nie" lässt den Status „Abgebrochen" sichtbar, bis du ihn schließt, die vorherige Suche wiederholst oder eine neue startest."
+    }
+  }
+}

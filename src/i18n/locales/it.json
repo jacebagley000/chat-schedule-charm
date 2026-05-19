@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "Cosa fa \"Mai\"?",
+      "tooltipBody": "Per quanto tempo lo stato \"Annullato\" e il banner restano visibili dopo aver interrotto una ricerca.",
+      "tooltipNever": "\"Mai\" mantiene lo stato Annullato sullo schermo finché non lo chiudi, riprovi o avvii una nuova ricerca.",
+      "helperNever": "\"Mai\" mantiene lo stato Annullato visibile finché non lo chiudi, riprovi la ricerca precedente o ne avvii una nuova."
+    }
+  }
+}
