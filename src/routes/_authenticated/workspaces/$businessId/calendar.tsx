@@ -709,10 +709,33 @@ function AppointmentDialog({
                 <p className="text-sm text-muted-foreground">No openings found in the next 14 days for {staffNameOf(staffId)}.</p>
               )}
 
-              <DialogFooter className="gap-2 sm:gap-2">
+              {conflict.availableStaffId && (
+                <div className="rounded-md bg-primary/5 border border-primary/30 px-3 py-2 text-sm">
+                  <p className="text-xs uppercase tracking-wide font-mono text-muted-foreground mb-1">
+                    Available at this time
+                  </p>
+                  <p className="font-medium">
+                    {staffNameOf(conflict.availableStaffId)} is free{" "}
+                    <span className="font-mono">
+                      {format(conflict.attemptedStart, "h:mm a")}–{format(conflict.attemptedEnd, "h:mm a")}
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2 flex-wrap">
                 <Button type="button" variant="outline" onClick={() => setConflict(null)}>
                   Pick another time
                 </Button>
+                {conflict.availableStaffId && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => applySuggestedStaff(conflict.availableStaffId!)}
+                  >
+                    Book with {staffNameOf(conflict.availableStaffId)}
+                  </Button>
+                )}
                 {conflict.suggested && (
                   <Button type="button" onClick={() => applySuggestedSlot(conflict.suggested!)}>
                     Use suggested slot
