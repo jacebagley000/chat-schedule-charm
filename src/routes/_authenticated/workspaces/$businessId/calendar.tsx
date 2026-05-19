@@ -574,8 +574,12 @@ function AvailabilityPanel({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={clearSavedPreferences}>
-                      Reset
+                    <AlertDialogAction
+                      onClick={(e) => { e.preventDefault(); void clearSavedPreferences(); }}
+                      disabled={resetting}
+                    >
+                      {resetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {resetting ? "Resetting…" : "Reset"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
