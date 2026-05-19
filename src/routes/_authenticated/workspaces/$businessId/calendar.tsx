@@ -436,8 +436,11 @@ function AppointmentDialog({
     const { data: clashes, error } = await q;
     if (error) { toast.error(error.message); return true; }
     if (!clashes || clashes.length === 0) return false;
-    const suggested = await findNextAvailableSlot(sid, duration, endsAt);
-    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt });
+    const [suggested, availableStaffId] = await Promise.all([
+      findNextAvailableSlot(sid, duration, endsAt),
+      findAvailableStaff(sid, startsAt, endsAt),
+    ]);
+    setConflict({ clashes, suggested, attemptedStart: startsAt, attemptedEnd: endsAt, availableStaffId });
     return true;
   };
 
