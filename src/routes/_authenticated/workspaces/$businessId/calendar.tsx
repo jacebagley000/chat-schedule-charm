@@ -443,17 +443,20 @@ function AvailabilityPanel({
   };
 
   const clearSavedPreferences = () => {
-    setTimeBand("any");
-    setRoleFilter("all");
-    setLocationFilter("all");
-    if (userId) {
-      try {
+    try {
+      setTimeBand("any");
+      setRoleFilter("all");
+      setLocationFilter("all");
+      if (userId) {
         localStorage.removeItem(`availability:timeBand:${userId}`);
         localStorage.removeItem(`availability:roleFilter:${userId}`);
         localStorage.removeItem(`availability:locationFilter:${userId}`);
-      } catch { /* ignore */ }
+      }
+      toast.success("Filters reset to defaults");
+    } catch (err) {
+      console.error("Failed to reset filters", err);
+      toast.error("Couldn't reset filters. Please try again.");
     }
-    toast.success("Filters reset to defaults");
   };
 
   const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
