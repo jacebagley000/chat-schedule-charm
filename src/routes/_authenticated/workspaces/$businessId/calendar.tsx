@@ -280,8 +280,17 @@ function SetupPanel({
   onChanged: () => void;
 }) {
   const [staffName, setStaffName] = useState("");
+  const [staffQuery, setStaffQuery] = useState("");
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(30);
+
+  const filteredStaff = useMemo(() => {
+    const q = staffQuery.trim().toLowerCase();
+    if (!q) return staff;
+    return staff.filter((s) =>
+      [s.name, s.role ?? "", s.location ?? ""].some((v) => v.toLowerCase().includes(q))
+    );
+  }, [staff, staffQuery]);
 
   const addStaff = async (e: FormEvent) => {
     e.preventDefault();
@@ -314,8 +323,20 @@ function SetupPanel({
               <Input placeholder="Stylist name" value={staffName} onChange={(e) => setStaffName(e.target.value)} />
               <Button type="submit"><Plus className="h-4 w-4" /> Add</Button>
             </form>
+            {staff.length > 0 && (
+              <Input
+                value={staffQuery}
+                onChange={(e) => setStaffQuery(e.target.value)}
+                placeholder="Search by name, role, or location…"
+                className="mt-2 h-8"
+              />
+            )}
             <ul className="mt-3 space-y-2">
-              {staff.map((s) => <StaffRow key={s.id} staff={s} onChanged={onChanged} />)}
+              {filteredStaff.length === 0 && staff.length > 0 ? (
+                <li className="text-xs text-muted-foreground italic">No staff match “{staffQuery}”.</li>
+              ) : (
+                filteredStaff.map((s) => <StaffRow key={s.id} staff={s} onChanged={onChanged} />)
+              )}
             </ul>
           </div>
           <div>
