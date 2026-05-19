@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
 });
 
 type Business = { id: string; name: string };
-type Staff = { id: string; name: string; color: string | null };
+type Staff = { id: string; name: string; color: string | null; role: string | null; location: string | null };
 type Service = { id: string; name: string; duration_minutes: number; color: string | null };
 type Customer = { id: string; name: string | null; phone: string | null };
 type Appointment = {
