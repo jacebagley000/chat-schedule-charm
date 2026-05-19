@@ -396,8 +396,16 @@ function AvailabilityPanel({
 
   const searchAction = useAbortableToastAction();
   useEffect(() => {
-    if (searchAction.status === "cancelled") setCancelledBannerDismissed(false);
-  }, [searchAction.status]);
+    if (searchAction.status !== "cancelled") return;
+    setCancelledBannerDismissed(false);
+    // Auto-dismiss the inline Cancelled status (and banner) after 6s
+    // so the panel doesn't stay stuck in a cancelled state.
+    const t = setTimeout(() => {
+      searchAction.reset();
+      setCancelledBannerDismissed(true);
+    }, 6000);
+    return () => clearTimeout(t);
+  }, [searchAction.status, searchAction]);
   const lastAttemptRef = useRef<{
     serviceId: string;
     dateStr: string;
