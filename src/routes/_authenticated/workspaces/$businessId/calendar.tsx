@@ -72,32 +72,55 @@ function CalendarPage() {
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [creating, setCreating] = useState<{ start: Date } | null>(null);
 
+  const loadCoreAction = useAbortableToastAction();
+  const loadAppointmentsAction = useAbortableToastAction();
+
   const loadCore = async () => {
-    const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
-      supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle(),
-      supabase.from("staff").select("id, name, color, role, location").eq("business_id", businessId).eq("active", true).order("name"),
-      supabase.from("services").select("id, name, duration_minutes, color").eq("business_id", businessId).eq("active", true).order("name"),
-      supabase.from("customers").select("id, name, phone").eq("business_id", businessId).order("name"),
-    ]);
-    if (!b) { toast.error("Workspace not found"); navigate({ to: "/dashboard" }); return; }
-    setBusiness(b as Business);
-    setStaff((s ?? []) as Staff[]);
-    setServices((sv ?? []) as Service[]);
-    setCustomers((cu ?? []) as Customer[]);
+    await loadCoreAction.run({
+      loadingMessage: "Loading workspace…",
+      errorMessage: "Couldn't load workspace.",
+      silent: true,
+      mode: "replace",
+      task: async (signal) => {
+        const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
+          supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle().abortSignal(signal),
+          supabase.from("staff").select("id, name, color, role, location").eq("business_id", businessId).eq("active", true).order("name").abortSignal(signal),
+          supabase.from("services").select("id, name, duration_minutes, color").eq("business_id", businessId).eq("active", true).order("name").abortSignal(signal),
+          supabase.from("customers").select("id, name, phone").eq("business_id", businessId).order("name").abortSignal(signal),
+        ]);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        if (!b) { toast.error("Workspace not found"); navigate({ to: "/dashboard" }); return; }
+        setBusiness(b as Business);
+        setStaff((s ?? []) as Staff[]);
+        setServices((sv ?? []) as Service[]);
+        setCustomers((cu ?? []) as Customer[]);
+      },
+    });
   };
 
   const loadAppointments = async (d: Date) => {
     const from = startOfDay(d).toISOString();
     const to = addDays(startOfDay(d), 1).toISOString();
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("id, starts_at, ends_at, status, source, notes, customer_id, staff_id, service_id")
-      .eq("business_id", businessId)
-      .gte("starts_at", from)
-      .lt("starts_at", to)
-      .order("starts_at");
-    if (error) return toast.error(error.message);
-    setAppointments((data ?? []) as Appointment[]);
+    await loadAppointmentsAction.run({
+      loadingMessage: "Loading appointments…",
+      errorMessage: "Couldn't load appointments.",
+      silent: true,
+      mode: "replace",
+      onRetry: () => { void loadAppointments(d); },
+      task: async (signal) => {
+        const { data, error } = await supabase
+          .from("appointments")
+          .select("id, starts_at, ends_at, status, source, notes, customer_id, staff_id, service_id")
+          .eq("business_id", businessId)
+          .gte("starts_at", from)
+          .lt("starts_at", to)
+          .order("starts_at")
+          .abortSignal(signal);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        if (error) throw new Error(error.message);
+        setAppointments((data ?? []) as Appointment[]);
+      },
+    });
   };
 
   useEffect(() => { loadCore(); }, [businessId]);
