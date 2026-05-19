@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouterState } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import {
   Select,
@@ -37,6 +38,30 @@ export function LanguagePicker({ className }: { className?: string }) {
   const { i18n } = useTranslation();
   const current = baseLang(i18n.resolvedLanguage ?? i18n.language);
 
+  // Re-runs on every TanStack navigation (pushState/replaceState/popstate)
+  const urlLng = useRouterState({
+    select: (s) => {
+      const search = s.location.search as Record<string, unknown> | undefined;
+      const fromSearch = search && typeof search.lng === "string" ? search.lng : undefined;
+      if (fromSearch) return fromSearch;
+      if (typeof window === "undefined") return undefined;
+      return new URL(window.location.href).searchParams.get("lng") ?? undefined;
+    },
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!urlLng) return;
+    const next = baseLang(urlLng);
+    if (next !== baseLang(i18n.resolvedLanguage ?? i18n.language)) {
+      void i18n.changeLanguage(next).then(() => {
+        document.documentElement.lang = next;
+        document.documentElement.dir = RTL_LOCALES.has(next) ? "rtl" : "ltr";
+      });
+    }
+  }, [urlLng, i18n]);
+
+  // Browser back/forward when the URL was changed outside the router
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncFromUrl = () => {
@@ -50,6 +75,7 @@ export function LanguagePicker({ className }: { className?: string }) {
         });
       }
     };
+    syncFromUrl();
     window.addEventListener("popstate", syncFromUrl);
     return () => window.removeEventListener("popstate", syncFromUrl);
   }, [i18n]);
