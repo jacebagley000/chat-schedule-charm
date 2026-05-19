@@ -1,19 +1,25 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { addDays, format, parseISO, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft,
-  CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Radio,
-  Users,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+} from "@/components/ui/sheet";
+import { toast } from "sonner";
+import {
+  ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight, Radio, Users, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/schedule")({
   component: SchedulePage,
@@ -69,6 +75,14 @@ function SchedulePage() {
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const [connected, setConnected] = useState(false);
   const [pulse, setPulse] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Keep selected appointment in sync with realtime updates (or close if deleted).
+  const editing = useMemo(
+    () => appointments.find((a) => a.id === editingId) ?? null,
+    [appointments, editingId],
+  );
+
 
   // Load core entities once per business.
   useEffect(() => {
@@ -364,10 +378,12 @@ function SchedulePage() {
                       const top = Math.max(0, startMin) * PX_PER_MIN;
                       const height = Math.max(28, duration * PX_PER_MIN);
                       return (
-                        <div
+                        <button
                           key={a.id}
+                          type="button"
+                          onClick={() => setEditingId(a.id)}
                           className={cn(
-                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs shadow-sm",
+                            "absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:shadow-md hover:ring-2 hover:ring-accent/40 transition-all",
                             STATUS_STYLES[a.status],
                           )}
                           style={{ top, height }}
@@ -381,7 +397,7 @@ function SchedulePage() {
                           <div className="opacity-60 text-[10px] mt-0.5 font-mono">
                             {format(start, "h:mm a")} – {format(end, "h:mm a")}
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -396,6 +412,159 @@ function SchedulePage() {
           {appointments.length === 1 ? "" : "s"} on {format(day, "EEE, MMM d")}.
         </p>
       </main>
+
+      <EditAppointmentSheet
+        appointment={editing}
+        staff={staff}
+        onClose={() => setEditingId(null)}
+      />
     </div>
   );
 }
+
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
+  { value: "pending", label: "Pending" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "no_show", label: "No-show" },
+];
+
+function EditAppointmentSheet({
+  appointment, staff, onClose,
+}: {
+  appointment: Appointment | null;
+  staff: Staff[];
+  onClose: () => void;
+}) {
+  const [status, setStatus] = useState<Appointment["status"]>("pending");
+  const [staffId, setStaffId] = useState<string>("__unassigned");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!appointment) return;
+    setStatus(appointment.status);
+    setStaffId(appointment.staff_id ?? "__unassigned");
+    setStartsAt(toLocalInput(appointment.starts_at));
+    setEndsAt(toLocalInput(appointment.ends_at));
+    setNotes(appointment.notes ?? "");
+  }, [appointment?.id]);
+
+  const open = !!appointment;
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!appointment) return;
+    const startDate = new Date(startsAt);
+    const endDate = new Date(endsAt);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return toast.error("Please enter valid start and end times.");
+    }
+    if (endDate <= startDate) {
+      return toast.error("End time must be after start time.");
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        status,
+        staff_id: staffId === "__unassigned" ? null : staffId,
+        starts_at: startDate.toISOString(),
+        ends_at: endDate.toISOString(),
+        notes: notes.trim() || null,
+      })
+      .eq("id", appointment.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Appointment updated");
+    onClose();
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent className="w-full sm:max-w-md flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="font-serif text-2xl">Edit appointment</SheetTitle>
+          <SheetDescription>
+            Changes save instantly and broadcast to everyone watching.
+          </SheetDescription>
+        </SheetHeader>
+
+        {appointment && (
+          <form onSubmit={submit} className="flex-1 flex flex-col gap-4 mt-4">
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Staff</Label>
+              <Select value={staffId} onValueChange={setStaffId}>
+                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__unassigned">Unassigned</SelectItem>
+                  {staff.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="startsAt">Starts</Label>
+                <Input
+                  id="startsAt" type="datetime-local"
+                  value={startsAt} onChange={(e) => setStartsAt(e.target.value)} required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endsAt">Ends</Label>
+                <Input
+                  id="endsAt" type="datetime-local"
+                  value={endsAt} onChange={(e) => setEndsAt(e.target.value)} required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes" rows={5} value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Anything the team should know…"
+              />
+            </div>
+
+            <SheetFooter className="mt-auto">
+              <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                {saving ? "Saving…" : "Save changes"}
+              </Button>
+            </SheetFooter>
+          </form>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
