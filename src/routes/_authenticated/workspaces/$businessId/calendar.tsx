@@ -528,6 +528,13 @@ function AvailabilityPanel({
     }
   };
 
+  // Abort any in-flight reset on unmount to prevent leaked state updates
+  useEffect(() => {
+    return () => {
+      resetAbortRef.current?.abort();
+    };
+  }, []);
+
   const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
   const staffMeta = (id: string) => {
     const s = staff.find((x) => x.id === id);
