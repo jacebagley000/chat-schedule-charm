@@ -391,36 +391,54 @@ function AvailabilityPanel({
   }, [staff]);
 
   const searchAction = useAbortableToastAction();
-  const search = async () => {
-    const svc = services.find((s) => s.id === serviceId);
+  const lastAttemptRef = useRef<{
+    serviceId: string;
+    dateStr: string;
+    timeBand: string;
+    durationOverride: string;
+    roleFilter: string;
+    locationFilter: string;
+  } | null>(null);
+
+  const runSearch = async (snapshot: {
+    serviceId: string;
+    dateStr: string;
+    timeBand: string;
+    durationOverride: string;
+    roleFilter: string;
+    locationFilter: string;
+  }) => {
+    const svc = services.find((s) => s.id === snapshot.serviceId);
     if (!svc) return toast.error("Pick a service");
-    const [y, m, d] = dateStr.split("-").map(Number);
+    const [y, m, d] = snapshot.dateStr.split("-").map(Number);
     if (!y || !m || !d) return toast.error("Pick a date");
 
     const candidates = staff.filter((s) => {
-      if (roleFilter !== "all" && (s.role ?? "") !== roleFilter) return false;
-      if (locationFilter !== "all" && (s.location ?? "") !== locationFilter) return false;
+      if (snapshot.roleFilter !== "all" && (s.role ?? "") !== snapshot.roleFilter) return false;
+      if (snapshot.locationFilter !== "all" && (s.location ?? "") !== snapshot.locationFilter) return false;
       return true;
     });
-    if (candidates.length === 0) { setResults([]); return; }
+    if (candidates.length === 0) { setResults([]); searchAction.reset(); return; }
 
     const dayStart = new Date(y, m - 1, d, HOUR_START, 0, 0, 0);
     const dayEnd = new Date(y, m - 1, d, HOUR_END, 0, 0, 0);
     const [bandStart, bandEnd] =
-      timeBand === "morning" ? [7, 12] :
-      timeBand === "afternoon" ? [12, 17] :
-      timeBand === "evening" ? [17, 21] :
+      snapshot.timeBand === "morning" ? [7, 12] :
+      snapshot.timeBand === "afternoon" ? [12, 17] :
+      snapshot.timeBand === "evening" ? [17, 21] :
       [HOUR_START, HOUR_END];
     const windowStart = new Date(y, m - 1, d, bandStart, 0, 0, 0);
     const windowEnd = new Date(y, m - 1, d, bandEnd, 0, 0, 0);
 
+    lastAttemptRef.current = snapshot;
     setSearching(true);
     try {
       await searchAction.run({
         loadingMessage: "Finding availability…",
         cancelledMessage: "Search cancelled",
         errorMessage: "Couldn't load availability. Please try again.",
-        onRetry: () => { void search(); },
+        mode: "replace",
+        onRetry: () => { void runSearch(snapshot); },
         task: async (signal) => {
           const { data, error } = await supabase
             .from("appointments")
@@ -441,10 +459,11 @@ function AvailabilityPanel({
             busy.set(r.staff_id as string, arr);
           });
 
-          const dur = durationOverride === "service" ? svc.duration_minutes : Number(durationOverride);
+          const dur = snapshot.durationOverride === "service" ? svc.duration_minutes : Number(snapshot.durationOverride);
           const MAX_SLOTS = 3;
           const found: Array<{ staffId: string; slots: Array<{ start: Date; end: Date }> }> = [];
           for (const c of candidates) {
+            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
             const intervals = (busy.get(c.id) ?? []).sort((a, b) => a.s.getTime() - b.s.getTime());
             let cursor = new Date(Math.max(windowStart.getTime(), dayStart.getTime()));
             const stop = new Date(Math.min(windowEnd.getTime(), dayEnd.getTime()));
@@ -470,6 +489,30 @@ function AvailabilityPanel({
       setSearching(false);
     }
   };
+
+  const search = () => runSearch({
+    serviceId, dateStr, timeBand, durationOverride, roleFilter, locationFilter,
+  });
+
+  const retryLastSearch = () => {
+    const snap = lastAttemptRef.current;
+    if (!snap) return search();
+    return runSearch(snap);
+  };
+
+  const lastAttemptDiffers = (() => {
+    const s = lastAttemptRef.current;
+    if (!s) return false;
+    return (
+      s.serviceId !== serviceId ||
+      s.dateStr !== dateStr ||
+      s.timeBand !== timeBand ||
+      s.durationOverride !== durationOverride ||
+      s.roleFilter !== roleFilter ||
+      s.locationFilter !== locationFilter
+    );
+  })();
+
 
   const reset = () => {
     setServiceId(services[0]?.id ?? "");
