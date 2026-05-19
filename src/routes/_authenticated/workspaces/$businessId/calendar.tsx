@@ -340,6 +340,9 @@ function AvailabilityPanel({
   const [resetting, setResetting] = useState(false);
   const [searching, setSearching] = useState(false);
   const [cancelledBannerDismissed, setCancelledBannerDismissed] = useState(false);
+  // 0 = never auto-dismiss; otherwise number of seconds before the inline
+  // Cancelled status (and banner) auto-clears.
+  const [cancelledAutoDismissSec, setCancelledAutoDismissSec] = useState<number>(6);
 
   useEffect(() => { setDateStr(format(day, "yyyy-MM-dd")); }, [day]);
 
@@ -363,6 +366,11 @@ function AvailabilityPanel({
           if (rf) setRoleFilter(rf);
           const lf = localStorage.getItem(`availability:locationFilter:${uid}`);
           if (lf) setLocationFilter(lf);
+          const ad = localStorage.getItem(`availability:cancelledAutoDismissSec:${uid}`);
+          if (ad !== null) {
+            const n = Number(ad);
+            if (Number.isFinite(n) && n >= 0) setCancelledAutoDismissSec(n);
+          }
         } catch { /* ignore */ }
       }
       setDurationHydrated(true);
@@ -378,8 +386,9 @@ function AvailabilityPanel({
       localStorage.setItem(`availability:timeBand:${userId}`, timeBand);
       localStorage.setItem(`availability:roleFilter:${userId}`, roleFilter);
       localStorage.setItem(`availability:locationFilter:${userId}`, locationFilter);
+      localStorage.setItem(`availability:cancelledAutoDismissSec:${userId}`, String(cancelledAutoDismissSec));
     } catch { /* ignore */ }
-  }, [durationOverride, timeBand, roleFilter, locationFilter, durationHydrated, userId]);
+  }, [durationOverride, timeBand, roleFilter, locationFilter, cancelledAutoDismissSec, durationHydrated, userId]);
 
 
 
@@ -398,14 +407,14 @@ function AvailabilityPanel({
   useEffect(() => {
     if (searchAction.status !== "cancelled") return;
     setCancelledBannerDismissed(false);
-    // Auto-dismiss the inline Cancelled status (and banner) after 6s
-    // so the panel doesn't stay stuck in a cancelled state.
+    // 0 = never auto-dismiss; otherwise clear after cancelledAutoDismissSec seconds.
+    if (cancelledAutoDismissSec <= 0) return;
     const t = setTimeout(() => {
       searchAction.reset();
       setCancelledBannerDismissed(true);
-    }, 6000);
+    }, cancelledAutoDismissSec * 1000);
     return () => clearTimeout(t);
-  }, [searchAction.status, searchAction]);
+  }, [searchAction.status, searchAction, cancelledAutoDismissSec]);
   const lastAttemptRef = useRef<{
     serviceId: string;
     dateStr: string;
@@ -806,6 +815,30 @@ function AvailabilityPanel({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <div className="ml-auto flex items-center gap-2">
+                <Label
+                  htmlFor="cancelled-auto-dismiss"
+                  className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground whitespace-nowrap"
+                >
+                  Auto-dismiss Cancelled
+                </Label>
+                <Select
+                  value={String(cancelledAutoDismissSec)}
+                  onValueChange={(v) => setCancelledAutoDismissSec(Number(v))}
+                >
+                  <SelectTrigger id="cancelled-auto-dismiss" className="h-8 w-[120px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 seconds</SelectItem>
+                    <SelectItem value="6">6 seconds</SelectItem>
+                    <SelectItem value="10">10 seconds</SelectItem>
+                    <SelectItem value="15">15 seconds</SelectItem>
+                    <SelectItem value="30">30 seconds</SelectItem>
+                    <SelectItem value="0">Never</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {searchAction.status === "loading" && (
