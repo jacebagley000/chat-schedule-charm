@@ -443,8 +443,12 @@ function AvailabilityPanel({
     setResults(null);
   };
 
-  const clearSavedPreferences = () => {
+  const clearSavedPreferences = async () => {
+    setResetting(true);
+    const loadingId = toast.loading("Resetting filters…");
     try {
+      // Yield so the loading toast and spinner render before sync work
+      await new Promise((r) => setTimeout(r, 150));
       setTimeBand("any");
       setRoleFilter("all");
       setLocationFilter("all");
@@ -453,15 +457,18 @@ function AvailabilityPanel({
         localStorage.removeItem(`availability:roleFilter:${userId}`);
         localStorage.removeItem(`availability:locationFilter:${userId}`);
       }
-      toast.success("Filters reset to defaults");
+      toast.success("Filters reset to defaults", { id: loadingId });
     } catch (err) {
       console.error("Failed to reset filters", err);
       toast.error("Couldn't reset filters. Please try again.", {
+        id: loadingId,
         action: {
           label: "Retry",
-          onClick: () => clearSavedPreferences(),
+          onClick: () => { void clearSavedPreferences(); },
         },
       });
+    } finally {
+      setResetting(false);
     }
   };
 
