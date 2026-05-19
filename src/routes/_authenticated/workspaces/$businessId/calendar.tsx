@@ -446,6 +446,20 @@ function AvailabilityPanel({
                 </Select>
               </div>
               <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Duration</Label>
+                <Select value={durationOverride} onValueChange={setDurationOverride}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="service">Service default</SelectItem>
+                    {[15, 30, 45, 60, 75, 90, 120, 150, 180].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} hr` : `${Math.floor(m / 60)} hr ${m % 60} min`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
                 <Label className="text-[10px] uppercase tracking-wide font-mono text-muted-foreground">Role</Label>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
