@@ -537,6 +537,9 @@ function AvailabilityPanel({
                 {searching ? "Searching…" : "Find availability"}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={reset}>Reset</Button>
+              <Button type="button" size="sm" variant="outline" onClick={clearSavedPreferences}>
+                Clear saved preferences
+              </Button>
             </div>
 
             {results !== null && (
