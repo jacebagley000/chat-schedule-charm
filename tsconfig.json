@@ -9,6 +9,8 @@
 
     /* Bundler mode */
     "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false,
     "noEmit": true,

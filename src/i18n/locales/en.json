@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "What does Never do?",
+      "tooltipBody": "How long the inline \"Cancelled\" status and banner stay visible after you abort a search.",
+      "tooltipNever": "\"Never\" keeps the Cancelled status on screen until you dismiss it manually, Retry, or start a fresh search.",
+      "helperNever": "\"Never\" keeps the Cancelled status visible until you dismiss it, Retry the previous search, or start a fresh one."
+    }
+  }
+}

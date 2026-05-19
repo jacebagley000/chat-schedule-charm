@@ -1,0 +1,10 @@
+{
+  "availability": {
+    "autoDismiss": {
+      "tooltipAriaLabel": "Que fait « Jamais » ?",
+      "tooltipBody": "Durée pendant laquelle le statut « Annulé » et la bannière restent visibles après l'annulation d'une recherche.",
+      "tooltipNever": "« Jamais » conserve le statut Annulé à l'écran jusqu'à ce que vous le fermiez, réessayiez ou lanciez une nouvelle recherche.",
+      "helperNever": "« Jamais » conserve le statut Annulé visible jusqu'à ce que vous le fermiez, réessayiez la recherche précédente ou en lanciez une nouvelle."
+    }
+  }
+}
