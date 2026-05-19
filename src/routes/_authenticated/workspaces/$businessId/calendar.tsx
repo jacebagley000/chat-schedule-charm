@@ -696,12 +696,26 @@ function AvailabilityPanel({
               <div
                 role="status"
                 aria-live="polite"
-                className="rounded-md border border-border bg-muted/30 px-3 py-3 flex items-center justify-between gap-3 text-sm"
+                className="rounded-md border border-border bg-muted/30 px-3 py-3 flex items-start justify-between gap-3 text-sm"
               >
-                <span className="text-muted-foreground">Search cancelled.</span>
-                <Button type="button" size="sm" variant="outline" onClick={search}>
-                  Retry
-                </Button>
+                <div className="min-w-0">
+                  <p className="text-muted-foreground">Search cancelled before results loaded.</p>
+                  {lastAttemptDiffers && (
+                    <p className="text-xs text-muted-foreground/80 mt-0.5">
+                      Filters have changed since — Retry re-runs the previous search; Search uses current filters.
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button type="button" size="sm" variant="outline" onClick={retryLastSearch}>
+                    Retry
+                  </Button>
+                  {lastAttemptDiffers && (
+                    <Button type="button" size="sm" onClick={search}>
+                      Search
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -718,13 +732,26 @@ function AvailabilityPanel({
                     <p className="text-xs text-muted-foreground truncate">
                       {searchAction.error?.message ?? "Please try again."}
                     </p>
+                    {lastAttemptDiffers && (
+                      <p className="text-xs text-muted-foreground/80 mt-0.5">
+                        Filters have changed since — Retry re-runs the previous search.
+                      </p>
+                    )}
                   </div>
                 </div>
-                <Button type="button" size="sm" variant="outline" onClick={search}>
-                  Retry
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Button type="button" size="sm" variant="outline" onClick={retryLastSearch}>
+                    Retry
+                  </Button>
+                  {lastAttemptDiffers && (
+                    <Button type="button" size="sm" onClick={search}>
+                      Search
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
+
 
             {searchAction.status === "success" && results !== null && (
               <div className="rounded-md border border-border divide-y divide-border">
