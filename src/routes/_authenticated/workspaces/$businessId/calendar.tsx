@@ -593,13 +593,53 @@ function AvailabilityPanel({
             <AlertCircle className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-medium">Last availability search was cancelled</p>
-              <p className="text-xs text-muted-foreground">
-                {lastAttemptRef.current
-                  ? "Retry the previous search, or start fresh with new filters."
-                  : "Open the panel to start a new search."}
-              </p>
+              {lastAttemptRef.current ? (
+                (() => {
+                  const snap = lastAttemptRef.current;
+                  const svcName = services.find((s) => s.id === snap.serviceId)?.name ?? "Unknown service";
+                  const [y, m, d] = snap.dateStr.split("-").map(Number);
+                  const dateLabel = y && m && d
+                    ? format(new Date(y, m - 1, d), "EEE, MMM d")
+                    : snap.dateStr;
+                  const timeLabel = TIME_PRESETS.find((t) => t.value === snap.timeBand)?.label ?? snap.timeBand;
+                  const roleLabel = snap.roleFilter === "all" ? "All roles" : snap.roleFilter;
+                  const locationLabel = snap.locationFilter === "all" ? "All locations" : snap.locationFilter;
+                  const chips: Array<{ label: string; value: string }> = [
+                    { label: "Service", value: svcName },
+                    { label: "Date", value: dateLabel },
+                    { label: "Time", value: timeLabel },
+                    { label: "Role", value: roleLabel },
+                    { label: "Location", value: locationLabel },
+                  ];
+                  return (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        Retry the previous search, or start fresh with new filters.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {chips.map((c) => (
+                          <span
+                            key={c.label}
+                            className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-0.5 text-[11px]"
+                          >
+                            <span className="font-mono uppercase tracking-wide text-[9px] text-muted-foreground">
+                              {c.label}
+                            </span>
+                            <span className="font-medium truncate max-w-[160px]">{c.value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Open the panel to start a new search.
+                </p>
+              )}
             </div>
           </div>
+
           <div className="flex gap-2 shrink-0 items-center">
             {lastAttemptRef.current && (
               <Button type="button" size="sm" variant="outline" onClick={retryLastSearch}>
