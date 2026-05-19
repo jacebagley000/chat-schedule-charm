@@ -453,6 +453,7 @@ function AvailabilityPanel({
         localStorage.removeItem(`availability:locationFilter:${userId}`);
       } catch { /* ignore */ }
     }
+    toast.success("Filters reset to defaults");
   };
 
   const staffNameOf = (id: string) => staff.find((s) => s.id === id)?.name ?? "Staff";
