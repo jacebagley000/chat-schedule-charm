@@ -15,6 +15,11 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, Plus, ArrowLeft, CalendarIcon, Trash2, AlertCircle,
@@ -537,9 +542,27 @@ function AvailabilityPanel({
                 {searching ? "Searching…" : "Find availability"}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={reset}>Reset</Button>
-              <Button type="button" size="sm" variant="outline" onClick={clearSavedPreferences}>
-                Reset filters to defaults
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" size="sm" variant="outline">
+                    Reset filters to defaults
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset filters to defaults?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will clear your saved Time band, Role, and Location selections for this calendar and reset them to the defaults (Any time, All roles, All locations).
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={clearSavedPreferences}>
+                      Reset
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
             {results !== null && (
