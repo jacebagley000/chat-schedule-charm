@@ -83,7 +83,7 @@ function CalendarPage() {
       mode: "replace",
       task: async (signal) => {
         const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
-          supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle().abortSignal(signal),
+          supabase.from("businesses").select("id, name").eq("id", businessId).abortSignal(signal).maybeSingle(),
           supabase.from("staff").select("id, name, color, role, location").eq("business_id", businessId).eq("active", true).order("name").abortSignal(signal),
           supabase.from("services").select("id, name, duration_minutes, color").eq("business_id", businessId).eq("active", true).order("name").abortSignal(signal),
           supabase.from("customers").select("id, name, phone").eq("business_id", businessId).order("name").abortSignal(signal),
