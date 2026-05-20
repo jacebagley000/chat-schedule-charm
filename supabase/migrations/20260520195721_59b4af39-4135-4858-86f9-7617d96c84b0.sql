@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.prevent_started_appointment_delete() FROM PUBLIC, anon, authenticated;
