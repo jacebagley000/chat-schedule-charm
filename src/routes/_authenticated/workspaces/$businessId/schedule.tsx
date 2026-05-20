@@ -635,6 +635,29 @@ function EditAppointmentSheet({
 
         {appointment && (
           <form onSubmit={submit} className="flex-1 flex flex-col gap-4 mt-4">
+            {conflict && (
+              <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
+                <div className="font-semibold mb-1">Time conflict</div>
+                <div className="text-xs">
+                  Overlaps with{" "}
+                  <span className="font-medium">
+                    {customers.find((c) => c.id === conflict.customer_id)?.name ?? "Unknown customer"}
+                  </span>
+                  {conflict.service_id && (
+                    <> — {services.find((s) => s.id === conflict.service_id)?.name ?? "service"}</>
+                  )}
+                  <br />
+                  {format(parseISO(conflict.starts_at), "EEE, MMM d · h:mm a")} –{" "}
+                  {format(parseISO(conflict.ends_at), "h:mm a")}
+                  {" · "}
+                  <span className="capitalize">{conflict.status.replace("_", " ")}</span>
+                  {conflict.staff_id && (
+                    <> · {staff.find((s) => s.id === conflict.staff_id)?.name ?? "staff"}</>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
