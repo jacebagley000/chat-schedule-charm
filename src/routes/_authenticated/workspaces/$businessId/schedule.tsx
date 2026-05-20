@@ -512,6 +512,8 @@ function SchedulePage() {
       <EditAppointmentSheet
         appointment={editing}
         staff={staff}
+        customers={customers}
+        services={services}
         onClose={() => setEditingId(null)}
       />
     </div>
@@ -533,10 +535,12 @@ const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
 ];
 
 function EditAppointmentSheet({
-  appointment, staff, onClose,
+  appointment, staff, customers, services, onClose,
 }: {
   appointment: Appointment | null;
   staff: Staff[];
+  customers: Customer[];
+  services: Service[];
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<Appointment["status"]>("pending");
@@ -546,6 +550,7 @@ function EditAppointmentSheet({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [conflict, setConflict] = useState<Appointment | null>(null);
 
   const remove = async () => {
     if (!appointment) return;
@@ -567,6 +572,7 @@ function EditAppointmentSheet({
     setStartsAt(toLocalInput(appointment.starts_at));
     setEndsAt(toLocalInput(appointment.ends_at));
     setNotes(appointment.notes ?? "");
+    setConflict(null);
   }, [appointment?.id]);
 
   const open = !!appointment;
@@ -582,22 +588,40 @@ function EditAppointmentSheet({
     if (endDate <= startDate) {
       return toast.error("End time must be after start time.");
     }
+    setConflict(null);
     setSaving(true);
+    const targetStaffId = staffId === "__unassigned" ? null : staffId;
     const { error } = await supabase
       .from("appointments")
       .update({
         status,
-        staff_id: staffId === "__unassigned" ? null : staffId,
+        staff_id: targetStaffId,
         starts_at: startDate.toISOString(),
         ends_at: endDate.toISOString(),
         notes: notes.trim() || null,
       })
       .eq("id", appointment.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (/time conflict/i.test(error.message) && targetStaffId) {
+        const { data: conflicts } = await supabase
+          .from("appointments")
+          .select("*")
+          .eq("business_id", appointment.business_id)
+          .eq("staff_id", targetStaffId)
+          .neq("id", appointment.id)
+          .not("status", "in", "(cancelled,no_show)")
+          .lt("starts_at", endDate.toISOString())
+          .gt("ends_at", startDate.toISOString())
+          .limit(1);
+        setConflict((conflicts?.[0] as Appointment | undefined) ?? null);
+      }
+      return toast.error(error.message);
+    }
     toast.success("Appointment updated");
     onClose();
   };
+
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -611,6 +635,29 @@ function EditAppointmentSheet({
 
         {appointment && (
           <form onSubmit={submit} className="flex-1 flex flex-col gap-4 mt-4">
+            {conflict && (
+              <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900">
+                <div className="font-semibold mb-1">Time conflict</div>
+                <div className="text-xs">
+                  Overlaps with{" "}
+                  <span className="font-medium">
+                    {customers.find((c) => c.id === conflict.customer_id)?.name ?? "Unknown customer"}
+                  </span>
+                  {conflict.service_id && (
+                    <> — {services.find((s) => s.id === conflict.service_id)?.name ?? "service"}</>
+                  )}
+                  <br />
+                  {format(parseISO(conflict.starts_at), "EEE, MMM d · h:mm a")} –{" "}
+                  {format(parseISO(conflict.ends_at), "h:mm a")}
+                  {" · "}
+                  <span className="capitalize">{conflict.status.replace("_", " ")}</span>
+                  {conflict.staff_id && (
+                    <> · {staff.find((s) => s.id === conflict.staff_id)?.name ?? "staff"}</>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as Appointment["status"])}>
