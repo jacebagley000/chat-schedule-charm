@@ -512,6 +512,8 @@ function SchedulePage() {
       <EditAppointmentSheet
         appointment={editing}
         staff={staff}
+        customers={customers}
+        services={services}
         onClose={() => setEditingId(null)}
       />
     </div>
