@@ -554,6 +554,7 @@ function EditAppointmentSheet({
 
   const remove = async () => {
     if (!appointment) return;
+    const snapshot = { ...appointment };
     setDeleting(true);
     const { error } = await supabase
       .from("appointments")
@@ -561,7 +562,22 @@ function EditAppointmentSheet({
       .eq("id", appointment.id);
     setDeleting(false);
     if (error) return toast.error(error.message);
-    toast.success("Appointment deleted");
+    toast.success("Appointment deleted", {
+      duration: 8000,
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          const { error: restoreError } = await supabase
+            .from("appointments")
+            .insert(snapshot);
+          if (restoreError) {
+            toast.error(`Could not restore: ${restoreError.message}`);
+          } else {
+            toast.success("Appointment restored");
+          }
+        },
+      },
+    });
     onClose();
   };
 
