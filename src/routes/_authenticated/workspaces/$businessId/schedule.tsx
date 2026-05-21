@@ -746,10 +746,33 @@ function EditAppointmentSheet({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete this appointment?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This permanently removes the appointment from the schedule.
-                      This action cannot be undone.
+                      Please confirm the details below before deleting.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
+                  {appointment && (
+                    <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-1.5">
+                      <div>
+                        <span className="text-muted-foreground">When: </span>
+                        <span className="font-medium">
+                          {format(parseISO(appointment.starts_at), "EEE, MMM d · h:mm a")}
+                          {" – "}
+                          {format(parseISO(appointment.ends_at), "h:mm a")}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Staff: </span>
+                        <span className="font-medium">
+                          {staff.find((s) => s.id === appointment.staff_id)?.name ?? "Unassigned"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Notes: </span>
+                        <span className="font-medium whitespace-pre-wrap">
+                          {appointment.notes?.trim() ? appointment.notes : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
