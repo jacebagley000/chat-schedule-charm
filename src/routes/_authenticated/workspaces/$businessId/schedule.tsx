@@ -129,10 +129,19 @@ function SchedulePage() {
     const snapped = Math.round(rawMin / SNAP_MIN) * SNAP_MIN;
     const startMin = Math.max(0, Math.min(TOTAL_MIN - info.durationMin, snapped));
 
-    const newStart = new Date(day);
-    newStart.setHours(HOUR_START, 0, 0, 0);
-    newStart.setMinutes(newStart.getMinutes() + startMin);
+    // Grid position is wall-clock minutes after HOUR_START on the selected day,
+    // interpreted in the business timezone, then converted back to a UTC instant.
+    const totalMinutes = HOUR_START * 60 + startMin;
+    const newStart = zonedTimeToUtc(
+      dayParts.year,
+      dayParts.month,
+      dayParts.day,
+      Math.floor(totalMinutes / 60),
+      totalMinutes % 60,
+      tz,
+    );
     const newEnd = new Date(newStart.getTime() + info.durationMin * 60_000);
+
 
     const newStaffId = colId === "__unassigned" ? null : colId;
 
