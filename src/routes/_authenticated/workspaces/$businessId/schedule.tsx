@@ -644,8 +644,9 @@ function EditAppointmentSheet({
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!appointment) return;
-    const startDate = new Date(startsAt);
-    const endDate = new Date(endsAt);
+    // Inputs are wall-clock in the business timezone → convert to UTC instants.
+    const startDate = new Date(inputValueToUtc(startsAt, timeZone));
+    const endDate = new Date(inputValueToUtc(endsAt, timeZone));
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return toast.error("Please enter valid start and end times.");
     }
