@@ -441,7 +441,7 @@ function SchedulePage() {
                     className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground px-2 pt-1"
                     style={{ height: `${60 * PX_PER_MIN}px` }}
                   >
-                    {format(new Date().setHours(h, 0, 0, 0), "h a")}
+                    {((h + 11) % 12) + 1} {h < 12 ? "AM" : "PM"}
                   </div>
                 ))}
               </div>
