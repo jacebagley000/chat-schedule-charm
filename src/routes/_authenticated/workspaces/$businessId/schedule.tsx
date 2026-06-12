@@ -254,7 +254,7 @@ function SchedulePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [businessId, day]);
+  }, [businessId, day, tz]);
 
   const customerName = (id: string | null) => {
     const c = customers.find((x) => x.id === id);
