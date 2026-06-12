@@ -541,7 +541,7 @@ function SchedulePage() {
                             {serviceName(a.service_id)}
                           </div>
                           <div className="opacity-60 text-[10px] mt-0.5 font-mono">
-                            {format(start, "h:mm a")} – {format(end, "h:mm a")}
+                            {formatZonedTime(start, tz)} – {formatZonedTime(end, tz)}
                           </div>
                         </button>
                       );
