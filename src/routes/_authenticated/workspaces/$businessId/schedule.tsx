@@ -715,8 +715,8 @@ function EditAppointmentSheet({
                     <> — {services.find((s) => s.id === conflict.service_id)?.name ?? "service"}</>
                   )}
                   <br />
-                  {format(parseISO(conflict.starts_at), "EEE, MMM d · h:mm a")} –{" "}
-                  {format(parseISO(conflict.ends_at), "h:mm a")}
+                  {formatZonedDateTime(new Date(conflict.starts_at), timeZone)} –{" "}
+                  {formatZonedTime(new Date(conflict.ends_at), timeZone)}
                   {" · "}
                   <span className="capitalize">{conflict.status.replace("_", " ")}</span>
                   {conflict.staff_id && (
