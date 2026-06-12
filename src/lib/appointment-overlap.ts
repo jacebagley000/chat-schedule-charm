@@ -2,6 +2,17 @@
 // (see supabase/migrations) so the scheduling overlap rule can be unit-tested.
 // The database trigger remains the source of truth and the only enforcement
 // point at runtime; this helper documents and verifies the same logic.
+//
+// BOUNDARY RULE (decided, documented, and enforced everywhere):
+// Appointments use HALF-OPEN time intervals [starts_at, ends_at). An end time
+// that exactly equals another appointment's start time is NOT an overlap —
+// e.g. 10:00–11:00 and 11:00–12:00 are valid back-to-back bookings for the
+// same staff member. The comparison is strict on both sides:
+//   existing.starts_at < candidate.ends_at AND existing.ends_at > candidate.starts_at
+// A zero-length appointment (ends_at == starts_at) is rejected separately as an
+// invalid range, not as an overlap. The same predicate is used by the DB trigger
+// and the UI conflict lookup so all three layers agree.
+
 
 export type AppointmentStatus =
   | "pending"
