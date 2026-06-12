@@ -633,11 +633,11 @@ function EditAppointmentSheet({
     if (!appointment) return;
     setStatus(appointment.status);
     setStaffId(appointment.staff_id ?? "__unassigned");
-    setStartsAt(toLocalInput(appointment.starts_at));
-    setEndsAt(toLocalInput(appointment.ends_at));
+    setStartsAt(utcToInputValue(appointment.starts_at, timeZone));
+    setEndsAt(utcToInputValue(appointment.ends_at, timeZone));
     setNotes(appointment.notes ?? "");
     setConflict(null);
-  }, [appointment?.id]);
+  }, [appointment?.id, timeZone]);
 
   const open = !!appointment;
 
