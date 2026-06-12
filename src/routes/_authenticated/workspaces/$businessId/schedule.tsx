@@ -202,25 +202,32 @@ function SchedulePage() {
     };
   }, [businessId]);
 
-  // Load appointments for the selected day.
+  // Load appointments for the selected day, using the business timezone to
+  // define the day window so the grid shows the business's local day.
   const loadAppointments = async (d: Date) => {
-    const from = startOfDay(d).toISOString();
-    const to = addDays(startOfDay(d), 1).toISOString();
+    const fromInstant = startOfZonedDay(
+      d.getFullYear(),
+      d.getMonth() + 1,
+      d.getDate(),
+      tz,
+    );
+    const toInstant = new Date(fromInstant.getTime() + 24 * 60 * 60_000);
     const { data } = await supabase
       .from("appointments")
       .select(
         "id, business_id, starts_at, ends_at, status, customer_id, staff_id, service_id, notes",
       )
       .eq("business_id", businessId)
-      .gte("starts_at", from)
-      .lt("starts_at", to)
+      .gte("starts_at", fromInstant.toISOString())
+      .lt("starts_at", toInstant.toISOString())
       .order("starts_at");
     setAppointments((data ?? []) as Appointment[]);
   };
 
   useEffect(() => {
     loadAppointments(day);
-  }, [businessId, day]);
+  }, [businessId, day, tz]);
+
 
   // Realtime subscription — re-fetch the day on any change to this business's
   // appointments. Simple and correct; row-level merging would be brittle since
