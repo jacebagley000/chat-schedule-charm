@@ -806,9 +806,9 @@ function EditAppointmentSheet({
                       <div>
                         <span className="text-muted-foreground">When: </span>
                         <span className="font-medium">
-                          {format(parseISO(appointment.starts_at), "EEE, MMM d · h:mm a")}
+                          {formatZonedDateTime(new Date(appointment.starts_at), timeZone)}
                           {" – "}
-                          {format(parseISO(appointment.ends_at), "h:mm a")}
+                          {formatZonedTime(new Date(appointment.ends_at), timeZone)}
                         </span>
                       </div>
                       <div>
