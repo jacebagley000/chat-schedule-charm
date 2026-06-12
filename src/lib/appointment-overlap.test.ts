@@ -145,6 +145,39 @@ describe("staff overlap validation", () => {
     });
   });
 
+  describe("end == start boundary (half-open, not an overlap)", () => {
+    it("allows a candidate that starts exactly when an existing booking ends", () => {
+      const candidate = appt({
+        id: "after",
+        starts_at: "2026-06-15T11:00:00.000Z",
+        ends_at: "2026-06-15T12:00:00.000Z",
+      });
+      expect(findStaffConflict(candidate, existing)).toBeNull();
+      expect(() => assertSaveAllowed(candidate, existing)).not.toThrow();
+    });
+
+    it("allows a candidate that ends exactly when an existing booking starts", () => {
+      const candidate = appt({
+        id: "before",
+        starts_at: "2026-06-15T09:00:00.000Z",
+        ends_at: "2026-06-15T10:00:00.000Z",
+      });
+      expect(findStaffConflict(candidate, existing)).toBeNull();
+      expect(() => assertSaveAllowed(candidate, existing)).not.toThrow();
+    });
+
+    it("blocks when the candidate overlaps by even a single minute", () => {
+      const candidate = appt({
+        id: "barely",
+        starts_at: "2026-06-15T10:59:00.000Z",
+        ends_at: "2026-06-15T11:59:00.000Z",
+      });
+      expect(() => assertSaveAllowed(candidate, existing)).toThrow(OverlapError);
+    });
+  });
+
+
+
   describe("range validation", () => {
     it("rejects an end time that is not after the start time", () => {
       const candidate = appt({
