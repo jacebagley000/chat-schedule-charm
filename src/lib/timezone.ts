@@ -139,3 +139,29 @@ export function tzAbbreviation(date: Date, timeZone: string): string {
   }).formatToParts(date);
   return parts.find((p) => p.type === "timeZoneName")?.value ?? timeZone;
 }
+
+/** Format an instant's time in `timeZone`, e.g. "9:30 AM". */
+export function formatZonedTime(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
+/** Format an instant's date + time in `timeZone`, e.g. "Mon, Jun 15 · 9:30 AM". */
+export function formatZonedDateTime(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("weekday")}, ${get("month")} ${get("day")} · ${get("hour")}:${get("minute")} ${get("dayPeriod")}`;
+}
+
