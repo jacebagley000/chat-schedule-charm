@@ -263,23 +263,30 @@ function SchedulePage() {
   const serviceName = (id: string | null) =>
     services.find((s) => s.id === id)?.name || "Service";
 
-  const isToday = startOfDay(new Date()).getTime() === day.getTime();
+  // "Today" is evaluated in the business timezone, not the viewer's.
+  const isToday = useMemo(() => {
+    const nowParts = getZonedParts(new Date(), tz);
+    return (
+      nowParts.year === dayParts.year &&
+      nowParts.month === dayParts.month &&
+      nowParts.day === dayParts.day
+    );
+  }, [dayParts, tz]);
 
-  // Now-indicator position within the visible window.
-  const [nowMin, setNowMin] = useState(() => {
-    const n = new Date();
-    return n.getHours() * 60 + n.getMinutes() - HOUR_START * 60;
-  });
+  // Now-indicator position within the visible window (business-timezone minutes).
+  const [nowMin, setNowMin] = useState(
+    () => minutesSinceMidnight(new Date(), tz) - HOUR_START * 60,
+  );
   useEffect(() => {
     if (!isToday) return;
     const tick = () => {
-      const n = new Date();
-      setNowMin(n.getHours() * 60 + n.getMinutes() - HOUR_START * 60);
+      setNowMin(minutesSinceMidnight(new Date(), tz) - HOUR_START * 60);
     };
     tick();
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, [isToday]);
+  }, [isToday, tz]);
+
 
   const hours = useMemo(
     () => Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i),
