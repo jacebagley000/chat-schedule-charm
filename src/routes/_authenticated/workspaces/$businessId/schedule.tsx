@@ -99,7 +99,19 @@ function SchedulePage() {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const dragInfoRef = useRef<{ id: string; grabOffsetMin: number; durationMin: number } | null>(null);
 
+  // All display, day-windowing, and edit inputs use the business's configured
+  // timezone so every viewer sees the same wall-clock times. Conflict detection
+  // runs on UTC instants (DB trigger), which is timezone-invariant.
+  const tz = useMemo(() => resolveTimeZone(business?.timezone), [business?.timezone]);
+
+  // Calendar Y/M/D currently selected (the date picker is a calendar marker).
+  const dayParts = useMemo(
+    () => ({ year: day.getFullYear(), month: day.getMonth() + 1, day: day.getDate() }),
+    [day],
+  );
+
   const SNAP_MIN = 15;
+
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, colId: string) => {
     e.preventDefault();
