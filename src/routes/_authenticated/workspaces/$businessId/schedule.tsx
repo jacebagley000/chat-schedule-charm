@@ -165,7 +165,7 @@ function SchedulePage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`Moved to ${format(newStart, "h:mm a")}`);
+      toast.success(`Moved to ${formatZonedTime(newStart, tz)}`);
     }
   };
 
