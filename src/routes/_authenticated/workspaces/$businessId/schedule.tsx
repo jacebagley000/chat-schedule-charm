@@ -489,10 +489,11 @@ function SchedulePage() {
                     )}
 
                     {list.map((a) => {
-                      const start = parseISO(a.starts_at);
-                      const end = parseISO(a.ends_at);
+                      const start = new Date(a.starts_at);
+                      const end = new Date(a.ends_at);
+                      // Position by wall-clock minutes in the business timezone.
                       const startMin =
-                        start.getHours() * 60 + start.getMinutes() - HOUR_START * 60;
+                        minutesSinceMidnight(start, tz) - HOUR_START * 60;
                       const duration = Math.max(
                         15,
                         (end.getTime() - start.getTime()) / 60000,
