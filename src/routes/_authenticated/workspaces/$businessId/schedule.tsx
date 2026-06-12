@@ -556,6 +556,7 @@ function SchedulePage() {
         <p className="text-xs text-muted-foreground mt-4 font-mono">
           Updates in real time. {appointments.length} appointment
           {appointments.length === 1 ? "" : "s"} on {format(day, "EEE, MMM d")}.
+          {" "}Times shown in {tzAbbreviation(new Date(), tz)} ({tz}).
         </p>
       </main>
 
@@ -564,11 +565,13 @@ function SchedulePage() {
         staff={staff}
         customers={customers}
         services={services}
+        timeZone={tz}
         onClose={() => setEditingId(null)}
       />
     </div>
   );
 }
+
 
 function toLocalInput(iso: string) {
   const d = new Date(iso);
