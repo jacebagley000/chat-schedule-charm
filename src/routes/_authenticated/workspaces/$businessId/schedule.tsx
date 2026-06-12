@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/sch
   }),
 });
 
-type Business = { id: string; name: string };
+type Business = { id: string; name: string; timezone: string | null };
 type Staff = { id: string; name: string; color: string | null; role: string | null };
 type Service = { id: string; name: string };
 type Customer = { id: string; name: string | null; phone: string | null };
