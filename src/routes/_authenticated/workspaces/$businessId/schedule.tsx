@@ -627,6 +627,9 @@ function EditAppointmentSheet({
           .eq("staff_id", targetStaffId)
           .neq("id", appointment.id)
           .not("status", "in", "(cancelled,no_show)")
+          // Half-open overlap: a booking ending exactly when this one starts
+          // (or starting exactly when it ends) is NOT a conflict. Strict
+          // comparisons mirror the DB trigger prevent_staff_appointment_overlap.
           .lt("starts_at", endDate.toISOString())
           .gt("ends_at", startDate.toISOString())
           .limit(1);
