@@ -573,12 +573,6 @@ function SchedulePage() {
 }
 
 
-function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
   { value: "pending", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
@@ -588,12 +582,13 @@ const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
 ];
 
 function EditAppointmentSheet({
-  appointment, staff, customers, services, onClose,
+  appointment, staff, customers, services, timeZone, onClose,
 }: {
   appointment: Appointment | null;
   staff: Staff[];
   customers: Customer[];
   services: Service[];
+  timeZone: string;
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<Appointment["status"]>("pending");
