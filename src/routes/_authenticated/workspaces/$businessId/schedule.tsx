@@ -181,7 +181,7 @@ function SchedulePage() {
     let cancelled = false;
     (async () => {
       const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
-        supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle(),
+        supabase.from("businesses").select("id, name, timezone").eq("id", businessId).maybeSingle(),
         supabase
           .from("staff")
           .select("id, name, color, role")
