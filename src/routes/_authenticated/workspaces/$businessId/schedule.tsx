@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { addDays, format, parseISO, startOfDay } from "date-fns";
+import { addDays, format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -24,6 +24,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import {
+  resolveTimeZone,
+  startOfZonedDay,
+  zonedTimeToUtc,
+  minutesSinceMidnight,
+  getZonedParts,
+  isSameZonedDay,
+  utcToInputValue,
+  inputValueToUtc,
+  formatZonedTime,
+  formatZonedDateTime,
+  tzAbbreviation,
+} from "@/lib/timezone";
+
 
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/schedule")({
@@ -39,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/sch
   }),
 });
 
-type Business = { id: string; name: string };
+type Business = { id: string; name: string; timezone: string | null };
 type Staff = { id: string; name: string; color: string | null; role: string | null };
 type Service = { id: string; name: string };
 type Customer = { id: string; name: string | null; phone: string | null };
@@ -85,7 +99,19 @@ function SchedulePage() {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const dragInfoRef = useRef<{ id: string; grabOffsetMin: number; durationMin: number } | null>(null);
 
+  // All display, day-windowing, and edit inputs use the business's configured
+  // timezone so every viewer sees the same wall-clock times. Conflict detection
+  // runs on UTC instants (DB trigger), which is timezone-invariant.
+  const tz = useMemo(() => resolveTimeZone(business?.timezone), [business?.timezone]);
+
+  // Calendar Y/M/D currently selected (the date picker is a calendar marker).
+  const dayParts = useMemo(
+    () => ({ year: day.getFullYear(), month: day.getMonth() + 1, day: day.getDate() }),
+    [day],
+  );
+
   const SNAP_MIN = 15;
+
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>, colId: string) => {
     e.preventDefault();
@@ -103,10 +129,19 @@ function SchedulePage() {
     const snapped = Math.round(rawMin / SNAP_MIN) * SNAP_MIN;
     const startMin = Math.max(0, Math.min(TOTAL_MIN - info.durationMin, snapped));
 
-    const newStart = new Date(day);
-    newStart.setHours(HOUR_START, 0, 0, 0);
-    newStart.setMinutes(newStart.getMinutes() + startMin);
+    // Grid position is wall-clock minutes after HOUR_START on the selected day,
+    // interpreted in the business timezone, then converted back to a UTC instant.
+    const totalMinutes = HOUR_START * 60 + startMin;
+    const newStart = zonedTimeToUtc(
+      dayParts.year,
+      dayParts.month,
+      dayParts.day,
+      Math.floor(totalMinutes / 60),
+      totalMinutes % 60,
+      tz,
+    );
     const newEnd = new Date(newStart.getTime() + info.durationMin * 60_000);
+
 
     const newStaffId = colId === "__unassigned" ? null : colId;
 
@@ -130,7 +165,7 @@ function SchedulePage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`Moved to ${format(newStart, "h:mm a")}`);
+      toast.success(`Moved to ${formatZonedTime(newStart, tz)}`);
     }
   };
 
@@ -146,7 +181,7 @@ function SchedulePage() {
     let cancelled = false;
     (async () => {
       const [{ data: b }, { data: s }, { data: sv }, { data: cu }] = await Promise.all([
-        supabase.from("businesses").select("id, name").eq("id", businessId).maybeSingle(),
+        supabase.from("businesses").select("id, name, timezone").eq("id", businessId).maybeSingle(),
         supabase
           .from("staff")
           .select("id, name, color, role")
@@ -167,25 +202,32 @@ function SchedulePage() {
     };
   }, [businessId]);
 
-  // Load appointments for the selected day.
+  // Load appointments for the selected day, using the business timezone to
+  // define the day window so the grid shows the business's local day.
   const loadAppointments = async (d: Date) => {
-    const from = startOfDay(d).toISOString();
-    const to = addDays(startOfDay(d), 1).toISOString();
+    const fromInstant = startOfZonedDay(
+      d.getFullYear(),
+      d.getMonth() + 1,
+      d.getDate(),
+      tz,
+    );
+    const toInstant = new Date(fromInstant.getTime() + 24 * 60 * 60_000);
     const { data } = await supabase
       .from("appointments")
       .select(
         "id, business_id, starts_at, ends_at, status, customer_id, staff_id, service_id, notes",
       )
       .eq("business_id", businessId)
-      .gte("starts_at", from)
-      .lt("starts_at", to)
+      .gte("starts_at", fromInstant.toISOString())
+      .lt("starts_at", toInstant.toISOString())
       .order("starts_at");
     setAppointments((data ?? []) as Appointment[]);
   };
 
   useEffect(() => {
     loadAppointments(day);
-  }, [businessId, day]);
+  }, [businessId, day, tz]);
+
 
   // Realtime subscription — re-fetch the day on any change to this business's
   // appointments. Simple and correct; row-level merging would be brittle since
@@ -212,7 +254,7 @@ function SchedulePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [businessId, day]);
+  }, [businessId, day, tz]);
 
   const customerName = (id: string | null) => {
     const c = customers.find((x) => x.id === id);
@@ -221,23 +263,30 @@ function SchedulePage() {
   const serviceName = (id: string | null) =>
     services.find((s) => s.id === id)?.name || "Service";
 
-  const isToday = startOfDay(new Date()).getTime() === day.getTime();
+  // "Today" is evaluated in the business timezone, not the viewer's.
+  const isToday = useMemo(() => {
+    const nowParts = getZonedParts(new Date(), tz);
+    return (
+      nowParts.year === dayParts.year &&
+      nowParts.month === dayParts.month &&
+      nowParts.day === dayParts.day
+    );
+  }, [dayParts, tz]);
 
-  // Now-indicator position within the visible window.
-  const [nowMin, setNowMin] = useState(() => {
-    const n = new Date();
-    return n.getHours() * 60 + n.getMinutes() - HOUR_START * 60;
-  });
+  // Now-indicator position within the visible window (business-timezone minutes).
+  const [nowMin, setNowMin] = useState(
+    () => minutesSinceMidnight(new Date(), tz) - HOUR_START * 60,
+  );
   useEffect(() => {
     if (!isToday) return;
     const tick = () => {
-      const n = new Date();
-      setNowMin(n.getHours() * 60 + n.getMinutes() - HOUR_START * 60);
+      setNowMin(minutesSinceMidnight(new Date(), tz) - HOUR_START * 60);
     };
     tick();
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, [isToday]);
+  }, [isToday, tz]);
+
 
   const hours = useMemo(
     () => Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i),
@@ -392,7 +441,7 @@ function SchedulePage() {
                     className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground px-2 pt-1"
                     style={{ height: `${60 * PX_PER_MIN}px` }}
                   >
-                    {format(new Date().setHours(h, 0, 0, 0), "h a")}
+                    {((h + 11) % 12) + 1} {h < 12 ? "AM" : "PM"}
                   </div>
                 ))}
               </div>
@@ -440,10 +489,11 @@ function SchedulePage() {
                     )}
 
                     {list.map((a) => {
-                      const start = parseISO(a.starts_at);
-                      const end = parseISO(a.ends_at);
+                      const start = new Date(a.starts_at);
+                      const end = new Date(a.ends_at);
+                      // Position by wall-clock minutes in the business timezone.
                       const startMin =
-                        start.getHours() * 60 + start.getMinutes() - HOUR_START * 60;
+                        minutesSinceMidnight(start, tz) - HOUR_START * 60;
                       const duration = Math.max(
                         15,
                         (end.getTime() - start.getTime()) / 60000,
@@ -491,7 +541,7 @@ function SchedulePage() {
                             {serviceName(a.service_id)}
                           </div>
                           <div className="opacity-60 text-[10px] mt-0.5 font-mono">
-                            {format(start, "h:mm a")} – {format(end, "h:mm a")}
+                            {formatZonedTime(start, tz)} – {formatZonedTime(end, tz)}
                           </div>
                         </button>
                       );
@@ -506,6 +556,7 @@ function SchedulePage() {
         <p className="text-xs text-muted-foreground mt-4 font-mono">
           Updates in real time. {appointments.length} appointment
           {appointments.length === 1 ? "" : "s"} on {format(day, "EEE, MMM d")}.
+          {" "}Times shown in {tzAbbreviation(new Date(), tz)} ({tz}).
         </p>
       </main>
 
@@ -514,17 +565,13 @@ function SchedulePage() {
         staff={staff}
         customers={customers}
         services={services}
+        timeZone={tz}
         onClose={() => setEditingId(null)}
       />
     </div>
   );
 }
 
-function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
   { value: "pending", label: "Pending" },
@@ -535,12 +582,13 @@ const STATUS_OPTIONS: Array<{ value: Appointment["status"]; label: string }> = [
 ];
 
 function EditAppointmentSheet({
-  appointment, staff, customers, services, onClose,
+  appointment, staff, customers, services, timeZone, onClose,
 }: {
   appointment: Appointment | null;
   staff: Staff[];
   customers: Customer[];
   services: Service[];
+  timeZone: string;
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<Appointment["status"]>("pending");
@@ -585,19 +633,20 @@ function EditAppointmentSheet({
     if (!appointment) return;
     setStatus(appointment.status);
     setStaffId(appointment.staff_id ?? "__unassigned");
-    setStartsAt(toLocalInput(appointment.starts_at));
-    setEndsAt(toLocalInput(appointment.ends_at));
+    setStartsAt(utcToInputValue(appointment.starts_at, timeZone));
+    setEndsAt(utcToInputValue(appointment.ends_at, timeZone));
     setNotes(appointment.notes ?? "");
     setConflict(null);
-  }, [appointment?.id]);
+  }, [appointment?.id, timeZone]);
 
   const open = !!appointment;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!appointment) return;
-    const startDate = new Date(startsAt);
-    const endDate = new Date(endsAt);
+    // Inputs are wall-clock in the business timezone → convert to UTC instants.
+    const startDate = new Date(inputValueToUtc(startsAt, timeZone));
+    const endDate = new Date(inputValueToUtc(endsAt, timeZone));
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return toast.error("Please enter valid start and end times.");
     }
@@ -666,8 +715,8 @@ function EditAppointmentSheet({
                     <> — {services.find((s) => s.id === conflict.service_id)?.name ?? "service"}</>
                   )}
                   <br />
-                  {format(parseISO(conflict.starts_at), "EEE, MMM d · h:mm a")} –{" "}
-                  {format(parseISO(conflict.ends_at), "h:mm a")}
+                  {formatZonedDateTime(new Date(conflict.starts_at), timeZone)} –{" "}
+                  {formatZonedTime(new Date(conflict.ends_at), timeZone)}
                   {" · "}
                   <span className="capitalize">{conflict.status.replace("_", " ")}</span>
                   {conflict.staff_id && (
@@ -757,9 +806,9 @@ function EditAppointmentSheet({
                       <div>
                         <span className="text-muted-foreground">When: </span>
                         <span className="font-medium">
-                          {format(parseISO(appointment.starts_at), "EEE, MMM d · h:mm a")}
+                          {formatZonedDateTime(new Date(appointment.starts_at), timeZone)}
                           {" – "}
-                          {format(parseISO(appointment.ends_at), "h:mm a")}
+                          {formatZonedTime(new Date(appointment.ends_at), timeZone)}
                         </span>
                       </div>
                       <div>
