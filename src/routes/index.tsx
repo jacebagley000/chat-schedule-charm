@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-phone-calendar.jpg";
 import calendarImg from "@/assets/calendar-detail.jpg";
 import sarahImg from "@/assets/testimonial-sarah.jpg";
@@ -93,17 +94,21 @@ const faqs = [
 ];
 
 function Index() {
+  const { user } = useAuth();
   return (
     <div className="bg-background text-foreground selection:bg-accent/20">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a href="#" className="font-serif text-2xl font-bold italic tracking-tight">
+          <Link to="/" className="font-serif text-2xl font-bold italic tracking-tight">
             FrontDesk AI
-          </a>
+          </Link>
           <div className="hidden items-center gap-8 md:flex">
             <a href="#how" className="text-sm font-medium transition-colors hover:text-accent">
               How it works
+            </a>
+            <a href="#tools" className="text-sm font-medium transition-colors hover:text-accent">
+              Tools
             </a>
             <a href="#industries" className="text-sm font-medium transition-colors hover:text-accent">
               Industries
@@ -116,15 +121,29 @@ function Index() {
             </a>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/login" className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline">
-              Sign in
-            </a>
-            <a
-              href="/signup"
-              className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
-            >
-              Start free trial
-            </a>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+                >
+                  Start free trial
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -144,21 +163,30 @@ function Index() {
             you're busy working.
           </p>
           <div className="flex flex-wrap gap-4">
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
+              >
+                Go to dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/signup"
+                className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
+              >
+                Start free trial
+              </Link>
+            )}
             <a
-              href="/signup"
-              className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
-            >
-              Start free trial
-            </a>
-            <a
-              href="#demo"
+              href="#tools"
               className="rounded-full border border-border px-8 py-4 font-medium transition-all hover:bg-black/5"
             >
-              See it in action
+              Explore tools
             </a>
           </div>
           <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            14-day free trial · No credit card · Cancel anytime
+            {user ? "Your workspace is waiting" : "14-day free trial · No credit card · Cancel anytime"}
           </p>
         </div>
 
@@ -218,6 +246,63 @@ function Index() {
               <p className="text-sm leading-relaxed text-muted-foreground">{s.body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* App tools */}
+      <section id="tools" className="mx-auto max-w-7xl px-6 py-24 md:py-32">
+        <div className="mb-16 max-w-2xl">
+          <h2 className="mb-4 font-serif text-4xl md:text-5xl">Your command center</h2>
+          <p className="text-muted-foreground">
+            Everything you need to run your appointment-based business in one place.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Link
+            to="/dashboard"
+            className="group flex flex-col justify-between rounded-2xl bg-secondary p-8 ring-1 ring-border transition-all hover:bg-accent/5 hover:ring-accent/40"
+          >
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-xl font-bold">Calendar &amp; booking</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                See your week at a glance. Drag to reschedule, click to book, and let your AI receptionist fill gaps automatically.
+              </p>
+            </div>
+            <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent">
+              Open calendar
+              <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </span>
+          </Link>
+
+          <Link
+            to="/dashboard"
+            className="group flex flex-col justify-between rounded-2xl bg-secondary p-8 ring-1 ring-border transition-all hover:bg-accent/5 hover:ring-accent/40"
+          >
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-xl font-bold">Live schedule</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Real-time staff timeline by the hour. Know who is booked, who is free, and where every appointment sits.
+              </p>
+            </div>
+            <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent">
+              Open schedule
+              <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -339,8 +424,8 @@ function Index() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="#"
+              <Link
+                to={user ? "/dashboard" : "/signup"}
                 className={
                   "mt-auto block rounded-full py-3 text-center text-sm font-medium transition-all " +
                   (t.popular
@@ -348,8 +433,8 @@ function Index() {
                     : "border border-border hover:bg-black/5")
                 }
               >
-                {t.cta}
-              </a>
+                {user ? "Open dashboard" : t.cta}
+              </Link>
             </div>
           ))}
         </div>
@@ -392,12 +477,21 @@ function Index() {
       <footer className="border-t border-border bg-secondary pt-24 pb-12">
         <div className="mx-auto mb-24 max-w-7xl px-6 text-center">
           <h2 className="mb-8 font-serif text-4xl md:text-5xl">Ready to stop multitasking?</h2>
-          <a
-            href="#pricing"
-            className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
-          >
-            Start your 14-day free trial
-          </a>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
+            >
+              Go to dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/signup"
+              className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
+            >
+              Start your 14-day free trial
+            </Link>
+          )}
         </div>
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 border-t border-border px-6 pt-12 md:flex-row">
           <span className="font-serif text-xl font-bold italic">FrontDesk AI</span>
