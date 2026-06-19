@@ -100,12 +100,15 @@ function Index() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <a href="#" className="font-serif text-2xl font-bold italic tracking-tight">
+          <Link to="/" className="font-serif text-2xl font-bold italic tracking-tight">
             FrontDesk AI
-          </a>
+          </Link>
           <div className="hidden items-center gap-8 md:flex">
             <a href="#how" className="text-sm font-medium transition-colors hover:text-accent">
               How it works
+            </a>
+            <a href="#tools" className="text-sm font-medium transition-colors hover:text-accent">
+              Tools
             </a>
             <a href="#industries" className="text-sm font-medium transition-colors hover:text-accent">
               Industries
@@ -118,15 +121,29 @@ function Index() {
             </a>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/login" className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline">
-              Sign in
-            </a>
-            <a
-              href="/signup"
-              className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
-            >
-              Start free trial
-            </a>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+                >
+                  Start free trial
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
