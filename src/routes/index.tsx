@@ -163,21 +163,30 @@ function Index() {
             you're busy working.
           </p>
           <div className="flex flex-wrap gap-4">
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
+              >
+                Go to dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/signup"
+                className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
+              >
+                Start free trial
+              </Link>
+            )}
             <a
-              href="/signup"
-              className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
-            >
-              Start free trial
-            </a>
-            <a
-              href="#demo"
+              href="#tools"
               className="rounded-full border border-border px-8 py-4 font-medium transition-all hover:bg-black/5"
             >
-              See it in action
+              Explore tools
             </a>
           </div>
           <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            14-day free trial · No credit card · Cancel anytime
+            {user ? "Your workspace is waiting" : "14-day free trial · No credit card · Cancel anytime"}
           </p>
         </div>
 
