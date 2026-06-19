@@ -249,6 +249,63 @@ function Index() {
         </div>
       </section>
 
+      {/* App tools */}
+      <section id="tools" className="mx-auto max-w-7xl px-6 py-24 md:py-32">
+        <div className="mb-16 max-w-2xl">
+          <h2 className="mb-4 font-serif text-4xl md:text-5xl">Your command center</h2>
+          <p className="text-muted-foreground">
+            Everything you need to run your appointment-based business in one place.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Link
+            to="/dashboard"
+            className="group flex flex-col justify-between rounded-2xl bg-secondary p-8 ring-1 ring-border transition-all hover:bg-accent/5 hover:ring-accent/40"
+          >
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-xl font-bold">Calendar &amp; booking</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                See your week at a glance. Drag to reschedule, click to book, and let your AI receptionist fill gaps automatically.
+              </p>
+            </div>
+            <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent">
+              Open calendar
+              <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </span>
+          </Link>
+
+          <Link
+            to="/dashboard"
+            className="group flex flex-col justify-between rounded-2xl bg-secondary p-8 ring-1 ring-border transition-all hover:bg-accent/5 hover:ring-accent/40"
+          >
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-xl font-bold">Live schedule</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Real-time staff timeline by the hour. Know who is booked, who is free, and where every appointment sits.
+              </p>
+            </div>
+            <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent">
+              Open schedule
+              <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* Transcript / demo */}
       <section id="demo" className="overflow-hidden bg-foreground py-24 text-background md:py-32">
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:gap-24">
