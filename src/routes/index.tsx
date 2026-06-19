@@ -424,8 +424,8 @@ function Index() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="#"
+              <Link
+                to={user ? "/dashboard" : "/signup"}
                 className={
                   "mt-auto block rounded-full py-3 text-center text-sm font-medium transition-all " +
                   (t.popular
@@ -433,8 +433,8 @@ function Index() {
                     : "border border-border hover:bg-black/5")
                 }
               >
-                {t.cta}
-              </a>
+                {user ? "Open dashboard" : t.cta}
+              </Link>
             </div>
           ))}
         </div>
@@ -477,12 +477,21 @@ function Index() {
       <footer className="border-t border-border bg-secondary pt-24 pb-12">
         <div className="mx-auto mb-24 max-w-7xl px-6 text-center">
           <h2 className="mb-8 font-serif text-4xl md:text-5xl">Ready to stop multitasking?</h2>
-          <a
-            href="#pricing"
-            className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
-          >
-            Start your 14-day free trial
-          </a>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
+            >
+              Go to dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/signup"
+              className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background transition-all hover:bg-accent"
+            >
+              Start your 14-day free trial
+            </Link>
+          )}
         </div>
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 border-t border-border px-6 pt-12 md:flex-row">
           <span className="font-serif text-xl font-bold italic">FrontDesk AI</span>
