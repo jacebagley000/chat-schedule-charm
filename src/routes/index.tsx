@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-phone-calendar.jpg";
 import calendarImg from "@/assets/calendar-detail.jpg";
 import sarahImg from "@/assets/testimonial-sarah.jpg";
