@@ -94,6 +94,7 @@ const faqs = [
 ];
 
 function Index() {
+  const { user } = useAuth();
   return (
     <div className="bg-background text-foreground selection:bg-accent/20">
       {/* Nav */}
