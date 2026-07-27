@@ -331,10 +331,28 @@ jobs:
 
           # Copy files, capping large log files (head + tail with a marker)
           # and gzip-compressing vitest/migrations/postgres logs with -9 to
-          # keep artifact sizes under control.
-          MAX_LOG_BYTES=2097152   # 2 MiB cap per log file before compression
-          HEAD_BYTES=524288       # 512 KiB from the top
-          TAIL_BYTES=1572864      # 1.5 MiB from the bottom
+          # keep artifact sizes under control. Values are configurable via
+          # workflow_dispatch inputs or repo variables (see step env).
+          resolve_int() {
+            # $1 = input value, $2 = var value, $3 = default
+            local v="${1:-}"
+            [ -n "$v" ] || v="${2:-}"
+            [ -n "$v" ] || v="$3"
+            if ! printf '%s' "$v" | grep -Eq '^[0-9]+$'; then
+              echo "::error title=Invalid log cap value::Expected positive integer bytes, got '$v'" >&2
+              exit 1
+            fi
+            printf '%s' "$v"
+          }
+          MAX_LOG_BYTES=$(resolve_int "$INPUT_MAX_LOG_BYTES" "$VAR_MAX_LOG_BYTES" 2097152)   # 2 MiB
+          HEAD_BYTES=$(resolve_int    "$INPUT_HEAD_BYTES"    "$VAR_HEAD_BYTES"    524288)    # 512 KiB
+          TAIL_BYTES=$(resolve_int    "$INPUT_TAIL_BYTES"    "$VAR_TAIL_BYTES"    1572864)   # 1.5 MiB
+
+          if [ $((HEAD_BYTES + TAIL_BYTES)) -ge "$MAX_LOG_BYTES" ]; then
+            echo "::warning title=Log cap policy no-op::HEAD_BYTES ($HEAD_BYTES) + TAIL_BYTES ($TAIL_BYTES) >= MAX_LOG_BYTES ($MAX_LOG_BYTES); truncation would keep >= original — no logs will be capped."
+          fi
+          echo "Log cap policy: max=$MAX_LOG_BYTES head=$HEAD_BYTES tail=$TAIL_BYTES"
+
 
           # Track truncation stats so the manifest can report which logs were
           # capped and by how much.
