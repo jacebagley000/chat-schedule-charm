@@ -1269,7 +1269,7 @@ function AppointmentDialog({
   const [time, setTime] = useState<string>(format(start0, "HH:mm"));
   const [duration, setDuration] = useState<number>(Math.max(5, Math.round((end0.getTime() - start0.getTime()) / 60000)));
   const [staffId, setStaffId] = useState<string>(appointment?.staff_id ?? staff[0]?.id ?? "");
-  const [serviceId, setServiceId] = useState<string>(appointment?.service_id ?? services[0]?.id ?? "");
+  const [serviceId, setServiceId] = useState<string>(initialServiceId);
   const [customerId, setCustomerId] = useState<string>(appointment?.customer_id ?? "");
   const [newCustomerName, setNewCustomerName] = useState("");
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
