@@ -438,6 +438,79 @@ function MembersPage() {
           </div>
         </div>
 
+        {invitations.length > 0 && (
+          <section className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Pending invitations ({invitations.length})
+              </h2>
+            </div>
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {invitations.map((inv) => {
+                const busy = !!invPending[inv.id];
+                const expired = inv.is_expired || inv.status === "expired";
+                return (
+                  <li key={inv.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate flex items-center gap-2">
+                        {inv.email}
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted">
+                          {ROLE_LABELS[inv.role]}
+                        </span>
+                        {expired ? (
+                          <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border bg-destructive/10 text-destructive border-destructive/30 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" /> Expired
+                          </span>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {expired ? (
+                          <>Expired {formatRelative(inv.expires_at)} · Sent {inv.send_count}×</>
+                        ) : (
+                          <>Expires {formatRelative(inv.expires_at)} · Sent {inv.send_count}× · Last sent {formatRelative(inv.last_sent_at)}</>
+                        )}
+                        {inv.invited_by_name && <> · by {inv.invited_by_name}</>}
+                      </div>
+                    </div>
+                    {canManage && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => handleResend(inv)}
+                          title={expired ? "Regenerate and resend invitation" : "Resend invitation and reset expiry"}
+                        >
+                          {busy ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4 mr-1" />
+                          )}
+                          {expired ? "Renew" : "Resend"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={busy}
+                          title="Revoke invitation"
+                          onClick={() => setRevokeTarget(inv)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading team…
