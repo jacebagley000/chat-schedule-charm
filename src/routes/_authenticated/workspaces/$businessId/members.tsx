@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X, Mail, RefreshCw, Copy, AlertTriangle } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
@@ -33,6 +33,19 @@ type Member = {
   email: string | null;
   full_name: string | null;
   avatar_url: string | null;
+};
+
+type Invitation = {
+  id: string;
+  email: string;
+  role: Role;
+  status: "pending" | "accepted" | "revoked" | "expired";
+  expires_at: string;
+  last_sent_at: string;
+  send_count: number;
+  created_at: string;
+  is_expired: boolean;
+  invited_by_name: string | null;
 };
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/members")({
