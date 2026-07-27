@@ -310,10 +310,43 @@ jobs:
           for f in junit.xml junit.retry.xml report.html vitest.log vitest.retry.log node-version.txt migrations.log postgres.log postgres-inspect.json; do
             [ -f "artifacts/$f" ] && cp "artifacts/$f" "$staging/" || true
           done
+
+          # Build manifest.json listing every file in the staging dir with
+          # size (bytes), sha256, and modification timestamp (UTC ISO-8601).
+          python3 - "$staging" > "$staging/manifest.json" <<'PY'
+          import hashlib, json, os, sys
+          from datetime import datetime, timezone
+          root = sys.argv[1]
+          entries = []
+          for name in sorted(os.listdir(root)):
+              path = os.path.join(root, name)
+              if not os.path.isfile(path) or name == "manifest.json":
+                  continue
+              st = os.stat(path)
+              h = hashlib.sha256()
+              with open(path, "rb") as fh:
+                  for chunk in iter(lambda: fh.read(65536), b""):
+                      h.update(chunk)
+              entries.append({
+                  "name": name,
+                  "size_bytes": st.st_size,
+                  "sha256": h.hexdigest(),
+                  "modified_utc": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc)
+                      .strftime("%Y-%m-%dT%H:%M:%SZ"),
+              })
+          json.dump({
+              "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "file_count": len(entries),
+              "total_size_bytes": sum(e["size_bytes"] for e in entries),
+              "files": entries,
+          }, sys.stdout, indent=2)
+          PY
+
           ( cd "$staging" && zip -qr "$GITHUB_WORKSPACE/$bundle_path" . )
           echo "bundle_name=$bundle_name" >> "$GITHUB_OUTPUT"
           echo "bundle_path=$bundle_path" >> "$GITHUB_OUTPUT"
           ls -la "$bundle_path"
+
 
 
       - name: Upload bundled test artifacts
