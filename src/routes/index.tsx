@@ -467,17 +467,19 @@ function Index() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to={user ? "/dashboard" : "/signup"}
+              <button
+                type="button"
+                onClick={() => handleSubscribe(t.priceId)}
+                disabled={checkoutLoading}
                 className={
-                  "mt-auto block rounded-full py-3 text-center text-sm font-medium transition-all " +
+                  "mt-auto block w-full rounded-full py-3 text-center text-sm font-medium transition-all disabled:opacity-60 " +
                   (t.popular
                     ? "bg-accent text-white hover:brightness-110"
                     : "border border-border hover:bg-black/5")
                 }
               >
-                {user ? "Open dashboard" : t.cta}
-              </Link>
+                {checkoutLoading ? "Loading…" : user ? "Subscribe" : t.cta}
+              </button>
             </div>
           ))}
         </div>
