@@ -13,9 +13,10 @@ if (!inPath || !outPath) {
 const xml = readFileSync(inPath, "utf8");
 
 const attr = (tag, name) => {
-  const m = tag.match(new RegExp(`${name}="([^"]*)"`));
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`));
   return m ? decodeXml(m[1]) : "";
 };
+
 
 function decodeXml(s) {
   return s
