@@ -167,15 +167,7 @@ BEGIN
   RAISE NOTICE 'OK  (5) audit_logs write path is triggers-only';
 END $$;
 
-  -- SELECT + DELETE must still work for authenticated (RLS-scoped).
-  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'SELECT') THEN
-    RAISE EXCEPTION 'REGRESSION: authenticated lost SELECT on audit_logs';
-  END IF;
-  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'DELETE') THEN
-    RAISE EXCEPTION 'REGRESSION: authenticated lost DELETE on audit_logs';
-  END IF;
-  RAISE NOTICE 'OK  (5) audit_logs write path is triggers-only';
-END $$;
+
 
 -- ---------------------------------------------------------------------------
 -- Group 6: Required triggers are wired.
