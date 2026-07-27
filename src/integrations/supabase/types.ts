@@ -541,6 +541,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_business_member_by_email: {
+        Args: {
+          _business_id: string
+          _email: string
+          _role: Database["public"]["Enums"]["business_role"]
+        }
+        Returns: string
+      }
       has_business_role: {
         Args: {
           _business_id: string
@@ -552,6 +560,18 @@ export type Database = {
       is_business_member: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_business_members: {
+        Args: { _business_id: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["business_role"]
+          user_id: string
+        }[]
       }
     }
     Enums: {
