@@ -314,20 +314,30 @@ jobs:
           HEAD_BYTES=524288       # 512 KiB from the top
           TAIL_BYTES=1572864      # 1.5 MiB from the bottom
 
+          # Track truncation stats so the manifest can report which logs were
+          # capped and by how much.
+          truncations_file="$(mktemp)"
+          : > "$truncations_file"
+
           cap_log() {
             local src="$1" dst="$2"
             local size
             size=$(stat -c%s "$src" 2>/dev/null || wc -c <"$src")
             if [ "$size" -le "$MAX_LOG_BYTES" ]; then
               cp "$src" "$dst"
+              printf '%s\t%s\t%s\t%s\t%s\n' "$(basename "$dst")" "$size" "$size" 0 0 >> "$truncations_file"
               return
             fi
+            local dropped=$((size - HEAD_BYTES - TAIL_BYTES))
             {
               head -c "$HEAD_BYTES" "$src"
               printf '\n\n===== [truncated %s bytes: kept first %s and last %s bytes] =====\n\n' \
-                "$((size - HEAD_BYTES - TAIL_BYTES))" "$HEAD_BYTES" "$TAIL_BYTES"
+                "$dropped" "$HEAD_BYTES" "$TAIL_BYTES"
               tail -c "$TAIL_BYTES" "$src"
             } > "$dst"
+            local kept
+            kept=$(stat -c%s "$dst" 2>/dev/null || wc -c <"$dst")
+            printf '%s\t%s\t%s\t%s\t%s\n' "$(basename "$dst")" "$size" "$kept" "$dropped" 1 >> "$truncations_file"
           }
 
           # Text log files: cap + gzip -9.
@@ -347,6 +357,12 @@ jobs:
 
           # Build manifest.json listing every file in the staging dir with
           # size (bytes), sha256, and modification timestamp (UTC ISO-8601).
+          # Also includes a truncation summary describing which logs were
+          # capped and how many bytes were dropped.
+          TRUNCATIONS_FILE="$truncations_file" \
+          MAX_LOG_BYTES="$MAX_LOG_BYTES" \
+          HEAD_BYTES="$HEAD_BYTES" \
+          TAIL_BYTES="$TAIL_BYTES" \
           python3 - "$staging" > "$staging/manifest.json" <<'PY'
           import hashlib, json, os, sys
           from datetime import datetime, timezone
@@ -368,13 +384,50 @@ jobs:
                   "modified_utc": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc)
                       .strftime("%Y-%m-%dT%H:%M:%SZ"),
               })
+
+          # Parse truncation ledger written by cap_log:
+          #   <name>\t<original>\t<kept>\t<dropped>\t<was_truncated>
+          truncations = []
+          tpath = os.environ.get("TRUNCATIONS_FILE")
+          if tpath and os.path.isfile(tpath):
+              with open(tpath) as fh:
+                  for line in fh:
+                      parts = line.rstrip("\n").split("\t")
+                      if len(parts) != 5:
+                          continue
+                      name, original, kept, dropped, flag = parts
+                      original_i = int(original); kept_i = int(kept); dropped_i = int(dropped)
+                      pct = (dropped_i / original_i * 100.0) if original_i > 0 else 0.0
+                      truncations.append({
+                          "name": name,
+                          "truncated": flag == "1",
+                          "original_bytes": original_i,
+                          "kept_bytes": kept_i,
+                          "dropped_bytes": dropped_i,
+                          "dropped_pct": round(pct, 2),
+                      })
+          truncated_only = [t for t in truncations if t["truncated"]]
+
           json.dump({
               "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
               "file_count": len(entries),
               "total_size_bytes": sum(e["size_bytes"] for e in entries),
               "files": entries,
+              "truncation_summary": {
+                  "policy": {
+                      "max_log_bytes": int(os.environ.get("MAX_LOG_BYTES", 0)),
+                      "head_bytes":    int(os.environ.get("HEAD_BYTES", 0)),
+                      "tail_bytes":    int(os.environ.get("TAIL_BYTES", 0)),
+                      "note": "Logs larger than max_log_bytes are capped to head_bytes + tail_bytes with a marker between; then gzip -9 compressed.",
+                  },
+                  "considered_count": len(truncations),
+                  "truncated_count":  len(truncated_only),
+                  "total_dropped_bytes": sum(t["dropped_bytes"] for t in truncations),
+                  "logs": truncations,
+              },
           }, sys.stdout, indent=2)
           PY
+
 
           ( cd "$staging" && zip -qr "$GITHUB_WORKSPACE/$bundle_path" . )
           echo "bundle_name=$bundle_name" >> "$GITHUB_OUTPUT"
