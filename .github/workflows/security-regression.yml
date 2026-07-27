@@ -10,6 +10,19 @@ on:
         description: "Git ref (branch, tag, or SHA) to run the suite against"
         required: false
         default: ""
+      max_log_bytes:
+        description: "Per-log cap in bytes before truncation (default 2097152 = 2 MiB). Also settable via repo var SECURITY_REGRESSION_MAX_LOG_BYTES."
+        required: false
+        default: ""
+      head_bytes:
+        description: "Bytes kept from the top of a truncated log (default 524288 = 512 KiB). Also settable via repo var SECURITY_REGRESSION_HEAD_BYTES."
+        required: false
+        default: ""
+      tail_bytes:
+        description: "Bytes kept from the bottom of a truncated log (default 1572864 = 1.5 MiB). Also settable via repo var SECURITY_REGRESSION_TAIL_BYTES."
+        required: false
+        default: ""
+
 
 
 concurrency:
