@@ -244,6 +244,7 @@ jobs:
                   { "type": "mrkdwn", "text": "*Repo:*\n${GITHUB_REPOSITORY}" },
                   { "type": "mrkdwn", "text": "*Ref:*\n\`${GITHUB_REF_NAME}\`" },
                   { "type": "mrkdwn", "text": "*Commit:*\n\`${GITHUB_SHA:0:7}\`" },
+                  { "type": "mrkdwn", "text": "*Node:*\n${{ matrix.node }}" },
                   { "type": "mrkdwn", "text": "*Event:*\n${GITHUB_EVENT_NAME}" }
                 ]
               },
