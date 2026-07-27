@@ -13,6 +13,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import "@/i18n";
 import { LanguagePicker } from "@/components/language-picker";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 function NotFoundComponent() {
   return (
