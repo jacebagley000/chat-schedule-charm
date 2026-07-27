@@ -663,6 +663,7 @@ export type Database = {
         | "scheduling_request"
         | "conversation"
         | "message"
+        | "business_member"
       business_role: "owner" | "admin" | "staff"
       conversation_channel: "phone" | "instagram" | "facebook" | "sms"
       conversation_status: "open" | "needs_human" | "closed"
@@ -817,6 +818,7 @@ export const Constants = {
         "scheduling_request",
         "conversation",
         "message",
+        "business_member",
       ],
       business_role: ["owner", "admin", "staff"],
       conversation_channel: ["phone", "instagram", "facebook", "sms"],
