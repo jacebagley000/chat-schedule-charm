@@ -334,6 +334,10 @@ DECLARE
   n_created int;
   n_reschd  int;
 BEGIN
+  IF NOT has_table_privilege(current_user, 'public.appointments', 'UPDATE') THEN
+    RAISE NOTICE 'SKIP (11) role % lacks UPDATE on appointments; run as postgres in CI', current_user;
+    RETURN;
+  END IF;
   SET LOCAL row_security = off;
 
   INSERT INTO public.businesses (id, name, slug)
