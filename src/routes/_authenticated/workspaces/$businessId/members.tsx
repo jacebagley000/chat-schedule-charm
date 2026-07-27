@@ -375,7 +375,7 @@ function MembersPage() {
             {canManage && (
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><UserPlus className="w-4 h-4 mr-1" /> Add member</Button>
+                  <Button size="sm"><UserPlus className="w-4 h-4 mr-1" /> Invite member</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
