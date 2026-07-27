@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: security-regression-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   security-surface:
     name: SQL security surface + Vitest
