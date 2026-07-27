@@ -215,32 +215,37 @@ jobs:
             echo "no postgres container found" > artifacts/postgres.log
           fi
 
-      - name: Upload test reports
+      - name: Bundle test outputs into single zip
+        if: always()
+        id: bundle
+        run: |
+          mkdir -p artifacts
+          bundle_name="security-regression-node${{ matrix.node }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}.zip"
+          bundle_path="artifacts/${bundle_name}"
+          staging="$(mktemp -d)"
+          for f in junit.xml report.html vitest.log node-version.txt migrations.log postgres.log postgres-inspect.json; do
+            [ -f "artifacts/$f" ] && cp "artifacts/$f" "$staging/" || true
+          done
+          ( cd "$staging" && zip -qr "$GITHUB_WORKSPACE/$bundle_path" . )
+          echo "bundle_name=$bundle_name" >> "$GITHUB_OUTPUT"
+          echo "bundle_path=$bundle_path" >> "$GITHUB_OUTPUT"
+          ls -la "$bundle_path"
+
+      - name: Upload bundled test artifacts
         id: upload-report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-regression-report-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            artifacts/junit.xml
-            artifacts/report.html
-            artifacts/vitest.log
-            artifacts/node-version.txt
+          name: security-regression-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.bundle.outputs.bundle_path }}
           if-no-files-found: warn
           retention-days: 14
 
 
-      - name: Upload failure diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-regression-logs-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            artifacts/migrations.log
-            artifacts/postgres.log
-            artifacts/postgres-inspect.json
-          if-no-files-found: warn
-          retention-days: 14
+
+
+
+
 
       - name: Notify Slack on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
