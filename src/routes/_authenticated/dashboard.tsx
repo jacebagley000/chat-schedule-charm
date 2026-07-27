@@ -154,6 +154,14 @@ function DashboardPage() {
                 >
                   team members →
                 </Link>
+                <Link
+                  to="/workspaces/$businessId/audit"
+                  params={{ businessId: b.id }}
+                  className="hover:text-accent underline-offset-4 hover:underline"
+                >
+                  audit log →
+                </Link>
+
               </div>
             ))}
           </div>
