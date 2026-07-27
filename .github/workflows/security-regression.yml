@@ -596,7 +596,149 @@ jobs:
             echo "- Status: ✅ within budget" >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      - name: Record bundle size and link previous run
+        if: always() && steps.bundle.outputs.bundle_path != ''
+        env:
+          BUNDLE_PATH: ${{ steps.bundle.outputs.bundle_path }}
+          BUNDLE_NAME: ${{ steps.bundle.outputs.bundle_name }}
+          NODE_MATRIX: ${{ matrix.node }}
+          WORKFLOW_FILE: security-regression.yml
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          command -v unzip >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq unzip; }
+
+          size=$(stat -c%s "$BUNDLE_PATH")
+          sha=$(sha256sum "$BUNDLE_PATH" | awk '{print $1}')
+
+          # Find the most recent completed run of this workflow on the same ref
+          # (excluding the current run) so we can compare bundle sizes.
+          prev_runs="$(mktemp)"
+          if ! gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW_FILE}/runs" \
+                -f branch="${GITHUB_REF_NAME}" \
+                -f status=completed \
+                -f per_page=20 > "$prev_runs" 2>/dev/null; then
+            echo '{"workflow_runs":[]}' > "$prev_runs"
+          fi
+
+          prev_run_id=$(CURRENT_RUN_ID="$GITHUB_RUN_ID" python3 -c "
+          import json, os
+          data = json.load(open('$prev_runs'))
+          cur = int(os.environ['CURRENT_RUN_ID'])
+          for r in data.get('workflow_runs', []):
+              if r.get('id') == cur:
+                  continue
+              print(r['id'])
+              break
+          ")
+
+          prev_url=""
+          prev_size=""
+          prev_bundle_name=""
+          delta=""
+          delta_pct=""
+          if [ -n "$prev_run_id" ]; then
+            prev_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${prev_run_id}"
+            arts="$(mktemp)"
+            if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${prev_run_id}/artifacts?per_page=100" > "$arts" 2>/dev/null; then
+              read -r prev_bundle_name prev_size < <(NODE_MATRIX="$NODE_MATRIX" python3 -c "
+          import json, os, re
+          node = os.environ['NODE_MATRIX']
+          try:
+              data = json.load(open('$arts'))
+          except Exception:
+              data = {'artifacts': []}
+          pat = re.compile(rf'^security-regression-node{re.escape(node)}-')
+          for a in data.get('artifacts', []):
+              if pat.match(a.get('name','')):
+                  print(a['name'], a['size_in_bytes'])
+                  break
+          ")
+            fi
+            if [ -n "${prev_size:-}" ]; then
+              delta=$((size - prev_size))
+              delta_pct=$(python3 -c "print(f'{($delta)*100.0/max(1,$prev_size):.2f}')")
+            fi
+          fi
+
+          # Merge into staged run-metadata.{json,txt} inside the bundle, then
+          # update the zip entries in place so consumers see it there too.
+          tmpdir="$(mktemp -d)"
+          ( cd "$tmpdir" && unzip -q "$GITHUB_WORKSPACE/$BUNDLE_PATH" run-metadata.json run-metadata.txt )
+
+          BUNDLE_SIZE="$size" BUNDLE_SHA256="$sha" BUNDLE_NAME_ENV="$BUNDLE_NAME" \
+          PREV_RUN_ID="$prev_run_id" PREV_RUN_URL="$prev_url" \
+          PREV_SIZE="${prev_size:-}" PREV_BUNDLE_NAME="${prev_bundle_name:-}" \
+          DELTA="$delta" DELTA_PCT="$delta_pct" \
+          python3 - "$tmpdir/run-metadata.json" <<'PY'
+          import json, os, sys
+          p = sys.argv[1]
+          m = json.load(open(p))
+          m["bundle"] = {
+              "name": os.environ["BUNDLE_NAME_ENV"],
+              "gzipped_bytes": int(os.environ["BUNDLE_SIZE"]),
+              "sha256": os.environ["BUNDLE_SHA256"],
+          }
+          prev_id = os.environ.get("PREV_RUN_ID") or ""
+          prev = {
+              "run_id": int(prev_id) if prev_id else None,
+              "run_url": os.environ.get("PREV_RUN_URL") or None,
+              "bundle_name": os.environ.get("PREV_BUNDLE_NAME") or None,
+              "gzipped_bytes": int(os.environ["PREV_SIZE"]) if os.environ.get("PREV_SIZE") else None,
+          }
+          if os.environ.get("DELTA"):
+              prev["delta_bytes"] = int(os.environ["DELTA"])
+          if os.environ.get("DELTA_PCT"):
+              prev["delta_pct"] = float(os.environ["DELTA_PCT"])
+          m["previous_run"] = prev
+          json.dump(m, open(p, "w"), indent=2)
+          PY
+
+          {
+            echo ""
+            echo "Bundle"
+            echo "------"
+            echo "Name:            $BUNDLE_NAME"
+            echo "Gzipped bytes:   $size"
+            echo "SHA-256:         $sha"
+            echo ""
+            echo "Previous run (same ref, excluding this run)"
+            echo "-------------------------------------------"
+            if [ -n "$prev_run_id" ]; then
+              echo "Run ID:          $prev_run_id"
+              echo "Run URL:         $prev_url"
+              echo "Bundle name:     ${prev_bundle_name:-unknown}"
+              echo "Gzipped bytes:   ${prev_size:-unknown}"
+              [ -n "$delta" ]     && echo "Delta bytes:     $delta"
+              [ -n "$delta_pct" ] && echo "Delta pct:       ${delta_pct}%"
+            else
+              echo "(no matching previous completed run found on ${GITHUB_REF_NAME})"
+            fi
+          } >> "$tmpdir/run-metadata.txt"
+
+          ( cd "$tmpdir" && zip -q "$GITHUB_WORKSPACE/$BUNDLE_PATH" run-metadata.json run-metadata.txt )
+
+          {
+            echo ""
+            echo "### 📊 Bundle size vs previous run"
+            echo ""
+            echo "- Bundle: \`$BUNDLE_NAME\` — **$size bytes** (sha256 \`${sha:0:12}…\`)"
+            if [ -n "$prev_run_id" ]; then
+              echo "- Previous run: [\`$prev_run_id\`]($prev_url) — ${prev_size:-unknown} bytes"
+              if [ -n "$delta" ]; then
+                arrow="→"
+                if   [ "$delta" -gt 0 ]; then arrow="⬆️"
+                elif [ "$delta" -lt 0 ]; then arrow="⬇️"
+                fi
+                echo "- Delta: $arrow **$delta bytes** (${delta_pct:-n/a}%)"
+              fi
+            else
+              echo "- Previous run: _none found on \`${GITHUB_REF_NAME}\`_"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Bundle per-file size breakdown
+
         if: always() && steps.bundle.outputs.bundle_path != ''
         env:
           BUNDLE_PATH: ${{ steps.bundle.outputs.bundle_path }}
