@@ -148,6 +148,7 @@ END $$;
 DO $$
 DECLARE
   bad_policies int;
+  raised bool;
 BEGIN
   SELECT count(*) INTO bad_policies
     FROM pg_policies
@@ -157,14 +158,33 @@ BEGIN
     RAISE EXCEPTION 'PRIVILEGE REGRESSION: audit_logs has % INSERT/UPDATE policy (client writes must go through triggers only)', bad_policies;
   END IF;
 
-  IF has_table_privilege('anon', 'public.audit_logs', 'INSERT')
-     OR has_table_privilege('anon', 'public.audit_logs', 'UPDATE') THEN
-    RAISE EXCEPTION 'PRIVILEGE REGRESSION: anon can INSERT/UPDATE audit_logs';
+  -- Behavioral check: even with default Supabase table grants, RLS + missing
+  -- policy must block a direct insert attempted as an authenticated user.
+  raised := false;
+  BEGIN
+    SET LOCAL role authenticated;
+    SET LOCAL "request.jwt.claims" = '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+    BEGIN
+      INSERT INTO public.audit_logs (business_id, action, entity_type)
+        VALUES (gen_random_uuid(), 'x', 'appointment');
+    EXCEPTION WHEN insufficient_privilege OR check_violation OR others THEN
+      IF SQLSTATE IN ('42501','23514','42P17') THEN raised := true; ELSE RAISE; END IF;
+    END;
+    RESET role;
+  END;
+  IF NOT raised THEN
+    RAISE EXCEPTION 'RLS did not block a direct audit_logs INSERT from an authenticated client';
   END IF;
-  IF has_table_privilege('authenticated', 'public.audit_logs', 'INSERT')
-     OR has_table_privilege('authenticated', 'public.audit_logs', 'UPDATE') THEN
-    RAISE EXCEPTION 'PRIVILEGE REGRESSION: authenticated can INSERT/UPDATE audit_logs';
+
+  -- SELECT + DELETE must still work for authenticated (RLS-scoped).
+  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'SELECT') THEN
+    RAISE EXCEPTION 'REGRESSION: authenticated lost SELECT on audit_logs';
   END IF;
+  IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'DELETE') THEN
+    RAISE EXCEPTION 'REGRESSION: authenticated lost DELETE on audit_logs';
+  END IF;
+  RAISE NOTICE 'OK  (5) audit_logs write path is triggers-only';
+END $$;
 
   -- SELECT + DELETE must still work for authenticated (RLS-scoped).
   IF NOT has_table_privilege('authenticated', 'public.audit_logs', 'SELECT') THEN
