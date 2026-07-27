@@ -15,11 +15,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
+import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
 import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 
 const IndexRoute = IndexRouteImport.update({
@@ -51,6 +53,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
+  id: '/checkout/success',
+  path: '/checkout/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
@@ -80,6 +87,12 @@ const AuthenticatedWorkspacesBusinessIdScheduleRoute =
     path: '/workspaces/$businessId/schedule',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
   id: '/api/public/webhooks/meta',
   path: '/api/public/webhooks/meta',
@@ -92,11 +105,13 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/invite/$token': typeof InviteTokenRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesByTo {
@@ -105,11 +120,13 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/invite/$token': typeof InviteTokenRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRoutesById {
@@ -120,11 +137,13 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/_authenticated/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
 export interface FileRouteTypes {
@@ -135,11 +154,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/schedule'
+    | '/checkout/success'
     | '/invite/$token'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -148,11 +169,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/schedule'
+    | '/checkout/success'
     | '/invite/$token'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   id:
     | '__root__'
@@ -162,11 +185,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/schedule'
+    | '/checkout/success'
     | '/invite/$token'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
     | '/_authenticated/workspaces/$businessId/schedule'
+    | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   fileRoutesById: FileRoutesById
 }
@@ -175,7 +200,9 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRoute
 }
 
@@ -223,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/checkout/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$token': {
       id: '/invite/$token'
       path: '/invite/$token'
@@ -257,6 +291,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/workspaces/$businessId/schedule'
       preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/meta': {
       id: '/api/public/webhooks/meta'
@@ -299,7 +340,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
   InviteTokenRoute: InviteTokenRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRoute,
 }
 export const routeTree = rootRouteImport
