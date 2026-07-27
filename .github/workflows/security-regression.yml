@@ -583,8 +583,59 @@ jobs:
           fi
           echo "- Status: ✅ within budget" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Bundle per-file size breakdown
+        if: always() && steps.bundle.outputs.bundle_path != ''
+        env:
+          BUNDLE_PATH: ${{ steps.bundle.outputs.bundle_path }}
+          BUNDLE_NAME: ${{ steps.bundle.outputs.bundle_name }}
+          # How many top entries to show in the summary table.
+          BREAKDOWN_TOP_N: ${{ vars.SECURITY_REGRESSION_BREAKDOWN_TOP_N || 15 }}
+        run: |
+          set -euo pipefail
+          command -v unzip >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq unzip; }
+          python3 - "$BUNDLE_PATH" "$BUNDLE_NAME" "$BREAKDOWN_TOP_N" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import os, sys, zipfile
 
+          bundle_path, bundle_name, top_n = sys.argv[1], sys.argv[2], int(sys.argv[3] or "15")
+          entries = []
+          with zipfile.ZipFile(bundle_path) as zf:
+              zip_total = os.path.getsize(bundle_path)
+              for zi in zf.infolist():
+                  if zi.is_dir():
+                      continue
+                  entries.append((zi.filename, zi.file_size, zi.compress_size))
 
+          entries.sort(key=lambda e: e[2], reverse=True)
+          compressed_total = sum(e[2] for e in entries) or 1
+          uncompressed_total = sum(e[1] for e in entries)
+
+          def human(n):
+              for unit in ("B","KiB","MiB","GiB"):
+                  if n < 1024 or unit == "GiB":
+                      return f"{n:.1f} {unit}" if unit != "B" else f"{n} B"
+                  n /= 1024
+
+          top = entries[:top_n]
+          rest = entries[top_n:]
+
+          print("### 📦 Bundle contents (top contributors by gzipped size)")
+          print("")
+          print(f"- Bundle: `{bundle_name}`")
+          print(f"- Entries: {len(entries)} (uncompressed {human(uncompressed_total)}, "
+                f"compressed {human(compressed_total)}, zip on disk {human(zip_total)})")
+          print("")
+          print("| # | File | Compressed | % of compressed | Uncompressed | Ratio |")
+          print("|---:|------|-----------:|----------------:|-------------:|------:|")
+          for i, (name, u, c) in enumerate(top, 1):
+              pct = c * 100.0 / compressed_total
+              ratio = (c / u * 100.0) if u else 0.0
+              print(f"| {i} | `{name}` | {human(c)} | {pct:.1f}% | {human(u)} | {ratio:.1f}% |")
+          if rest:
+              rc = sum(e[2] for e in rest)
+              ru = sum(e[1] for e in rest)
+              pct = rc * 100.0 / compressed_total
+              print(f"| — | _…{len(rest)} other entries_ | {human(rc)} | {pct:.1f}% | {human(ru)} | — |")
+          PY
 
 
       - name: Upload bundled test artifacts
