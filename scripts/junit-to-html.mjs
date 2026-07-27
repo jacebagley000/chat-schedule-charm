@@ -153,6 +153,7 @@ const html = `<!doctype html>
   .badge.pass { background: #16a34a; }
   .badge.fail { background: #dc2626; }
   .badge.skip { background: #64748b; }
+  .badge.flaky { background: #d97706; }
 </style>
 </head>
 <body>
@@ -162,11 +163,13 @@ const html = `<!doctype html>
   <div class="totals">
     <span><b>${passed}</b> passed</span>
     <span><b>${totals.failures}</b> failed</span>
+    <span><b>${flakyCount}</b> flaky</span>
     <span><b>${totals.errors}</b> errored</span>
     <span><b>${totals.skipped}</b> skipped</span>
     <span><b>${totals.time.toFixed(2)}s</b> total</span>
   </div>
 </header>
+
 ${rows || "<p><em>No test suites reported.</em></p>"}
 </body>
 </html>
