@@ -512,6 +512,39 @@ jobs:
           echo "bundle_path=$bundle_path" >> "$GITHUB_OUTPUT"
           ls -la "$bundle_path"
 
+      - name: Enforce bundle size budget
+        if: always() && steps.bundle.outputs.bundle_path != ''
+        env:
+          BUNDLE_PATH: ${{ steps.bundle.outputs.bundle_path }}
+          BUNDLE_NAME: ${{ steps.bundle.outputs.bundle_name }}
+          # Max allowed size of the final (zip/gzipped) bundle, in bytes.
+          # Override at workflow-dispatch or repo-var level by setting
+          # SECURITY_REGRESSION_BUNDLE_MAX_BYTES. Default: 25 MiB.
+          BUNDLE_MAX_BYTES: ${{ vars.SECURITY_REGRESSION_BUNDLE_MAX_BYTES || 26214400 }}
+        run: |
+          set -euo pipefail
+          size=$(stat -c%s "$BUNDLE_PATH" 2>/dev/null || wc -c <"$BUNDLE_PATH")
+          max="$BUNDLE_MAX_BYTES"
+          hsize=$(numfmt --to=iec --suffix=B "$size" 2>/dev/null || echo "${size}B")
+          hmax=$(numfmt  --to=iec --suffix=B "$max"  2>/dev/null || echo "${max}B")
+          {
+            echo "### 📏 Bundle size guard"
+            echo ""
+            echo "- Bundle: \`$BUNDLE_NAME\`"
+            echo "- Size:   **$hsize** ($size bytes)"
+            echo "- Budget: $hmax ($max bytes)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$size" -gt "$max" ]; then
+            over=$((size - max))
+            hover=$(numfmt --to=iec --suffix=B "$over" 2>/dev/null || echo "${over}B")
+            echo "- Status: ❌ **exceeded budget by $hover**" >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Bundle size budget exceeded::$BUNDLE_NAME is $hsize (limit $hmax, over by $hover). Inspect manifest.json truncation_summary and tighten log caps or drop artifacts."
+            exit 1
+          fi
+          echo "- Status: ✅ within budget" >> "$GITHUB_STEP_SUMMARY"
+
+
+
 
 
       - name: Upload bundled test artifacts
