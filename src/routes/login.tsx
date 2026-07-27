@@ -26,9 +26,18 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const goNext = () => {
+    if (redirectTo && redirectTo.startsWith("/")) {
+      window.location.assign(redirectTo);
+    } else {
+      navigate({ to: "/dashboard" });
+    }
+  };
 
   const handleEmail = async (e: FormEvent) => {
     e.preventDefault();
@@ -36,16 +45,17 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    navigate({ to: "/dashboard" });
+    goNext();
   };
 
   const handleGoogle = async () => {
+    const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+      redirect_uri: window.location.origin + target,
     });
     if (result.error) return toast.error("Google sign-in failed");
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    goNext();
   };
 
   return (
