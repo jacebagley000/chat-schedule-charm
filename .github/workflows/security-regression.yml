@@ -51,18 +51,63 @@ jobs:
           ref: ${{ github.event.inputs.ref || github.ref }}
 
 
+      - name: Cache apt packages (postgresql-client)
+        id: apt-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/apt-archives
+          key: apt-postgresql-client-${{ runner.os }}-v1
+
       - name: Install psql client
         run: |
+          sudo mkdir -p /var/cache/apt/archives
+          if [ -d ~/.cache/apt-archives ] && [ -n "$(ls -A ~/.cache/apt-archives 2>/dev/null)" ]; then
+            sudo cp -n ~/.cache/apt-archives/*.deb /var/cache/apt/archives/ || true
+          fi
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y --no-install-recommends postgresql-client
+          mkdir -p ~/.cache/apt-archives
+          sudo cp -n /var/cache/apt/archives/*.deb ~/.cache/apt-archives/ 2>/dev/null || true
+          sudo chown -R "$USER" ~/.cache/apt-archives
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
+      - name: Cache Bun install store
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Cache Vite build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            node_modules/.cache
+          key: vite-${{ runner.os }}-${{ hashFiles('vite.config.ts', 'bun.lockb', 'bun.lock') }}
+          restore-keys: |
+            vite-${{ runner.os }}-
+
+      - name: Compute migrations cache key
+        id: migkey
+        run: |
+          hash=$(cat supabase/migrations/*.sql | sha256sum | awk '{print $1}')
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+      - name: Cache applied-migration schema dump
+        id: schema-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/schema.dump
+          key: pgdump-${{ runner.os }}-pg15-${{ steps.migkey.outputs.hash }}
 
       - name: Prepare Supabase-compatible roles
         # Migrations reference the standard Supabase roles (anon,
@@ -86,14 +131,28 @@ jobs:
             LANGUAGE sql STABLE AS $$ SELECT 'authenticated'::text $$;
           SQL
 
+      - name: Restore schema from cache
+        if: steps.schema-cache.outputs.cache-hit == 'true'
+        run: |
+          mkdir -p artifacts
+          echo "restoring cached schema dump" | tee artifacts/migrations.log
+          psql -v ON_ERROR_STOP=1 -f .cache/schema.dump >> artifacts/migrations.log 2>&1
+
       - name: Apply Supabase migrations
+        if: steps.schema-cache.outputs.cache-hit != 'true'
         run: |
           set -e
-          mkdir -p artifacts
+          mkdir -p artifacts .cache
           for f in $(ls supabase/migrations/*.sql | sort); do
             echo "--> applying $f" | tee -a artifacts/migrations.log
             psql -v ON_ERROR_STOP=1 -f "$f" 2>&1 | tee -a artifacts/migrations.log
           done
+          # Snapshot the resulting schema + data so subsequent runs with the
+          # same migration set can skip the per-file apply loop.
+          pg_dump --format=plain --no-owner --no-privileges \
+            --schema=public --schema=auth \
+            > .cache/schema.dump
+
 
       - name: Run security-surface regression suite
         id: vitest
