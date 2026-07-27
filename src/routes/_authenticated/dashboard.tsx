@@ -11,8 +11,17 @@ import {
 import { toast } from "sonner";
 import { Building2, Plus, LogOut, Phone, Calendar, MessageSquare, Users } from "lucide-react";
 
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+
+const dashboardSearchSchema = z.object({
+  intent: fallback(z.string(), "").default(""),
+  service: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
+  validateSearch: zodValidator(dashboardSearchSchema),
   head: () => ({
     meta: [{ title: "Dashboard — FrontDesk AI" }],
   }),
