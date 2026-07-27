@@ -50,7 +50,7 @@ for (const t of suiteTags) {
 // scripts/merge-junit-retries.mjs after a rerun of failed tests).
 const failing = [];
 const flaky = [];
-const caseRe = /<testcase\b([^>]*)>([\s\S]*?)<\/testcase>|<testcase\b([^>]*)\/>/g;
+const caseRe = /<testcase\b([^>]*[^>/])>([\s\S]*?)<\/testcase>|<testcase\b([^>]*)\/>/g;
 let m;
 while ((m = caseRe.exec(xml))) {
   const openAttrs = m[1] ?? m[3] ?? "";
