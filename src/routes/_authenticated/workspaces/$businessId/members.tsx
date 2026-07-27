@@ -20,7 +20,8 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
@@ -108,6 +109,10 @@ function MembersPage() {
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
   const [detailsFor, setDetailsFor] = useState<Member | null>(null);
   const [lastActivity, setLastActivity] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRole, setBulkRole] = useState<Role>("staff");
+  const [bulkApplying, setBulkApplying] = useState(false);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
@@ -213,6 +218,71 @@ function MembersPage() {
     load();
   };
 
+  // Members eligible for bulk selection: exclude self and (when only one owner remains)
+  // that last owner, since demoting them would violate the ownership invariant.
+  const selectableMembers = useMemo(
+    () => members.filter((m) => {
+      if (m.user_id === user?.id) return false;
+      if (m.role === "owner" && ownerCount <= 1) return false;
+      return true;
+    }),
+    [members, user?.id, ownerCount],
+  );
+  const selectedMembers = useMemo(
+    () => members.filter((m) => selectedIds.has(m.id)),
+    [members, selectedIds],
+  );
+  const allSelectableChecked =
+    selectableMembers.length > 0 && selectableMembers.every((m) => selectedIds.has(m.id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (allSelectableChecked) setSelectedIds(new Set());
+    else setSelectedIds(new Set(selectableMembers.map((m) => m.id)));
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBulkRoleApply = async () => {
+    const targets = selectedMembers.filter((m) => m.role !== bulkRole);
+    if (targets.length === 0) {
+      toast.info("Selected members are already that role.");
+      setBulkConfirmOpen(false);
+      return;
+    }
+    // Guard: after applying, at least one owner must remain.
+    const remainingOwners =
+      ownerCount
+      - targets.filter((m) => m.role === "owner").length
+      + (bulkRole === "owner" ? targets.filter((m) => m.role !== "owner").length : 0);
+    if (remainingOwners < 1) {
+      toast.error("You can't demote the last owner. Promote someone else first.");
+      setBulkConfirmOpen(false);
+      return;
+    }
+    setBulkApplying(true);
+    const ids = targets.map((m) => m.id);
+    const { error } = await supabase
+      .from("business_members")
+      .update({ role: bulkRole })
+      .in("id", ids);
+    setBulkApplying(false);
+    setBulkConfirmOpen(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Updated ${ids.length} member${ids.length === 1 ? "" : "s"} to ${ROLE_LABELS[bulkRole]}`);
+    clearSelection();
+    load();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur">
@@ -306,13 +376,73 @@ function MembersPage() {
             No members yet.
           </div>
         ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-            {members.map((m) => {
-              const isSelf = m.user_id === user?.id;
-              const isLastOwner = m.role === "owner" && ownerCount <= 1;
-              const busy = !!pending[m.id];
-              return (
-                <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+          <>
+            {canManage && (
+              <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={allSelectableChecked}
+                    onCheckedChange={toggleSelectAll}
+                    disabled={selectableMembers.length === 0}
+                    aria-label="Select all members"
+                  />
+                  <Label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
+                    {selectedIds.size > 0
+                      ? `${selectedIds.size} selected`
+                      : `Select all (${selectableMembers.length})`}
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <Label htmlFor="bulk-role" className="text-sm text-muted-foreground">Set role to</Label>
+                  <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as Role)}>
+                    <SelectTrigger id="bulk-role" className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="owner">Owner</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    disabled={selectedIds.size === 0 || bulkApplying}
+                    onClick={() => setBulkConfirmOpen(true)}
+                  >
+                    {bulkApplying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Apply
+                  </Button>
+                  {selectedIds.size > 0 && (
+                    <Button size="sm" variant="ghost" onClick={clearSelection} title="Clear selection">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {members.map((m) => {
+                const isSelf = m.user_id === user?.id;
+                const isLastOwner = m.role === "owner" && ownerCount <= 1;
+                const busy = !!pending[m.id];
+                const isSelectable = canManage && !isSelf && !(m.role === "owner" && ownerCount <= 1);
+                const isSelected = selectedIds.has(m.id);
+                return (
+                  <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+                    {canManage && (
+                      <Checkbox
+                        checked={isSelected}
+                        disabled={!isSelectable}
+                        onCheckedChange={() => toggleSelect(m.id)}
+                        aria-label={`Select ${m.full_name || m.email || "member"}`}
+                        title={
+                          !isSelectable
+                            ? isSelf
+                              ? "You can't bulk-edit yourself"
+                              : "You can't demote the last owner"
+                            : undefined
+                        }
+                      />
+                    )}
                   <button
                     type="button"
                     className="flex items-center gap-4 flex-1 min-w-0 text-left"
@@ -367,9 +497,31 @@ function MembersPage() {
                 </li>
               );
             })}
-          </ul>
+            </ul>
+          </>
         )}
       </main>
+
+      <AlertDialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Change {selectedIds.size} member{selectedIds.size === 1 ? "" : "s"} to {ROLE_LABELS[bulkRole]}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This updates roles for everyone selected. Members already assigned to
+              {" "}{ROLE_LABELS[bulkRole]} won't change.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkApplying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkRoleApply} disabled={bulkApplying}>
+              {bulkApplying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Apply
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
         <AlertDialogContent>
