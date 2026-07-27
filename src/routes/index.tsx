@@ -182,16 +182,18 @@ function Index() {
             {user ? (
               <Link
                 to="/dashboard"
+                search={{ intent: "book", service: "consultation" } as never}
                 className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
               >
-                Go to dashboard
+                Book a call
               </Link>
             ) : (
               <Link
                 to="/signup"
+                search={{ intent: "book", service: "consultation" } as never}
                 className="rounded-full bg-accent px-8 py-4 font-medium text-white transition-all hover:brightness-110"
               >
-                Start free trial
+                Book a call
               </Link>
             )}
             <a
