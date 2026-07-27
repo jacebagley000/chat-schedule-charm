@@ -414,7 +414,7 @@ function MembersPage() {
                       </Button>
                       <Button type="submit" disabled={adding}>
                         {adding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Add member
+                        Send invitation
                       </Button>
                     </DialogFooter>
                   </form>
