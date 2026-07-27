@@ -379,10 +379,10 @@ function MembersPage() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add a team member</DialogTitle>
+                    <DialogTitle>Invite a team member</DialogTitle>
                     <DialogDescription>
-                      They must already have a FrontDesk AI account. Ask them to sign up first if
-                      you can't find their email.
+                      We'll create an invitation link — valid for 7 days. Once your email
+                      domain is verified we also email it to them automatically.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAdd} className="space-y-4">
