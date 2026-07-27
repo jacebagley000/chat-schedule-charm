@@ -19,8 +19,12 @@ concurrency:
 
 jobs:
   security-surface:
-    name: SQL security surface + Vitest
+    name: SQL security surface + Vitest (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
 
     services:
       postgres:
