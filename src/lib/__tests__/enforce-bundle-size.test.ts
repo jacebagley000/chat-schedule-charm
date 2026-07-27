@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-const SCRIPT = resolve(__dirname, "../../scripts/enforce-bundle-size.sh");
+const SCRIPT = resolve(__dirname, "../../../scripts/enforce-bundle-size.sh");
 
 let workDir: string;
 let summaryPath: string;
