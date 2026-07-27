@@ -30,10 +30,11 @@ const initialXml = readFileSync(initialPath, "utf8");
 const retryXml = readFileSync(retryPath, "utf8");
 
 const attr = (tag, name) => {
-  const m = tag.match(new RegExp(`${name}="([^"]*)"`));
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`));
   return m ? m[1] : "";
 };
 const caseKey = (openAttrs) => `${attr(openAttrs, "classname")}::${attr(openAttrs, "name")}`;
+
 
 // Build the set of retry cases that PASSED (no <failure|error> child).
 const retryPassed = new Set();
