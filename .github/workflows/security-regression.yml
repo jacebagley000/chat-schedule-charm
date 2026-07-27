@@ -307,9 +307,43 @@ jobs:
             echo "Created (UTC):   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } > "$staging/run-metadata.txt"
 
-          for f in junit.xml junit.retry.xml report.html vitest.log vitest.retry.log node-version.txt migrations.log postgres.log postgres-inspect.json; do
+          # Copy files, capping large log files (head + tail with a marker)
+          # and gzip-compressing vitest/migrations/postgres logs with -9 to
+          # keep artifact sizes under control.
+          MAX_LOG_BYTES=2097152   # 2 MiB cap per log file before compression
+          HEAD_BYTES=524288       # 512 KiB from the top
+          TAIL_BYTES=1572864      # 1.5 MiB from the bottom
+
+          cap_log() {
+            local src="$1" dst="$2"
+            local size
+            size=$(stat -c%s "$src" 2>/dev/null || wc -c <"$src")
+            if [ "$size" -le "$MAX_LOG_BYTES" ]; then
+              cp "$src" "$dst"
+              return
+            fi
+            {
+              head -c "$HEAD_BYTES" "$src"
+              printf '\n\n===== [truncated %s bytes: kept first %s and last %s bytes] =====\n\n' \
+                "$((size - HEAD_BYTES - TAIL_BYTES))" "$HEAD_BYTES" "$TAIL_BYTES"
+              tail -c "$TAIL_BYTES" "$src"
+            } > "$dst"
+          }
+
+          # Text log files: cap + gzip -9.
+          for f in vitest.log vitest.retry.log migrations.log postgres.log; do
+            src="artifacts/$f"
+            [ -f "$src" ] || continue
+            cap_log "$src" "$staging/$f"
+            gzip -9 -f "$staging/$f"   # produces $staging/$f.gz
+          done
+
+          # Structured / small files: copy as-is (report.html and junit.xml
+          # are consumed by tooling that expects them unmodified).
+          for f in junit.xml junit.retry.xml report.html node-version.txt postgres-inspect.json; do
             [ -f "artifacts/$f" ] && cp "artifacts/$f" "$staging/" || true
           done
+
 
           # Build manifest.json listing every file in the staging dir with
           # size (bytes), sha256, and modification timestamp (UTC ISO-8601).
