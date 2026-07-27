@@ -13,9 +13,10 @@ if (!inPath || !outPath) {
 const xml = readFileSync(inPath, "utf8");
 
 const attr = (tag, name) => {
-  const m = tag.match(new RegExp(`${name}="([^"]*)"`));
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`));
   return m ? decodeXml(m[1]) : "";
 };
+
 
 function decodeXml(s) {
   return s
@@ -57,15 +58,19 @@ while ((sm = suiteRe.exec(xml))) {
     const openCase = `<testcase ${cm[1]}>`;
     const inner = cm[2] || "";
     const fm = failRe.exec(inner);
+    const isFlaky = /<property\s+name="flaky"\s+value="true"\s*\/>/.test(inner);
+    const initialMsg =
+      (inner.match(/<property\s+name="flaky\.initial_message"\s+value="([^"]*)"/) || [])[1] || "";
     suite.cases.push({
       name: attr(openCase, "name"),
       classname: attr(openCase, "classname"),
       time: Number(attr(openCase, "time") || 0),
-      status: fm ? fm[1] : /<skipped\b/.test(inner) ? "skipped" : "passed",
-      message: fm ? attr(`<x ${fm[2]}>`, "message") : "",
+      status: isFlaky ? "flaky" : fm ? fm[1] : /<skipped\b/.test(inner) ? "skipped" : "passed",
+      message: fm ? attr(`<x ${fm[2]}>`, "message") : isFlaky ? initialMsg : "",
       detail: fm ? decodeXml(fm[3]).trim() : "",
     });
   }
+
   suites.push(suite);
 }
 
@@ -79,10 +84,15 @@ const totals = suites.reduce(
   }),
   { tests: 0, failures: 0, errors: 0, skipped: 0, time: 0 },
 );
+const flakyCount = suites.reduce(
+  (n, s) => n + s.cases.filter((c) => c.status === "flaky").length,
+  0,
+);
 
 const passed = totals.tests - totals.failures - totals.errors - totals.skipped;
-const status = totals.failures + totals.errors > 0 ? "FAILED" : "PASSED";
-const statusColor = status === "PASSED" ? "#16a34a" : "#dc2626";
+const status =
+  totals.failures + totals.errors > 0 ? "FAILED" : flakyCount > 0 ? "FLAKY" : "PASSED";
+const statusColor = status === "PASSED" ? "#16a34a" : status === "FLAKY" ? "#d97706" : "#dc2626";
 
 const rows = suites
   .map(
@@ -99,11 +109,15 @@ const rows = suites
                   ? '<span class="badge pass">PASS</span>'
                   : c.status === "skipped"
                     ? '<span class="badge skip">SKIP</span>'
-                    : '<span class="badge fail">FAIL</span>';
+                    : c.status === "flaky"
+                      ? '<span class="badge flaky">FLAKY</span>'
+                      : '<span class="badge fail">FAIL</span>';
               const detail =
                 c.status === "failure" || c.status === "error"
                   ? `<tr><td colspan="3"><pre>${escapeHtml(c.message ? c.message + "\n\n" : "")}${escapeHtml(c.detail)}</pre></td></tr>`
-                  : "";
+                  : c.status === "flaky"
+                    ? `<tr><td colspan="3"><pre>Passed on retry after initial failure${c.message ? `:\n\n${escapeHtml(c.message)}` : "."}</pre></td></tr>`
+                    : "";
               return `<tr><td>${badge}</td><td>${escapeHtml(c.name)}</td><td>${c.time.toFixed(3)}</td></tr>${detail}`;
             })
             .join("")}
@@ -112,6 +126,7 @@ const rows = suites
     </section>`,
   )
   .join("");
+
 
 const html = `<!doctype html>
 <html lang="en">
@@ -139,6 +154,7 @@ const html = `<!doctype html>
   .badge.pass { background: #16a34a; }
   .badge.fail { background: #dc2626; }
   .badge.skip { background: #64748b; }
+  .badge.flaky { background: #d97706; }
 </style>
 </head>
 <body>
@@ -148,11 +164,13 @@ const html = `<!doctype html>
   <div class="totals">
     <span><b>${passed}</b> passed</span>
     <span><b>${totals.failures}</b> failed</span>
+    <span><b>${flakyCount}</b> flaky</span>
     <span><b>${totals.errors}</b> errored</span>
     <span><b>${totals.skipped}</b> skipped</span>
     <span><b>${totals.time.toFixed(2)}s</b> total</span>
   </div>
 </header>
+
 ${rows || "<p><em>No test suites reported.</em></p>"}
 </body>
 </html>
