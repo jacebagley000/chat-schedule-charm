@@ -159,7 +159,21 @@ jobs:
         run: |
           mkdir -p artifacts
           set -o pipefail
-          bunx vitest run src/lib/security-surface.test.ts --reporter=verbose 2>&1 | tee artifacts/vitest.log
+          bunx vitest run src/lib/security-surface.test.ts \
+            --reporter=verbose \
+            --reporter=junit \
+            --outputFile.junit=artifacts/junit.xml \
+            2>&1 | tee artifacts/vitest.log
+
+      - name: Build HTML test report
+        if: always()
+        run: |
+          mkdir -p artifacts
+          if [ -f artifacts/junit.xml ]; then
+            node scripts/junit-to-html.mjs artifacts/junit.xml artifacts/report.html
+          else
+            echo "<h1>No JUnit XML produced</h1>" > artifacts/report.html
+          fi
 
       - name: Collect Postgres logs
         if: failure()
@@ -174,12 +188,28 @@ jobs:
             echo "no postgres container found" > artifacts/postgres.log
           fi
 
-      - name: Upload failure artifacts
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-regression-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/junit.xml
+            artifacts/report.html
+            artifacts/vitest.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: security-regression-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/
+          path: |
+            artifacts/migrations.log
+            artifacts/postgres.log
+            artifacts/postgres-inspect.json
           if-no-files-found: warn
           retention-days: 14
+
 
