@@ -4,6 +4,13 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref (branch, tag, or SHA) to run the suite against"
+        required: false
+        default: ""
+
 
 concurrency:
   group: security-regression-${{ github.workflow }}-${{ github.ref }}
