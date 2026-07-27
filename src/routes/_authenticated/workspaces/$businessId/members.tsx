@@ -218,6 +218,71 @@ function MembersPage() {
     load();
   };
 
+  // Members eligible for bulk selection: exclude self and (when only one owner remains)
+  // that last owner, since demoting them would violate the ownership invariant.
+  const selectableMembers = useMemo(
+    () => members.filter((m) => {
+      if (m.user_id === user?.id) return false;
+      if (m.role === "owner" && ownerCount <= 1) return false;
+      return true;
+    }),
+    [members, user?.id, ownerCount],
+  );
+  const selectedMembers = useMemo(
+    () => members.filter((m) => selectedIds.has(m.id)),
+    [members, selectedIds],
+  );
+  const allSelectableChecked =
+    selectableMembers.length > 0 && selectableMembers.every((m) => selectedIds.has(m.id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (allSelectableChecked) setSelectedIds(new Set());
+    else setSelectedIds(new Set(selectableMembers.map((m) => m.id)));
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBulkRoleApply = async () => {
+    const targets = selectedMembers.filter((m) => m.role !== bulkRole);
+    if (targets.length === 0) {
+      toast.info("Selected members are already that role.");
+      setBulkConfirmOpen(false);
+      return;
+    }
+    // Guard: after applying, at least one owner must remain.
+    const remainingOwners =
+      ownerCount
+      - targets.filter((m) => m.role === "owner").length
+      + (bulkRole === "owner" ? targets.filter((m) => m.role !== "owner").length : 0);
+    if (remainingOwners < 1) {
+      toast.error("You can't demote the last owner. Promote someone else first.");
+      setBulkConfirmOpen(false);
+      return;
+    }
+    setBulkApplying(true);
+    const ids = targets.map((m) => m.id);
+    const { error } = await supabase
+      .from("business_members")
+      .update({ role: bulkRole })
+      .in("id", ids);
+    setBulkApplying(false);
+    setBulkConfirmOpen(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Updated ${ids.length} member${ids.length === 1 ? "" : "s"} to ${ROLE_LABELS[bulkRole]}`);
+    clearSelection();
+    load();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur">
