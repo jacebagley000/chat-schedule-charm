@@ -556,6 +556,34 @@ jobs:
           echo "bundle_path=$bundle_path" >> "$GITHUB_OUTPUT"
           ls -la "$bundle_path"
 
+      - name: Print bundle size and budget thresholds
+        if: always() && steps.bundle.outputs.bundle_path != ''
+        env:
+          BUNDLE_PATH: ${{ steps.bundle.outputs.bundle_path }}
+          BUNDLE_NAME: ${{ steps.bundle.outputs.bundle_name }}
+          BUNDLE_MAX_BYTES: ${{ vars.SECURITY_REGRESSION_BUNDLE_MAX_BYTES || 26214400 }}
+        run: |
+          set -euo pipefail
+          size=$(stat -c%s "$BUNDLE_PATH")
+          soft_limit=$((BUNDLE_MAX_BYTES * 80 / 100))
+          hard_limit=$BUNDLE_MAX_BYTES
+          pct=$(awk "BEGIN { printf \"%.1f\", ($size * 100.0 / $hard_limit) }")
+
+          echo "::notice title=Bundle size budget::Bundle $BUNDLE_NAME is $size bytes ($pct% of budget). Soft threshold (80%) = $soft_limit bytes; hard threshold (100%) = $hard_limit bytes."
+
+          {
+            echo ""
+            echo "### 📏 Bundle size budget"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+            echo "| Bundle | \`$BUNDLE_NAME\` |"
+            echo "| Gzipped size | **$size bytes** |"
+            echo "| Soft threshold (80%) | $soft_limit bytes |"
+            echo "| Hard threshold (100%) | $hard_limit bytes |"
+            echo "| Usage | $pct% |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Enforce bundle size budget
         if: always() && steps.bundle.outputs.bundle_path != ''
         env:
