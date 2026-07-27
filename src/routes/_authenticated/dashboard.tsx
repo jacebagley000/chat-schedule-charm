@@ -99,6 +99,22 @@ function DashboardPage() {
           <CreateBusinessDialog onCreated={load} />
         </div>
 
+        <Link
+          to="/schedule"
+          className="mb-8 flex items-center justify-between rounded-xl border border-border bg-accent/5 px-5 py-4 hover:border-accent/40 hover:bg-accent/10 transition-colors"
+        >
+          <div>
+            <div className="font-serif text-lg tracking-tight">Upcoming shifts</div>
+            <p className="text-xs text-muted-foreground">
+              One dashboard across every workspace — view shifts and reassign staff.
+            </p>
+          </div>
+          <span className="text-xs font-mono uppercase tracking-wide text-accent">
+            open →
+          </span>
+        </Link>
+
+
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : businesses.length === 0 ? (
