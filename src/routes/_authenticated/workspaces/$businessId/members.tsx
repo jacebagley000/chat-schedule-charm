@@ -69,6 +69,8 @@ function MembersPage() {
   const [adding, setAdding] = useState(false);
   const [pending, setPending] = useState<Record<string, boolean>>({});
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Member | null>(null);
+  const [lastActivity, setLastActivity] = useState<Record<string, string>>({});
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
@@ -79,9 +81,16 @@ function MembersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: biz }, membersRes] = await Promise.all([
+    const [{ data: biz }, membersRes, activityRes] = await Promise.all([
       supabase.from("businesses").select("name").eq("id", businessId).maybeSingle(),
       supabase.rpc("list_business_members", { _business_id: businessId }),
+      supabase
+        .from("audit_logs")
+        .select("actor_user_id, created_at")
+        .eq("business_id", businessId)
+        .not("actor_user_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(500),
     ]);
     if (biz?.name) setBusinessName(biz.name);
     if (membersRes.error) {
@@ -90,6 +99,13 @@ function MembersPage() {
     } else {
       setMembers((membersRes.data ?? []) as Member[]);
     }
+    const activityMap: Record<string, string> = {};
+    for (const row of (activityRes.data ?? []) as { actor_user_id: string; created_at: string }[]) {
+      if (row.actor_user_id && !activityMap[row.actor_user_id]) {
+        activityMap[row.actor_user_id] = row.created_at;
+      }
+    }
+    setLastActivity(activityMap);
     setLoading(false);
   };
 
