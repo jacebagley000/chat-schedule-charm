@@ -263,6 +263,50 @@ jobs:
           bundle_name="security-regression-node${{ matrix.node }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}.zip"
           bundle_path="artifacts/${bundle_name}"
           staging="$(mktemp -d)"
+
+          # Write run metadata so every bundle is self-describing.
+          cat > "$staging/run-metadata.json" <<META
+          {
+            "repository": "${GITHUB_REPOSITORY}",
+            "ref": "${GITHUB_REF}",
+            "ref_name": "${GITHUB_REF_NAME}",
+            "commit_sha": "${GITHUB_SHA}",
+            "commit_sha_short": "$(printf '%s' "${GITHUB_SHA}" | cut -c1-7)",
+            "event_name": "${GITHUB_EVENT_NAME}",
+            "workflow": "${GITHUB_WORKFLOW}",
+            "workflow_run_id": "${GITHUB_RUN_ID}",
+            "workflow_run_number": "${GITHUB_RUN_NUMBER}",
+            "workflow_run_attempt": "${GITHUB_RUN_ATTEMPT}",
+            "job": "${GITHUB_JOB}",
+            "runner_os": "${RUNNER_OS}",
+            "node_version_matrix": "${{ matrix.node }}",
+            "actor": "${GITHUB_ACTOR}",
+            "triggering_actor": "${GITHUB_TRIGGERING_ACTOR}",
+            "run_url": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          META
+
+          {
+            echo "Security regression bundle"
+            echo "=========================="
+            echo "Repository:      ${GITHUB_REPOSITORY}"
+            echo "Ref:             ${GITHUB_REF_NAME} (${GITHUB_REF})"
+            echo "Commit SHA:      ${GITHUB_SHA}"
+            echo "Event:           ${GITHUB_EVENT_NAME}"
+            echo "Workflow:        ${GITHUB_WORKFLOW}"
+            echo "Run ID:          ${GITHUB_RUN_ID}"
+            echo "Run number:      ${GITHUB_RUN_NUMBER}"
+            echo "Run attempt:     ${GITHUB_RUN_ATTEMPT}"
+            echo "Job:             ${GITHUB_JOB}"
+            echo "Node (matrix):   ${{ matrix.node }}"
+            echo "Runner OS:       ${RUNNER_OS}"
+            echo "Actor:           ${GITHUB_ACTOR}"
+            echo "Triggering:      ${GITHUB_TRIGGERING_ACTOR}"
+            echo "Run URL:         ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
+            echo "Created (UTC):   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "$staging/run-metadata.txt"
+
           for f in junit.xml junit.retry.xml report.html vitest.log vitest.retry.log node-version.txt migrations.log postgres.log postgres-inspect.json; do
             [ -f "artifacts/$f" ] && cp "artifacts/$f" "$staging/" || true
           done
@@ -270,6 +314,7 @@ jobs:
           echo "bundle_name=$bundle_name" >> "$GITHUB_OUTPUT"
           echo "bundle_path=$bundle_path" >> "$GITHUB_OUTPUT"
           ls -la "$bundle_path"
+
 
       - name: Upload bundled test artifacts
         id: upload-report
