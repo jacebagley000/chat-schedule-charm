@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    ...(typeof search.redirect === "string" ? { redirect: search.redirect } : {}),
   }),
+
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/dashboard" });
