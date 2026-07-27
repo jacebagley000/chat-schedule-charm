@@ -16,8 +16,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
@@ -54,6 +57,43 @@ const ROLE_LABELS: Record<Role, string> = {
   staff: "Staff",
 };
 
+// A member is "invited" until they've signed in and their profile has been created
+// (name/avatar) OR the row is older than an activation grace window. Anyone with
+// recorded activity, a display name, or an avatar is considered active.
+function deriveStatus(m: Member, lastActivityAt?: string): "invited" | "active" {
+  if (lastActivityAt) return "active";
+  if (m.full_name || m.avatar_url) return "active";
+  const ageMs = Date.now() - new Date(m.created_at).getTime();
+  return ageMs < 1000 * 60 * 60 * 24 * 7 ? "invited" : "active";
+}
+
+function StatusBadge({ member, lastActivityAt }: { member: Member; lastActivityAt?: string }) {
+  const status = deriveStatus(member, lastActivityAt);
+  const cls = status === "invited"
+    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+  return (
+    <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+function formatRelative(iso?: string): string {
+  if (!iso) return "No activity yet";
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return "Just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} minute${min === 1 ? "" : "s"} ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day} day${day === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
 function MembersPage() {
   const { businessId } = useParams({ from: "/_authenticated/workspaces/$businessId/members" });
   const { user } = useAuth();
@@ -66,6 +106,8 @@ function MembersPage() {
   const [adding, setAdding] = useState(false);
   const [pending, setPending] = useState<Record<string, boolean>>({});
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Member | null>(null);
+  const [lastActivity, setLastActivity] = useState<Record<string, string>>({});
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
@@ -76,9 +118,16 @@ function MembersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: biz }, membersRes] = await Promise.all([
+    const [{ data: biz }, membersRes, activityRes] = await Promise.all([
       supabase.from("businesses").select("name").eq("id", businessId).maybeSingle(),
       supabase.rpc("list_business_members", { _business_id: businessId }),
+      supabase
+        .from("audit_logs")
+        .select("actor_user_id, created_at")
+        .eq("business_id", businessId)
+        .not("actor_user_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(500),
     ]);
     if (biz?.name) setBusinessName(biz.name);
     if (membersRes.error) {
@@ -87,6 +136,13 @@ function MembersPage() {
     } else {
       setMembers((membersRes.data ?? []) as Member[]);
     }
+    const activityMap: Record<string, string> = {};
+    for (const row of (activityRes.data ?? []) as { actor_user_id: string; created_at: string }[]) {
+      if (row.actor_user_id && !activityMap[row.actor_user_id]) {
+        activityMap[row.actor_user_id] = row.created_at;
+      }
+    }
+    setLastActivity(activityMap);
     setLoading(false);
   };
 
@@ -256,22 +312,29 @@ function MembersPage() {
               const isLastOwner = m.role === "owner" && ownerCount <= 1;
               const busy = !!pending[m.id];
               return (
-                <li key={m.id} className="flex items-center gap-4 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden shrink-0">
-                    {m.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      initials(m.full_name, m.email)
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium truncate flex items-center gap-2">
-                      {m.full_name || m.email || "Unknown"}
-                      {isSelf && <span className="text-xs text-muted-foreground">(you)</span>}
+                <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+                  <button
+                    type="button"
+                    className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                    onClick={() => setDetailsFor(m)}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden shrink-0">
+                      {m.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        initials(m.full_name, m.email)
+                      )}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">{m.email || "—"}</div>
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate flex items-center gap-2">
+                        {m.full_name || m.email || "Unknown"}
+                        {isSelf && <span className="text-xs text-muted-foreground">(you)</span>}
+                        <StatusBadge member={m} lastActivityAt={lastActivity[m.user_id]} />
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">{m.email || "—"}</div>
+                    </div>
+                  </button>
                   <div className="flex items-center gap-2">
                     {canManage ? (
                       <Select
@@ -323,6 +386,66 @@ function MembersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Sheet open={!!detailsFor} onOpenChange={(o) => !o && setDetailsFor(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          {detailsFor && (
+            <>
+              <SheetHeader>
+                <SheetTitle>Member details</SheetTitle>
+                <SheetDescription>Overview of this member's access and recent activity.</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-lg font-medium overflow-hidden shrink-0">
+                    {detailsFor.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={detailsFor.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      initials(detailsFor.full_name, detailsFor.email)
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">
+                      {detailsFor.full_name || detailsFor.email || "Unknown"}
+                    </div>
+                    <div className="text-sm text-muted-foreground truncate">{detailsFor.email || "—"}</div>
+                  </div>
+                </div>
+
+                <dl className="grid grid-cols-3 gap-3 text-sm">
+                  <dt className="col-span-1 text-muted-foreground">Role</dt>
+                  <dd className="col-span-2 font-medium">{ROLE_LABELS[detailsFor.role]}</dd>
+
+                  <dt className="col-span-1 text-muted-foreground">Status</dt>
+                  <dd className="col-span-2">
+                    <StatusBadge member={detailsFor} lastActivityAt={lastActivity[detailsFor.user_id]} />
+                  </dd>
+
+                  <dt className="col-span-1 text-muted-foreground">Joined</dt>
+                  <dd className="col-span-2">
+                    {new Date(detailsFor.created_at).toLocaleDateString(undefined, {
+                      year: "numeric", month: "short", day: "numeric",
+                    })}
+                  </dd>
+
+                  <dt className="col-span-1 text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Last activity
+                  </dt>
+                  <dd className="col-span-2">
+                    {formatRelative(lastActivity[detailsFor.user_id])}
+                    {lastActivity[detailsFor.user_id] && (
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(lastActivity[detailsFor.user_id]).toLocaleString()}
+                      </div>
+                    )}
+                  </dd>
+                </dl>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
