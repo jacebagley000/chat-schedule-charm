@@ -11,8 +11,17 @@ import {
 import { toast } from "sonner";
 import { Building2, Plus, LogOut, Phone, Calendar, MessageSquare, Users } from "lucide-react";
 
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+
+const dashboardSearchSchema = z.object({
+  intent: fallback(z.string(), "").default(""),
+  service: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
+  validateSearch: zodValidator(dashboardSearchSchema),
   head: () => ({
     meta: [{ title: "Dashboard — FrontDesk AI" }],
   }),
@@ -29,6 +38,7 @@ type Business = {
 function DashboardPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +54,19 @@ function DashboardPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // If arriving with a booking intent, forward to the first workspace's
+  // calendar and carry the service hint so the booking form prefills.
+  useEffect(() => {
+    if (search.intent !== "book") return;
+    if (loading || businesses.length === 0) return;
+    navigate({
+      to: "/workspaces/$businessId/calendar",
+      params: { businessId: businesses[0].id },
+      search: { intent: "book", service: search.service || "" },
+      replace: true,
+    });
+  }, [loading, businesses, search.intent, search.service, navigate]);
 
   return (
     <div className="min-h-screen bg-background">

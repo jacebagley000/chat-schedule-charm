@@ -29,8 +29,17 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+
+const calendarSearchSchema = z.object({
+  intent: fallback(z.string(), "").default(""),
+  service: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
   component: CalendarPage,
+  validateSearch: zodValidator(calendarSearchSchema),
   head: () => ({ meta: [{ title: "Calendar — FrontDesk AI" }] }),
 });
 
@@ -72,7 +81,26 @@ function CalendarPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const [editing, setEditing] = useState<Appointment | null>(null);
-  const [creating, setCreating] = useState<{ start: Date } | null>(null);
+  const [creating, setCreating] = useState<{ start: Date; serviceHint?: string } | null>(null);
+  const search = Route.useSearch();
+
+  // Auto-open the booking dialog when arriving with ?intent=book, then clear
+  // the search params so a refresh doesn't reopen it.
+  useEffect(() => {
+    if (search.intent !== "book") return;
+    if (!services.length || !staff.length) return;
+    if (creating || editing) return;
+    const start = new Date(day);
+    start.setHours(9, 0, 0, 0);
+    setCreating({ start, serviceHint: search.service || undefined });
+    navigate({
+      to: "/workspaces/$businessId/calendar",
+      params: { businessId },
+      search: {},
+      replace: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.intent, search.service, services.length, staff.length]);
 
   const loadCoreAction = useAbortableToastAction();
   const loadAppointmentsAction = useAbortableToastAction();
@@ -267,6 +295,7 @@ function CalendarPage() {
           mode="create"
           businessId={businessId}
           initialStart={creating.start}
+          initialServiceHint={creating.serviceHint}
           staff={staff}
           services={services}
           customers={customers}
@@ -1207,26 +1236,40 @@ function StaffRow({ staff, onChanged }: { staff: Staff; onChanged: () => void })
 }
 
 function AppointmentDialog({
-  mode, businessId, appointment, initialStart, staff, services, customers, onClose, onSaved,
+  mode, businessId, appointment, initialStart, initialServiceHint, staff, services, customers, onClose, onSaved,
 }: {
   mode: "create" | "edit";
   businessId: string;
   appointment?: Appointment;
   initialStart?: Date;
+  initialServiceHint?: string;
   staff: Staff[];
   services: Service[];
   customers: Customer[];
   onClose: () => void;
   onSaved: () => void;
 }) {
+  // Match a hinted service (from ?service=... URL param) by case-insensitive
+  // name; fall back to the first service.
+  const hintedServiceId = (() => {
+    if (!initialServiceHint) return null;
+    const q = initialServiceHint.trim().toLowerCase();
+    if (!q) return null;
+    const match = services.find(
+      (s) => s.name.toLowerCase() === q || s.name.toLowerCase().includes(q)
+    );
+    return match?.id ?? null;
+  })();
+  const initialServiceId = appointment?.service_id ?? hintedServiceId ?? services[0]?.id ?? "";
+  const initialDuration = services.find((s) => s.id === initialServiceId)?.duration_minutes ?? services[0]?.duration_minutes ?? 30;
   const start0 = appointment ? parseISO(appointment.starts_at) : initialStart!;
-  const end0 = appointment ? parseISO(appointment.ends_at) : addMinutes(start0, services[0]?.duration_minutes ?? 30);
+  const end0 = appointment ? parseISO(appointment.ends_at) : addMinutes(start0, initialDuration);
 
   const [date, setDate] = useState<Date>(startOfDay(start0));
   const [time, setTime] = useState<string>(format(start0, "HH:mm"));
   const [duration, setDuration] = useState<number>(Math.max(5, Math.round((end0.getTime() - start0.getTime()) / 60000)));
   const [staffId, setStaffId] = useState<string>(appointment?.staff_id ?? staff[0]?.id ?? "");
-  const [serviceId, setServiceId] = useState<string>(appointment?.service_id ?? services[0]?.id ?? "");
+  const [serviceId, setServiceId] = useState<string>(initialServiceId);
   const [customerId, setCustomerId] = useState<string>(appointment?.customer_id ?? "");
   const [newCustomerName, setNewCustomerName] = useState("");
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
