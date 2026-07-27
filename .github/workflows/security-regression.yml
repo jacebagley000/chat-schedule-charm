@@ -565,36 +565,7 @@ jobs:
           # Override at workflow-dispatch or repo-var level by setting
           # SECURITY_REGRESSION_BUNDLE_MAX_BYTES. Default: 25 MiB.
           BUNDLE_MAX_BYTES: ${{ vars.SECURITY_REGRESSION_BUNDLE_MAX_BYTES || 26214400 }}
-        run: |
-          set -euo pipefail
-          size=$(stat -c%s "$BUNDLE_PATH" 2>/dev/null || wc -c <"$BUNDLE_PATH")
-          max="$BUNDLE_MAX_BYTES"
-          soft_limit=$((max * 80 / 100))
-          hsize=$(numfmt --to=iec --suffix=B "$size" 2>/dev/null || echo "${size}B")
-          hmax=$(numfmt  --to=iec --suffix=B "$max"  2>/dev/null || echo "${max}B")
-          hsoft=$(numfmt --to=iec --suffix=B "$soft_limit" 2>/dev/null || echo "${soft_limit}B")
-          {
-            echo "### 📏 Bundle size guard"
-            echo ""
-            echo "- Bundle: \`$BUNDLE_NAME\`"
-            echo "- Size:   **$hsize** ($size bytes)"
-            echo "- Budget: $hmax ($max bytes)"
-            echo "- Soft limit (80%): $hsoft ($soft_limit bytes)"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$size" -gt "$max" ]; then
-            over=$((size - max))
-            hover=$(numfmt --to=iec --suffix=B "$over" 2>/dev/null || echo "${over}B")
-            echo "- Status: ❌ **exceeded budget by $hover**" >> "$GITHUB_STEP_SUMMARY"
-            echo "::error title=Bundle size budget exceeded::$BUNDLE_NAME is $hsize (limit $hmax, over by $hover). Inspect manifest.json truncation_summary and tighten log caps or drop artifacts."
-            exit 1
-          elif [ "$size" -gt "$soft_limit" ]; then
-            over=$((size - soft_limit))
-            hover=$(numfmt --to=iec --suffix=B "$over" 2>/dev/null || echo "${over}B")
-            echo "- Status: ⚠️ **within budget but over soft limit by $hover**" >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning title=Bundle size approaching budget::$BUNDLE_NAME is $hsize (soft limit $hsoft, over by $hover). Consider tightening log caps or dropping artifacts before the hard limit is reached."
-          else
-            echo "- Status: ✅ within budget" >> "$GITHUB_STEP_SUMMARY"
-          fi
+        run: bash scripts/enforce-bundle-size.sh
 
       - name: Record bundle size and link previous run
         if: always() && steps.bundle.outputs.bundle_path != ''
