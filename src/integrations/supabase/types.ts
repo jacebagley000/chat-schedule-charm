@@ -88,6 +88,62 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_label: string | null
+          actor_type: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id: string | null
+          business_id: string
+          changes: Json | null
+          channel: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: Database["public"]["Enums"]["audit_entity_type"]
+          id: string
+          metadata: Json | null
+          summary: string | null
+        }
+        Insert: {
+          action: string
+          actor_label?: string | null
+          actor_type?: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id?: string | null
+          business_id: string
+          changes?: Json | null
+          channel?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: Database["public"]["Enums"]["audit_entity_type"]
+          id?: string
+          metadata?: Json | null
+          summary?: string | null
+        }
+        Update: {
+          action?: string
+          actor_label?: string | null
+          actor_type?: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id?: string | null
+          business_id?: string
+          changes?: Json | null
+          channel?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: Database["public"]["Enums"]["audit_entity_type"]
+          id?: string
+          metadata?: Json | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_members: {
         Row: {
           business_id: string
@@ -573,6 +629,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      log_audit: {
+        Args: {
+          _action: string
+          _business_id: string
+          _changes: Json
+          _channel: string
+          _entity_id: string
+          _entity_type: Database["public"]["Enums"]["audit_entity_type"]
+          _metadata: Json
+          _summary: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       appointment_source:
@@ -588,6 +657,12 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+      audit_actor_type: "user" | "webhook" | "system"
+      audit_entity_type:
+        | "appointment"
+        | "scheduling_request"
+        | "conversation"
+        | "message"
       business_role: "owner" | "admin" | "staff"
       conversation_channel: "phone" | "instagram" | "facebook" | "sms"
       conversation_status: "open" | "needs_human" | "closed"
@@ -735,6 +810,13 @@ export const Constants = {
         "completed",
         "cancelled",
         "no_show",
+      ],
+      audit_actor_type: ["user", "webhook", "system"],
+      audit_entity_type: [
+        "appointment",
+        "scheduling_request",
+        "conversation",
+        "message",
       ],
       business_role: ["owner", "admin", "staff"],
       conversation_channel: ["phone", "instagram", "facebook", "sms"],
