@@ -16,8 +16,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
