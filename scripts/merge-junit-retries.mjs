@@ -52,7 +52,8 @@ const flakyNames = [];
 
 // Rewrite the initial XML: for each testcase that had a failure/error and now
 // passes on retry, strip the failure child and mark it flaky.
-const caseWithBodyRe = /<testcase\b([^>]*)>([\s\S]*?)<\/testcase>/g;
+// NOTE: exclude self-closing <testcase .../> tags — those have no failure to strip.
+const caseWithBodyRe = /<testcase\b([^>]*[^>/])>([\s\S]*?)<\/testcase>/g;
 let merged = initialXml.replace(caseWithBodyRe, (whole, openAttrs, inner) => {
   const failMatch = inner.match(/<(failure|error)\b[\s\S]*?<\/\1>|<(failure|error)\b[^>]*\/>/);
   if (!failMatch) return whole;
@@ -66,15 +67,17 @@ let merged = initialXml.replace(caseWithBodyRe, (whole, openAttrs, inner) => {
     .replace(/<failure\b[\s\S]*?<\/failure>/g, "")
     .replace(/<error\b[\s\S]*?<\/error>/g, "")
     .replace(/<failure\b[^>]*\/>/g, "")
-    .replace(/<error\b[^>]*\/>/g, "");
+    .replace(/<error\b[^>]*\/>/g, "")
+    .trim();
   const flakyProps =
     `\n      <properties>\n` +
     `        <property name="flaky" value="true"/>\n` +
     `        <property name="flaky.initial_message" value="${escapeAttr(originalMessage)}"/>\n` +
     `      </properties>\n` +
-    `      <system-out>FLAKY: passed on retry after initial failure — ${escapeXml(originalMessage)}</system-out>\n`;
-  return `<testcase${openAttrs}>${flakyProps}${strippedInner}</testcase>`;
+    `      <system-out>FLAKY: passed on retry after initial failure — ${escapeXml(originalMessage)}</system-out>\n    `;
+  return `<testcase${openAttrs}>${flakyProps}${strippedInner ? strippedInner + "\n    " : ""}</testcase>`;
 });
+
 
 // Adjust <testsuite> failures/errors counters to reflect the reclassification.
 if (flakyCount > 0) {
