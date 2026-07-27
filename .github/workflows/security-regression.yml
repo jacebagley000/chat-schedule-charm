@@ -271,7 +271,16 @@ jobs:
       - name: Bundle test outputs into single zip
         if: always()
         id: bundle
+        env:
+          # Precedence: workflow_dispatch input > repo variable > built-in default.
+          INPUT_MAX_LOG_BYTES: ${{ github.event.inputs.max_log_bytes }}
+          INPUT_HEAD_BYTES:    ${{ github.event.inputs.head_bytes }}
+          INPUT_TAIL_BYTES:    ${{ github.event.inputs.tail_bytes }}
+          VAR_MAX_LOG_BYTES:   ${{ vars.SECURITY_REGRESSION_MAX_LOG_BYTES }}
+          VAR_HEAD_BYTES:      ${{ vars.SECURITY_REGRESSION_HEAD_BYTES }}
+          VAR_TAIL_BYTES:      ${{ vars.SECURITY_REGRESSION_TAIL_BYTES }}
         run: |
+
           mkdir -p artifacts
           bundle_name="security-regression-node${{ matrix.node }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}.zip"
           bundle_path="artifacts/${bundle_name}"
