@@ -386,6 +386,66 @@ function MembersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Sheet open={!!detailsFor} onOpenChange={(o) => !o && setDetailsFor(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          {detailsFor && (
+            <>
+              <SheetHeader>
+                <SheetTitle>Member details</SheetTitle>
+                <SheetDescription>Overview of this member's access and recent activity.</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-lg font-medium overflow-hidden shrink-0">
+                    {detailsFor.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={detailsFor.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      initials(detailsFor.full_name, detailsFor.email)
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">
+                      {detailsFor.full_name || detailsFor.email || "Unknown"}
+                    </div>
+                    <div className="text-sm text-muted-foreground truncate">{detailsFor.email || "—"}</div>
+                  </div>
+                </div>
+
+                <dl className="grid grid-cols-3 gap-3 text-sm">
+                  <dt className="col-span-1 text-muted-foreground">Role</dt>
+                  <dd className="col-span-2 font-medium">{ROLE_LABELS[detailsFor.role]}</dd>
+
+                  <dt className="col-span-1 text-muted-foreground">Status</dt>
+                  <dd className="col-span-2">
+                    <StatusBadge member={detailsFor} lastActivityAt={lastActivity[detailsFor.user_id]} />
+                  </dd>
+
+                  <dt className="col-span-1 text-muted-foreground">Joined</dt>
+                  <dd className="col-span-2">
+                    {new Date(detailsFor.created_at).toLocaleDateString(undefined, {
+                      year: "numeric", month: "short", day: "numeric",
+                    })}
+                  </dd>
+
+                  <dt className="col-span-1 text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Last activity
+                  </dt>
+                  <dd className="col-span-2">
+                    {formatRelative(lastActivity[detailsFor.user_id])}
+                    {lastActivity[detailsFor.user_id] && (
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(lastActivity[detailsFor.user_id]).toLocaleString()}
+                      </div>
+                    )}
+                  </dd>
+                </dl>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
