@@ -502,6 +502,27 @@ function MembersPage() {
         )}
       </main>
 
+      <AlertDialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Change {selectedIds.size} member{selectedIds.size === 1 ? "" : "s"} to {ROLE_LABELS[bulkRole]}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This updates roles for everyone selected. Members already assigned to
+              {" "}{ROLE_LABELS[bulkRole]} won't change.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkApplying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkRoleApply} disabled={bulkApplying}>
+              {bulkApplying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Apply
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
