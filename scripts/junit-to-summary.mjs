@@ -24,9 +24,10 @@ const xml = readFileSync(inPath, "utf8");
 const decodeXml = (s) =>
   s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
 const attr = (tag, name) => {
-  const m = tag.match(new RegExp(`${name}="([^"]*)"`));
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`));
   return m ? decodeXml(m[1]) : "";
 };
+
 const escape = (s) => String(s ?? "").replace(/[|`*_<>]/g, (c) => `\\${c}`);
 
 // Aggregate from <testsuite> elements (Vitest emits per-file suites + a root).
