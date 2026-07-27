@@ -295,6 +295,7 @@ function CalendarPage() {
           mode="create"
           businessId={businessId}
           initialStart={creating.start}
+          initialServiceHint={creating.serviceHint}
           staff={staff}
           services={services}
           customers={customers}
