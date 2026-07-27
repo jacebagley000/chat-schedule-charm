@@ -113,6 +113,10 @@ function MembersPage() {
   const [bulkRole, setBulkRole] = useState<Role>("staff");
   const [bulkApplying, setBulkApplying] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invPending, setInvPending] = useState<Record<string, boolean>>({});
+  const [revokeTarget, setRevokeTarget] = useState<Invitation | null>(null);
+  const [inviteLink, setInviteLink] = useState<{ email: string; url: string } | null>(null);
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
@@ -123,7 +127,7 @@ function MembersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: biz }, membersRes, activityRes] = await Promise.all([
+    const [{ data: biz }, membersRes, activityRes, invitesRes] = await Promise.all([
       supabase.from("businesses").select("name").eq("id", businessId).maybeSingle(),
       supabase.rpc("list_business_members", { _business_id: businessId }),
       supabase
@@ -133,6 +137,7 @@ function MembersPage() {
         .not("actor_user_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(500),
+      supabase.rpc("list_business_invitations", { _business_id: businessId }),
     ]);
     if (biz?.name) setBusinessName(biz.name);
     if (membersRes.error) {
@@ -148,16 +153,26 @@ function MembersPage() {
       }
     }
     setLastActivity(activityMap);
+    if (invitesRes.error) {
+      // Non-fatal — the members list can still show.
+      console.warn("Failed to load invitations:", invitesRes.error.message);
+      setInvitations([]);
+    } else {
+      setInvitations((invitesRes.data ?? []) as Invitation[]);
+    }
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [businessId]);
 
+  const buildInviteUrl = (token: string) =>
+    `${window.location.origin}/invite/${token}`;
+
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!addEmail.trim()) return;
     setAdding(true);
-    const { error } = await supabase.rpc("add_business_member_by_email", {
+    const { data, error } = await supabase.rpc("create_business_invitation", {
       _business_id: businessId,
       _email: addEmail.trim(),
       _role: addRole,
@@ -167,12 +182,56 @@ function MembersPage() {
       toast.error(error.message);
       return;
     }
-    toast.success(`Added ${addEmail.trim()} as ${ROLE_LABELS[addRole]}`);
+    const row = Array.isArray(data) ? data[0] : data;
+    const token: string | undefined = row?.token;
+    const email = addEmail.trim();
     setAddEmail("");
     setAddRole("staff");
     setAddOpen(false);
+    if (token) {
+      const url = buildInviteUrl(token);
+      setInviteLink({ email, url });
+    }
+    toast.success(`Invitation created for ${email}`);
     load();
   };
+
+  const handleResend = async (inv: Invitation) => {
+    setInvPending((p) => ({ ...p, [inv.id]: true }));
+    const { data, error } = await supabase.rpc("resend_business_invitation", {
+      _invitation_id: inv.id,
+    });
+    setInvPending((p) => ({ ...p, [inv.id]: false }));
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    const token: string | undefined = row?.token;
+    if (token) {
+      setInviteLink({ email: inv.email, url: buildInviteUrl(token) });
+    }
+    toast.success(`Invitation resent to ${inv.email} — expires in 7 days`);
+    load();
+  };
+
+  const handleRevoke = async () => {
+    if (!revokeTarget) return;
+    const target = revokeTarget;
+    setInvPending((p) => ({ ...p, [target.id]: true }));
+    const { error } = await supabase.rpc("revoke_business_invitation", {
+      _invitation_id: target.id,
+    });
+    setInvPending((p) => ({ ...p, [target.id]: false }));
+    setRevokeTarget(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Revoked invitation for ${target.email}`);
+    load();
+  };
+
 
   const handleRoleChange = async (member: Member, next: Role) => {
     if (member.role === next) return;
