@@ -359,6 +359,22 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Append bundle download link to job summary
+        if: always() && steps.upload-report.outputs.artifact-url != ''
+        env:
+          BUNDLE_URL: ${{ steps.upload-report.outputs.artifact-url }}
+          BUNDLE_NAME: ${{ steps.bundle.outputs.bundle_name }}
+        run: |
+          {
+            echo ""
+            echo "### 📦 Bundle artifact (Node ${{ matrix.node }})"
+            echo ""
+            echo "[⬇️ Download zip bundle (\`${BUNDLE_NAME}\`)](${BUNDLE_URL})"
+            echo ""
+            echo "_Includes JUnit XML, HTML report, vitest logs, migrations log, Postgres logs, run-metadata.{json,txt}, and manifest.json._"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
 
 
 
