@@ -173,6 +173,7 @@ function AuditPage() {
                 <SelectItem value="scheduling_request">Scheduling request</SelectItem>
                 <SelectItem value="message">Message</SelectItem>
                 <SelectItem value="conversation">Conversation</SelectItem>
+                <SelectItem value="business_member">Member</SelectItem>
               </SelectContent>
             </Select>
           </div>
