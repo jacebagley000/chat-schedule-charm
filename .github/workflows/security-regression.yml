@@ -212,4 +212,44 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Notify Slack on failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
+          artifacts_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#artifacts"
+          payload=$(cat <<JSON
+          {
+            "text": ":rotating_light: Security regression failed on \`${GITHUB_REF_NAME}\` (${GITHUB_REPOSITORY})",
+            "blocks": [
+              {
+                "type": "header",
+                "text": { "type": "plain_text", "text": "Security regression failed" }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  { "type": "mrkdwn", "text": "*Repo:*\n${GITHUB_REPOSITORY}" },
+                  { "type": "mrkdwn", "text": "*Ref:*\n\`${GITHUB_REF_NAME}\`" },
+                  { "type": "mrkdwn", "text": "*Commit:*\n\`${GITHUB_SHA:0:7}\`" },
+                  { "type": "mrkdwn", "text": "*Event:*\n${GITHUB_EVENT_NAME}" }
+                ]
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  { "type": "button", "text": { "type": "plain_text", "text": "View run" }, "url": "${run_url}" },
+                  { "type": "button", "text": { "type": "plain_text", "text": "Download artifacts" }, "url": "${artifacts_url}" }
+                ]
+              }
+            ]
+          }
+          JSON
+          )
+          curl -sS -X POST -H 'Content-Type: application/json' \
+            --data "$payload" \
+            "$SLACK_WEBHOOK_URL"
+
+
 
