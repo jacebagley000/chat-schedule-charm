@@ -743,6 +743,55 @@ function MembersPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={!!revokeTarget} onOpenChange={(o) => !o && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke this invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The link sent to {revokeTarget?.email} will stop working immediately.
+              You can send a new one anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevoke}>Revoke</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!inviteLink} onOpenChange={(o) => !o && setInviteLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invitation ready for {inviteLink?.email}</DialogTitle>
+            <DialogDescription>
+              Share this link directly while your email domain finishes verifying.
+              It's valid for 7 days.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Input readOnly value={inviteLink?.url ?? ""} onFocus={(e) => e.currentTarget.select()} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={async () => {
+                if (!inviteLink) return;
+                try {
+                  await navigator.clipboard.writeText(inviteLink.url);
+                  toast.success("Link copied");
+                } catch {
+                  toast.error("Couldn't copy — select and copy manually");
+                }
+              }}
+            >
+              <Copy className="w-4 h-4 mr-1" /> Copy
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setInviteLink(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
