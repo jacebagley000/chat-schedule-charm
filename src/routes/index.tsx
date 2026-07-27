@@ -43,6 +43,7 @@ const tiers = [
   {
     name: "The Soloist",
     price: "$49",
+    priceId: "soloist_monthly",
     blurb: "For one-chair shops and solo operators.",
     features: ["Up to 100 calls/month", "Phone answering", "Calendar sync", "SMS confirmations"],
     cta: "Choose plan",
@@ -51,6 +52,7 @@ const tiers = [
   {
     name: "Professional Shop",
     price: "$99",
+    priceId: "professional_monthly",
     blurb: "For busy local businesses with a team.",
     features: [
       "Unlimited calls & DMs",
@@ -59,15 +61,16 @@ const tiers = [
       "Priority appointment logic",
       "Outbound reminders",
     ],
-    cta: "Start free trial",
+    cta: "Choose plan",
     popular: true,
   },
   {
     name: "Multi-Location",
     price: "$199",
+    priceId: "multi_location_monthly",
     blurb: "For owners running more than one shop.",
     features: ["Multiple calendars", "Team routing", "Centralized dashboard", "Dedicated account rep"],
-    cta: "Contact sales",
+    cta: "Choose plan",
     popular: false,
   },
 ];
