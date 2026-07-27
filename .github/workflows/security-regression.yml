@@ -19,8 +19,12 @@ concurrency:
 
 jobs:
   security-surface:
-    name: SQL security surface + Vitest
+    name: SQL security surface + Vitest (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
 
     services:
       postgres:
@@ -75,11 +79,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
       - name: Cache Bun install store
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          key: bun-${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -154,12 +163,13 @@ jobs:
             > .cache/schema.dump
 
 
-      - name: Run security-surface regression suite
+      - name: Run security-surface regression suite (Node ${{ matrix.node }})
         id: vitest
         run: |
           mkdir -p artifacts
+          node --version | tee artifacts/node-version.txt
           set -o pipefail
-          bunx vitest run src/lib/security-surface.test.ts \
+          npx --no-install vitest run src/lib/security-surface.test.ts \
             --reporter=verbose \
             --reporter=junit \
             --outputFile.junit=artifacts/junit.xml \
@@ -192,11 +202,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-regression-report-${{ github.run_id }}-${{ github.run_attempt }}
+          name: security-regression-report-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/junit.xml
             artifacts/report.html
             artifacts/vitest.log
+            artifacts/node-version.txt
           if-no-files-found: warn
           retention-days: 14
 
@@ -204,7 +215,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: security-regression-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          name: security-regression-logs-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/migrations.log
             artifacts/postgres.log
@@ -233,6 +244,7 @@ jobs:
                   { "type": "mrkdwn", "text": "*Repo:*\n${GITHUB_REPOSITORY}" },
                   { "type": "mrkdwn", "text": "*Ref:*\n\`${GITHUB_REF_NAME}\`" },
                   { "type": "mrkdwn", "text": "*Commit:*\n\`${GITHUB_SHA:0:7}\`" },
+                  { "type": "mrkdwn", "text": "*Node:*\n${{ matrix.node }}" },
                   { "type": "mrkdwn", "text": "*Event:*\n${GITHUB_EVENT_NAME}" }
                 ]
               },
