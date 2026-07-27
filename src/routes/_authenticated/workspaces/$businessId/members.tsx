@@ -20,7 +20,8 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
