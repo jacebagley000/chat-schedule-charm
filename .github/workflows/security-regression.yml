@@ -79,11 +79,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
       - name: Cache Bun install store
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          key: bun-${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
