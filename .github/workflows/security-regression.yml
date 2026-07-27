@@ -105,6 +105,18 @@ jobs:
           restore-keys: |
             vite-${{ runner.os }}-
 
+      - name: Cache Vitest .cache directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vitest
+            .vitest-cache
+          key: vitest-${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('vitest.config.*', 'vite.config.ts', 'bun.lockb', 'bun.lock') }}-${{ hashFiles('src/lib/security-surface.test.ts', 'supabase/tests/security_surface.sql') }}
+          restore-keys: |
+            vitest-${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('vitest.config.*', 'vite.config.ts', 'bun.lockb', 'bun.lock') }}-
+            vitest-${{ runner.os }}-node${{ matrix.node }}-
+
+
       - name: Compute migrations cache key
         id: migkey
         run: |
