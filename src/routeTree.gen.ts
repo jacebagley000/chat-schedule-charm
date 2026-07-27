@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
+import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
 import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 
@@ -48,6 +49,12 @@ const AuthenticatedWorkspacesBusinessIdCalendarRoute =
     path: '/workspaces/$businessId/calendar',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedWorkspacesBusinessIdMembersRoute =
+  AuthenticatedWorkspacesBusinessIdMembersRouteImport.update({
+    id: '/workspaces/$businessId/members',
+    path: '/workspaces/$businessId/members',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedWorkspacesBusinessIdScheduleRoute =
   AuthenticatedWorkspacesBusinessIdScheduleRouteImport.update({
     id: '/workspaces/$businessId/schedule',
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -75,6 +83,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -86,6 +95,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/_authenticated/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   fileRoutesByTo: FileRoutesByTo
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/workspaces/$businessId/calendar'
+    | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   id:
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/workspaces/$businessId/calendar'
+    | '/_authenticated/workspaces/$businessId/members'
     | '/_authenticated/workspaces/$businessId/schedule'
     | '/api/public/webhooks/meta'
   fileRoutesById: FileRoutesById
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/workspaces/$businessId/members': {
+      id: '/_authenticated/workspaces/$businessId/members'
+      path: '/workspaces/$businessId/members'
+      fullPath: '/workspaces/$businessId/members'
+      preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/schedule': {
       id: '/_authenticated/workspaces/$businessId/schedule'
       path: '/workspaces/$businessId/schedule'
@@ -192,6 +212,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
+  AuthenticatedWorkspacesBusinessIdMembersRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   AuthenticatedWorkspacesBusinessIdScheduleRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
 }
 
@@ -199,6 +220,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
     AuthenticatedWorkspacesBusinessIdCalendarRoute,
+  AuthenticatedWorkspacesBusinessIdMembersRoute:
+    AuthenticatedWorkspacesBusinessIdMembersRoute,
   AuthenticatedWorkspacesBusinessIdScheduleRoute:
     AuthenticatedWorkspacesBusinessIdScheduleRoute,
 }
