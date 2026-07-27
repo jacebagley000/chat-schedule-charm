@@ -45,31 +45,42 @@ for (const t of suiteTags) {
 }
 
 // Collect failing test cases: <testcase ...>...<failure|error .../></testcase>
+// Also collect flaky cases (property name="flaky" value="true" inserted by
+// scripts/merge-junit-retries.mjs after a rerun of failed tests).
 const failing = [];
+const flaky = [];
 const caseRe = /<testcase\b([^>]*)>([\s\S]*?)<\/testcase>|<testcase\b([^>]*)\/>/g;
 let m;
 while ((m = caseRe.exec(xml))) {
   const openAttrs = m[1] ?? m[3] ?? "";
   const inner = m[2] ?? "";
-  if (!/\<(failure|error)\b/.test(inner)) continue;
   const classname = attr(`<x ${openAttrs}>`, "classname");
   const name = attr(`<x ${openAttrs}>`, "name");
+  const isFlaky = /<property\s+name="flaky"\s+value="true"\s*\/>/.test(inner);
+  if (isFlaky) {
+    const initialMsg = (inner.match(/<property\s+name="flaky\.initial_message"\s+value="([^"]*)"/) || [])[1] || "";
+    flaky.push({ classname, name, message: initialMsg });
+    continue;
+  }
+  if (!/<(failure|error)\b/.test(inner)) continue;
   const failTag = inner.match(/<(failure|error)\b[^>]*>/)?.[0] ?? "";
   const message = attr(failTag, "message");
   failing.push({ classname, name, message });
 }
 
 const passed = Math.max(tests - failures - errors - skipped, 0);
-const status = failures + errors > 0 ? "❌ Failing" : tests === 0 ? "⚠️ No tests" : "✅ Passing";
+const status =
+  failures + errors > 0 ? "❌ Failing" : tests === 0 ? "⚠️ No tests" : flaky.length ? "⚠️ Flaky" : "✅ Passing";
 
 let md = `## Vitest results${label ? ` — ${label}` : ""}\n\n`;
 md += `**${status}** — ${passed}/${tests} passed`;
 if (failures + errors) md += `, ${failures + errors} failing`;
+if (flaky.length) md += `, ${flaky.length} flaky`;
 if (skipped) md += `, ${skipped} skipped`;
 md += ` (${timeSec.toFixed(2)}s)\n\n`;
-md += `| Passed | Failed | Errors | Skipped | Total | Duration |\n`;
-md += `|-------:|-------:|-------:|--------:|------:|---------:|\n`;
-md += `| ${passed} | ${failures} | ${errors} | ${skipped} | ${tests} | ${timeSec.toFixed(2)}s |\n\n`;
+md += `| Passed | Failed | Flaky | Errors | Skipped | Total | Duration |\n`;
+md += `|-------:|-------:|------:|-------:|--------:|------:|---------:|\n`;
+md += `| ${passed} | ${failures} | ${flaky.length} | ${errors} | ${skipped} | ${tests} | ${timeSec.toFixed(2)}s |\n\n`;
 
 if (failing.length) {
   md += `### Failing tests\n\n`;
@@ -81,5 +92,17 @@ if (failing.length) {
   }
   md += `\n`;
 }
+
+if (flaky.length) {
+  md += `### Flaky tests (failed initially, passed on retry)\n\n`;
+  for (const f of flaky) {
+    const title = f.classname ? `${f.classname} › ${f.name}` : f.name;
+    md += `- **${escape(title)}**`;
+    if (f.message) md += ` — initial: ${escape(f.message.split("\n")[0].slice(0, 300))}`;
+    md += `\n`;
+  }
+  md += `\n`;
+}
+
 
 write(md);
