@@ -497,7 +497,8 @@ function MembersPage() {
                 </li>
               );
             })}
-          </ul>
+            </ul>
+          </>
         )}
       </main>
 
