@@ -36,7 +36,7 @@ function securitySurfaceGate(): Plugin {
       const started = Date.now();
       const child = spawn(
         "bunx",
-        ["vitest", "run", "src/lib/security-surface.test.ts", "--reporter=basic"],
+        ["vitest", "run", "src/lib/security-surface.test.ts"],
         { stdio: ["ignore", "pipe", "pipe"], env: process.env },
       );
       let out = "";
