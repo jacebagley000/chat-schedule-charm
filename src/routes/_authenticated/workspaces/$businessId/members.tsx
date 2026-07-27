@@ -57,6 +57,43 @@ const ROLE_LABELS: Record<Role, string> = {
   staff: "Staff",
 };
 
+// A member is "invited" until they've signed in and their profile has been created
+// (name/avatar) OR the row is older than an activation grace window. Anyone with
+// recorded activity, a display name, or an avatar is considered active.
+function deriveStatus(m: Member, lastActivityAt?: string): "invited" | "active" {
+  if (lastActivityAt) return "active";
+  if (m.full_name || m.avatar_url) return "active";
+  const ageMs = Date.now() - new Date(m.created_at).getTime();
+  return ageMs < 1000 * 60 * 60 * 24 * 7 ? "invited" : "active";
+}
+
+function StatusBadge({ member, lastActivityAt }: { member: Member; lastActivityAt?: string }) {
+  const status = deriveStatus(member, lastActivityAt);
+  const cls = status === "invited"
+    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+  return (
+    <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+function formatRelative(iso?: string): string {
+  if (!iso) return "No activity yet";
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return "Just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} minute${min === 1 ? "" : "s"} ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day} day${day === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
 function MembersPage() {
   const { businessId } = useParams({ from: "/_authenticated/workspaces/$businessId/members" });
   const { user } = useAuth();
