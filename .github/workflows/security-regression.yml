@@ -34,6 +34,10 @@ jobs:
   security-surface:
     name: SQL security surface + Vitest (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+
     strategy:
       fail-fast: false
       matrix:
