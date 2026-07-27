@@ -148,7 +148,6 @@ END $$;
 DO $$
 DECLARE
   bad_policies int;
-  raised bool;
 BEGIN
   SELECT count(*) INTO bad_policies
     FROM pg_policies
