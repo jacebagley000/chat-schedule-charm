@@ -31,7 +31,7 @@ type AuditRow = {
   actor_type: "user" | "webhook" | "system";
   actor_label: string | null;
   action: string;
-  entity_type: "appointment" | "scheduling_request" | "conversation" | "message";
+  entity_type: "appointment" | "scheduling_request" | "conversation" | "message" | "business_member";
   entity_id: string | null;
   channel: string | null;
   summary: string | null;
