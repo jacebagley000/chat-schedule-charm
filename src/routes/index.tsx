@@ -100,6 +100,26 @@ const faqs = [
 
 function Index() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+
+  const handleSubscribe = async (priceId: string) => {
+    if (!user) {
+      navigate({ to: "/signup", search: { plan: priceId } as never });
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId,
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/checkout/success`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't open checkout. Please try again.");
+    }
+  };
   return (
     <div className="bg-background text-foreground selection:bg-accent/20">
       {/* Nav */}
