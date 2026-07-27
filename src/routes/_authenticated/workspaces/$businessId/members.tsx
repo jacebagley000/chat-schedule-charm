@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X } from "lucide-react";
+import { ArrowLeft, UserPlus, Trash2, Users, Loader2, Shield, Clock, X, Mail, RefreshCw, Copy, AlertTriangle } from "lucide-react";
 
 type Role = "owner" | "admin" | "staff";
 
@@ -33,6 +33,19 @@ type Member = {
   email: string | null;
   full_name: string | null;
   avatar_url: string | null;
+};
+
+type Invitation = {
+  id: string;
+  email: string;
+  role: Role;
+  status: "pending" | "accepted" | "revoked" | "expired";
+  expires_at: string;
+  last_sent_at: string;
+  send_count: number;
+  created_at: string;
+  is_expired: boolean;
+  invited_by_name: string | null;
 };
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/members")({
@@ -113,6 +126,10 @@ function MembersPage() {
   const [bulkRole, setBulkRole] = useState<Role>("staff");
   const [bulkApplying, setBulkApplying] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invPending, setInvPending] = useState<Record<string, boolean>>({});
+  const [revokeTarget, setRevokeTarget] = useState<Invitation | null>(null);
+  const [inviteLink, setInviteLink] = useState<{ email: string; url: string } | null>(null);
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
@@ -123,7 +140,7 @@ function MembersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: biz }, membersRes, activityRes] = await Promise.all([
+    const [{ data: biz }, membersRes, activityRes, invitesRes] = await Promise.all([
       supabase.from("businesses").select("name").eq("id", businessId).maybeSingle(),
       supabase.rpc("list_business_members", { _business_id: businessId }),
       supabase
@@ -133,6 +150,7 @@ function MembersPage() {
         .not("actor_user_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(500),
+      supabase.rpc("list_business_invitations", { _business_id: businessId }),
     ]);
     if (biz?.name) setBusinessName(biz.name);
     if (membersRes.error) {
@@ -148,16 +166,26 @@ function MembersPage() {
       }
     }
     setLastActivity(activityMap);
+    if (invitesRes.error) {
+      // Non-fatal — the members list can still show.
+      console.warn("Failed to load invitations:", invitesRes.error.message);
+      setInvitations([]);
+    } else {
+      setInvitations((invitesRes.data ?? []) as Invitation[]);
+    }
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [businessId]);
 
+  const buildInviteUrl = (token: string) =>
+    `${window.location.origin}/invite/${token}`;
+
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!addEmail.trim()) return;
     setAdding(true);
-    const { error } = await supabase.rpc("add_business_member_by_email", {
+    const { data, error } = await supabase.rpc("create_business_invitation", {
       _business_id: businessId,
       _email: addEmail.trim(),
       _role: addRole,
@@ -167,12 +195,56 @@ function MembersPage() {
       toast.error(error.message);
       return;
     }
-    toast.success(`Added ${addEmail.trim()} as ${ROLE_LABELS[addRole]}`);
+    const row = Array.isArray(data) ? data[0] : data;
+    const token: string | undefined = row?.token;
+    const email = addEmail.trim();
     setAddEmail("");
     setAddRole("staff");
     setAddOpen(false);
+    if (token) {
+      const url = buildInviteUrl(token);
+      setInviteLink({ email, url });
+    }
+    toast.success(`Invitation created for ${email}`);
     load();
   };
+
+  const handleResend = async (inv: Invitation) => {
+    setInvPending((p) => ({ ...p, [inv.id]: true }));
+    const { data, error } = await supabase.rpc("resend_business_invitation", {
+      _invitation_id: inv.id,
+    });
+    setInvPending((p) => ({ ...p, [inv.id]: false }));
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    const token: string | undefined = row?.token;
+    if (token) {
+      setInviteLink({ email: inv.email, url: buildInviteUrl(token) });
+    }
+    toast.success(`Invitation resent to ${inv.email} — expires in 7 days`);
+    load();
+  };
+
+  const handleRevoke = async () => {
+    if (!revokeTarget) return;
+    const target = revokeTarget;
+    setInvPending((p) => ({ ...p, [target.id]: true }));
+    const { error } = await supabase.rpc("revoke_business_invitation", {
+      _invitation_id: target.id,
+    });
+    setInvPending((p) => ({ ...p, [target.id]: false }));
+    setRevokeTarget(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Revoked invitation for ${target.email}`);
+    load();
+  };
+
 
   const handleRoleChange = async (member: Member, next: Role) => {
     if (member.role === next) return;
@@ -303,14 +375,14 @@ function MembersPage() {
             {canManage && (
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><UserPlus className="w-4 h-4 mr-1" /> Add member</Button>
+                  <Button size="sm"><UserPlus className="w-4 h-4 mr-1" /> Invite member</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add a team member</DialogTitle>
+                    <DialogTitle>Invite a team member</DialogTitle>
                     <DialogDescription>
-                      They must already have a FrontDesk AI account. Ask them to sign up first if
-                      you can't find their email.
+                      We'll create an invitation link — valid for 7 days. Once your email
+                      domain is verified we also email it to them automatically.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAdd} className="space-y-4">
@@ -342,7 +414,7 @@ function MembersPage() {
                       </Button>
                       <Button type="submit" disabled={adding}>
                         {adding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Add member
+                        Send invitation
                       </Button>
                     </DialogFooter>
                   </form>
@@ -365,6 +437,79 @@ function MembersPage() {
             )}
           </div>
         </div>
+
+        {invitations.length > 0 && (
+          <section className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Pending invitations ({invitations.length})
+              </h2>
+            </div>
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {invitations.map((inv) => {
+                const busy = !!invPending[inv.id];
+                const expired = inv.is_expired || inv.status === "expired";
+                return (
+                  <li key={inv.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate flex items-center gap-2">
+                        {inv.email}
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted">
+                          {ROLE_LABELS[inv.role]}
+                        </span>
+                        {expired ? (
+                          <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border bg-destructive/10 text-destructive border-destructive/30 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" /> Expired
+                          </span>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {expired ? (
+                          <>Expired {formatRelative(inv.expires_at)} · Sent {inv.send_count}×</>
+                        ) : (
+                          <>Expires {formatRelative(inv.expires_at)} · Sent {inv.send_count}× · Last sent {formatRelative(inv.last_sent_at)}</>
+                        )}
+                        {inv.invited_by_name && <> · by {inv.invited_by_name}</>}
+                      </div>
+                    </div>
+                    {canManage && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => handleResend(inv)}
+                          title={expired ? "Regenerate and resend invitation" : "Resend invitation and reset expiry"}
+                        >
+                          {busy ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4 mr-1" />
+                          )}
+                          {expired ? "Renew" : "Resend"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={busy}
+                          title="Revoke invitation"
+                          onClick={() => setRevokeTarget(inv)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
@@ -598,6 +743,55 @@ function MembersPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={!!revokeTarget} onOpenChange={(o) => !o && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke this invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The link sent to {revokeTarget?.email} will stop working immediately.
+              You can send a new one anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevoke}>Revoke</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!inviteLink} onOpenChange={(o) => !o && setInviteLink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invitation ready for {inviteLink?.email}</DialogTitle>
+            <DialogDescription>
+              Share this link directly while your email domain finishes verifying.
+              It's valid for 7 days.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Input readOnly value={inviteLink?.url ?? ""} onFocus={(e) => e.currentTarget.select()} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={async () => {
+                if (!inviteLink) return;
+                try {
+                  await navigator.clipboard.writeText(inviteLink.url);
+                  toast.success("Link copied");
+                } catch {
+                  toast.error("Couldn't copy — select and copy manually");
+                }
+              }}
+            >
+              <Copy className="w-4 h-4 mr-1" /> Copy
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setInviteLink(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

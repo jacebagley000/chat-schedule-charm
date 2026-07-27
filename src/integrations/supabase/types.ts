@@ -144,6 +144,62 @@ export type Database = {
           },
         ]
       }
+      business_invitations: {
+        Row: {
+          accepted_at: string | null
+          business_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          last_sent_at: string
+          role: Database["public"]["Enums"]["business_role"]
+          send_count: number
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          business_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          last_sent_at?: string
+          role?: Database["public"]["Enums"]["business_role"]
+          send_count?: number
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          business_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          last_sent_at?: string
+          role?: Database["public"]["Enums"]["business_role"]
+          send_count?: number
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_invitations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_members: {
         Row: {
           business_id: string
@@ -597,6 +653,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_business_invitation: {
+        Args: { _token: string }
+        Returns: {
+          business_id: string
+          business_name: string
+          role: Database["public"]["Enums"]["business_role"]
+        }[]
+      }
       add_business_member_by_email: {
         Args: {
           _business_id: string
@@ -604,6 +668,18 @@ export type Database = {
           _role: Database["public"]["Enums"]["business_role"]
         }
         Returns: string
+      }
+      create_business_invitation: {
+        Args: {
+          _business_id: string
+          _email: string
+          _role: Database["public"]["Enums"]["business_role"]
+        }
+        Returns: {
+          expires_at: string
+          id: string
+          token: string
+        }[]
       }
       has_business_role: {
         Args: {
@@ -616,6 +692,21 @@ export type Database = {
       is_business_member: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_business_invitations: {
+        Args: { _business_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by_name: string
+          is_expired: boolean
+          last_sent_at: string
+          role: Database["public"]["Enums"]["business_role"]
+          send_count: number
+          status: string
+        }[]
       }
       list_business_members: {
         Args: { _business_id: string }
@@ -640,6 +731,18 @@ export type Database = {
           _metadata: Json
           _summary: string
         }
+        Returns: undefined
+      }
+      resend_business_invitation: {
+        Args: { _invitation_id: string }
+        Returns: {
+          expires_at: string
+          id: string
+          token: string
+        }[]
+      }
+      revoke_business_invitation: {
+        Args: { _invitation_id: string }
         Returns: undefined
       }
     }
