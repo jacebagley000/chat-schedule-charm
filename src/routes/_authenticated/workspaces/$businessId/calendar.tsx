@@ -29,8 +29,17 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+
+const calendarSearchSchema = z.object({
+  intent: fallback(z.string(), "").default(""),
+  service: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
   component: CalendarPage,
+  validateSearch: zodValidator(calendarSearchSchema),
   head: () => ({ meta: [{ title: "Calendar — FrontDesk AI" }] }),
 });
 
