@@ -57,15 +57,19 @@ while ((sm = suiteRe.exec(xml))) {
     const openCase = `<testcase ${cm[1]}>`;
     const inner = cm[2] || "";
     const fm = failRe.exec(inner);
+    const isFlaky = /<property\s+name="flaky"\s+value="true"\s*\/>/.test(inner);
+    const initialMsg =
+      (inner.match(/<property\s+name="flaky\.initial_message"\s+value="([^"]*)"/) || [])[1] || "";
     suite.cases.push({
       name: attr(openCase, "name"),
       classname: attr(openCase, "classname"),
       time: Number(attr(openCase, "time") || 0),
-      status: fm ? fm[1] : /<skipped\b/.test(inner) ? "skipped" : "passed",
-      message: fm ? attr(`<x ${fm[2]}>`, "message") : "",
+      status: isFlaky ? "flaky" : fm ? fm[1] : /<skipped\b/.test(inner) ? "skipped" : "passed",
+      message: fm ? attr(`<x ${fm[2]}>`, "message") : isFlaky ? initialMsg : "",
       detail: fm ? decodeXml(fm[3]).trim() : "",
     });
   }
+
   suites.push(suite);
 }
 
