@@ -1,5 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import heroImg from "@/assets/hero-phone-calendar.jpg";
 import calendarImg from "@/assets/calendar-detail.jpg";
 import sarahImg from "@/assets/testimonial-sarah.jpg";
@@ -41,6 +43,7 @@ const tiers = [
   {
     name: "The Soloist",
     price: "$49",
+    priceId: "soloist_monthly",
     blurb: "For one-chair shops and solo operators.",
     features: ["Up to 100 calls/month", "Phone answering", "Calendar sync", "SMS confirmations"],
     cta: "Choose plan",
@@ -49,6 +52,7 @@ const tiers = [
   {
     name: "Professional Shop",
     price: "$99",
+    priceId: "professional_monthly",
     blurb: "For busy local businesses with a team.",
     features: [
       "Unlimited calls & DMs",
@@ -57,15 +61,16 @@ const tiers = [
       "Priority appointment logic",
       "Outbound reminders",
     ],
-    cta: "Start free trial",
+    cta: "Choose plan",
     popular: true,
   },
   {
     name: "Multi-Location",
     price: "$199",
+    priceId: "multi_location_monthly",
     blurb: "For owners running more than one shop.",
     features: ["Multiple calendars", "Team routing", "Centralized dashboard", "Dedicated account rep"],
-    cta: "Contact sales",
+    cta: "Choose plan",
     popular: false,
   },
 ];
@@ -95,6 +100,26 @@ const faqs = [
 
 function Index() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+
+  const handleSubscribe = async (priceId: string) => {
+    if (!user) {
+      navigate({ to: "/signup", search: { plan: priceId } as never });
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId,
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/checkout/success`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't open checkout. Please try again.");
+    }
+  };
   return (
     <div className="bg-background text-foreground selection:bg-accent/20">
       {/* Nav */}
@@ -442,17 +467,19 @@ function Index() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to={user ? "/dashboard" : "/signup"}
+              <button
+                type="button"
+                onClick={() => handleSubscribe(t.priceId)}
+                disabled={checkoutLoading}
                 className={
-                  "mt-auto block rounded-full py-3 text-center text-sm font-medium transition-all " +
+                  "mt-auto block w-full rounded-full py-3 text-center text-sm font-medium transition-all disabled:opacity-60 " +
                   (t.popular
                     ? "bg-accent text-white hover:brightness-110"
                     : "border border-border hover:bg-black/5")
                 }
               >
-                {user ? "Open dashboard" : t.cta}
-              </Link>
+                {checkoutLoading ? "Loading…" : user ? "Subscribe" : t.cta}
+              </button>
             </div>
           ))}
         </div>

@@ -13,6 +13,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import "@/i18n";
 import { LanguagePicker } from "@/components/language-picker";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 function NotFoundComponent() {
   return (
@@ -127,6 +128,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PaymentTestModeBanner />
         <Outlet />
         <div className="fixed bottom-4 right-4 z-50">
           <LanguagePicker className="h-9 w-auto min-w-[8.5rem] gap-2 bg-background/80 backdrop-blur shadow-md" />
