@@ -1,0 +1,83 @@
+name: Security regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  security-surface:
+    name: SQL security surface + Vitest
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Prepare Supabase-compatible roles
+        # Migrations reference the standard Supabase roles (anon,
+        # authenticated, service_role) and the auth schema. Create minimal
+        # stand-ins so the schema applies cleanly against vanilla Postgres.
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE ROLE service_role NOLOGIN BYPASSRLS;
+          CREATE SCHEMA IF NOT EXISTS auth;
+          CREATE TABLE IF NOT EXISTS auth.users (
+            id uuid PRIMARY KEY,
+            email text,
+            raw_user_meta_data jsonb,
+            email_confirmed_at timestamptz
+          );
+          CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
+            LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;
+          CREATE OR REPLACE FUNCTION auth.role() RETURNS text
+            LANGUAGE sql STABLE AS $$ SELECT 'authenticated'::text $$;
+          SQL
+
+      - name: Apply Supabase migrations
+        run: |
+          set -e
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            echo "--> applying $f"
+            psql -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Run security-surface regression suite
+        run: bunx vitest run src/lib/security-surface.test.ts
