@@ -83,10 +83,15 @@ const totals = suites.reduce(
   }),
   { tests: 0, failures: 0, errors: 0, skipped: 0, time: 0 },
 );
+const flakyCount = suites.reduce(
+  (n, s) => n + s.cases.filter((c) => c.status === "flaky").length,
+  0,
+);
 
 const passed = totals.tests - totals.failures - totals.errors - totals.skipped;
-const status = totals.failures + totals.errors > 0 ? "FAILED" : "PASSED";
-const statusColor = status === "PASSED" ? "#16a34a" : "#dc2626";
+const status =
+  totals.failures + totals.errors > 0 ? "FAILED" : flakyCount > 0 ? "FLAKY" : "PASSED";
+const statusColor = status === "PASSED" ? "#16a34a" : status === "FLAKY" ? "#d97706" : "#dc2626";
 
 const rows = suites
   .map(
@@ -103,11 +108,15 @@ const rows = suites
                   ? '<span class="badge pass">PASS</span>'
                   : c.status === "skipped"
                     ? '<span class="badge skip">SKIP</span>'
-                    : '<span class="badge fail">FAIL</span>';
+                    : c.status === "flaky"
+                      ? '<span class="badge flaky">FLAKY</span>'
+                      : '<span class="badge fail">FAIL</span>';
               const detail =
                 c.status === "failure" || c.status === "error"
                   ? `<tr><td colspan="3"><pre>${escapeHtml(c.message ? c.message + "\n\n" : "")}${escapeHtml(c.detail)}</pre></td></tr>`
-                  : "";
+                  : c.status === "flaky"
+                    ? `<tr><td colspan="3"><pre>Passed on retry after initial failure${c.message ? `:\n\n${escapeHtml(c.message)}` : "."}</pre></td></tr>`
+                    : "";
               return `<tr><td>${badge}</td><td>${escapeHtml(c.name)}</td><td>${c.time.toFixed(3)}</td></tr>${detail}`;
             })
             .join("")}
@@ -116,6 +125,7 @@ const rows = suites
     </section>`,
   )
   .join("");
+
 
 const html = `<!doctype html>
 <html lang="en">
