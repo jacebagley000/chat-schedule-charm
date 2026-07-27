@@ -10,6 +10,19 @@ on:
         description: "Git ref (branch, tag, or SHA) to run the suite against"
         required: false
         default: ""
+      max_log_bytes:
+        description: "Per-log cap in bytes before truncation (default 2097152 = 2 MiB). Also settable via repo var SECURITY_REGRESSION_MAX_LOG_BYTES."
+        required: false
+        default: ""
+      head_bytes:
+        description: "Bytes kept from the top of a truncated log (default 524288 = 512 KiB). Also settable via repo var SECURITY_REGRESSION_HEAD_BYTES."
+        required: false
+        default: ""
+      tail_bytes:
+        description: "Bytes kept from the bottom of a truncated log (default 1572864 = 1.5 MiB). Also settable via repo var SECURITY_REGRESSION_TAIL_BYTES."
+        required: false
+        default: ""
+
 
 
 concurrency:
@@ -258,7 +271,16 @@ jobs:
       - name: Bundle test outputs into single zip
         if: always()
         id: bundle
+        env:
+          # Precedence: workflow_dispatch input > repo variable > built-in default.
+          INPUT_MAX_LOG_BYTES: ${{ github.event.inputs.max_log_bytes }}
+          INPUT_HEAD_BYTES:    ${{ github.event.inputs.head_bytes }}
+          INPUT_TAIL_BYTES:    ${{ github.event.inputs.tail_bytes }}
+          VAR_MAX_LOG_BYTES:   ${{ vars.SECURITY_REGRESSION_MAX_LOG_BYTES }}
+          VAR_HEAD_BYTES:      ${{ vars.SECURITY_REGRESSION_HEAD_BYTES }}
+          VAR_TAIL_BYTES:      ${{ vars.SECURITY_REGRESSION_TAIL_BYTES }}
         run: |
+
           mkdir -p artifacts
           bundle_name="security-regression-node${{ matrix.node }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}.zip"
           bundle_path="artifacts/${bundle_name}"
@@ -309,10 +331,28 @@ jobs:
 
           # Copy files, capping large log files (head + tail with a marker)
           # and gzip-compressing vitest/migrations/postgres logs with -9 to
-          # keep artifact sizes under control.
-          MAX_LOG_BYTES=2097152   # 2 MiB cap per log file before compression
-          HEAD_BYTES=524288       # 512 KiB from the top
-          TAIL_BYTES=1572864      # 1.5 MiB from the bottom
+          # keep artifact sizes under control. Values are configurable via
+          # workflow_dispatch inputs or repo variables (see step env).
+          resolve_int() {
+            # $1 = input value, $2 = var value, $3 = default
+            local v="${1:-}"
+            [ -n "$v" ] || v="${2:-}"
+            [ -n "$v" ] || v="$3"
+            if ! printf '%s' "$v" | grep -Eq '^[0-9]+$'; then
+              echo "::error title=Invalid log cap value::Expected positive integer bytes, got '$v'" >&2
+              exit 1
+            fi
+            printf '%s' "$v"
+          }
+          MAX_LOG_BYTES=$(resolve_int "$INPUT_MAX_LOG_BYTES" "$VAR_MAX_LOG_BYTES" 2097152)   # 2 MiB
+          HEAD_BYTES=$(resolve_int    "$INPUT_HEAD_BYTES"    "$VAR_HEAD_BYTES"    524288)    # 512 KiB
+          TAIL_BYTES=$(resolve_int    "$INPUT_TAIL_BYTES"    "$VAR_TAIL_BYTES"    1572864)   # 1.5 MiB
+
+          if [ $((HEAD_BYTES + TAIL_BYTES)) -ge "$MAX_LOG_BYTES" ]; then
+            echo "::warning title=Log cap policy no-op::HEAD_BYTES ($HEAD_BYTES) + TAIL_BYTES ($TAIL_BYTES) >= MAX_LOG_BYTES ($MAX_LOG_BYTES); truncation would keep >= original — no logs will be capped."
+          fi
+          echo "Log cap policy: max=$MAX_LOG_BYTES head=$HEAD_BYTES tail=$TAIL_BYTES"
+
 
           # Track truncation stats so the manifest can report which logs were
           # capped and by how much.
