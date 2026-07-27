@@ -163,12 +163,13 @@ jobs:
             > .cache/schema.dump
 
 
-      - name: Run security-surface regression suite
+      - name: Run security-surface regression suite (Node ${{ matrix.node }})
         id: vitest
         run: |
           mkdir -p artifacts
+          node --version | tee artifacts/node-version.txt
           set -o pipefail
-          bunx vitest run src/lib/security-surface.test.ts \
+          npx --no-install vitest run src/lib/security-surface.test.ts \
             --reporter=verbose \
             --reporter=junit \
             --outputFile.junit=artifacts/junit.xml \
