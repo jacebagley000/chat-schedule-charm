@@ -284,8 +284,15 @@ jobs:
 
 
 
-
-
+      - name: Upload HTML report (standalone, for direct Slack link)
+        id: upload-html-report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-regression-html-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/report.html
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Notify Slack on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
@@ -296,6 +303,8 @@ jobs:
           artifacts_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#artifacts"
           report_url="${{ steps.upload-report.outputs.artifact-url }}"
           report_url="${report_url:-$artifacts_url}"
+          html_url="${{ steps.upload-html-report.outputs.artifact-url }}"
+          html_url="${html_url:-$artifacts_url}"
           payload=$(cat <<JSON
           {
             "text": ":rotating_light: Security regression failed on \`${GITHUB_REF_NAME}\` (${GITHUB_REPOSITORY}) — Node ${{ matrix.node }}",
@@ -318,7 +327,8 @@ jobs:
                 "type": "actions",
                 "elements": [
                   { "type": "button", "text": { "type": "plain_text", "text": "View run" }, "url": "${run_url}" },
-                  { "type": "button", "text": { "type": "plain_text", "text": "JUnit report (Node ${{ matrix.node }})" }, "url": "${report_url}" },
+                  { "type": "button", "style": "primary", "text": { "type": "plain_text", "text": "HTML report (Node ${{ matrix.node }})" }, "url": "${html_url}" },
+                  { "type": "button", "text": { "type": "plain_text", "text": "JUnit + logs bundle" }, "url": "${report_url}" },
                   { "type": "button", "text": { "type": "plain_text", "text": "All artifacts" }, "url": "${artifacts_url}" }
                 ]
               }
@@ -329,6 +339,7 @@ jobs:
           curl -sS -X POST -H 'Content-Type: application/json' \
             --data "$payload" \
             "$SLACK_WEBHOOK_URL"
+
 
 
 
