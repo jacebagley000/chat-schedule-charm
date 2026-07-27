@@ -249,9 +249,11 @@ jobs:
         run: |
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
           artifacts_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}#artifacts"
+          report_url="${{ steps.upload-report.outputs.artifact-url }}"
+          report_url="${report_url:-$artifacts_url}"
           payload=$(cat <<JSON
           {
-            "text": ":rotating_light: Security regression failed on \`${GITHUB_REF_NAME}\` (${GITHUB_REPOSITORY})",
+            "text": ":rotating_light: Security regression failed on \`${GITHUB_REF_NAME}\` (${GITHUB_REPOSITORY}) — Node ${{ matrix.node }}",
             "blocks": [
               {
                 "type": "header",
@@ -271,7 +273,8 @@ jobs:
                 "type": "actions",
                 "elements": [
                   { "type": "button", "text": { "type": "plain_text", "text": "View run" }, "url": "${run_url}" },
-                  { "type": "button", "text": { "type": "plain_text", "text": "Download artifacts" }, "url": "${artifacts_url}" }
+                  { "type": "button", "text": { "type": "plain_text", "text": "JUnit report (Node ${{ matrix.node }})" }, "url": "${report_url}" },
+                  { "type": "button", "text": { "type": "plain_text", "text": "All artifacts" }, "url": "${artifacts_url}" }
                 ]
               }
             ]
