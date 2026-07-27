@@ -376,13 +376,73 @@ function MembersPage() {
             No members yet.
           </div>
         ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-            {members.map((m) => {
-              const isSelf = m.user_id === user?.id;
-              const isLastOwner = m.role === "owner" && ownerCount <= 1;
-              const busy = !!pending[m.id];
-              return (
-                <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+          <>
+            {canManage && (
+              <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={allSelectableChecked}
+                    onCheckedChange={toggleSelectAll}
+                    disabled={selectableMembers.length === 0}
+                    aria-label="Select all members"
+                  />
+                  <Label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
+                    {selectedIds.size > 0
+                      ? `${selectedIds.size} selected`
+                      : `Select all (${selectableMembers.length})`}
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <Label htmlFor="bulk-role" className="text-sm text-muted-foreground">Set role to</Label>
+                  <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as Role)}>
+                    <SelectTrigger id="bulk-role" className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="owner">Owner</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    disabled={selectedIds.size === 0 || bulkApplying}
+                    onClick={() => setBulkConfirmOpen(true)}
+                  >
+                    {bulkApplying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Apply
+                  </Button>
+                  {selectedIds.size > 0 && (
+                    <Button size="sm" variant="ghost" onClick={clearSelection} title="Clear selection">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+            <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+              {members.map((m) => {
+                const isSelf = m.user_id === user?.id;
+                const isLastOwner = m.role === "owner" && ownerCount <= 1;
+                const busy = !!pending[m.id];
+                const isSelectable = canManage && !isSelf && !(m.role === "owner" && ownerCount <= 1);
+                const isSelected = selectedIds.has(m.id);
+                return (
+                  <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+                    {canManage && (
+                      <Checkbox
+                        checked={isSelected}
+                        disabled={!isSelectable}
+                        onCheckedChange={() => toggleSelect(m.id)}
+                        aria-label={`Select ${m.full_name || m.email || "member"}`}
+                        title={
+                          !isSelectable
+                            ? isSelf
+                              ? "You can't bulk-edit yourself"
+                              : "You can't demote the last owner"
+                            : undefined
+                        }
+                      />
+                    )}
                   <button
                     type="button"
                     className="flex items-center gap-4 flex-1 min-w-0 text-left"
