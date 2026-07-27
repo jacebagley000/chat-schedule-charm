@@ -202,11 +202,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-regression-report-${{ github.run_id }}-${{ github.run_attempt }}
+          name: security-regression-report-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/junit.xml
             artifacts/report.html
             artifacts/vitest.log
+            artifacts/node-version.txt
           if-no-files-found: warn
           retention-days: 14
 
@@ -214,7 +215,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: security-regression-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          name: security-regression-logs-node${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/migrations.log
             artifacts/postgres.log
