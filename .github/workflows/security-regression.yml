@@ -340,12 +340,17 @@ jobs:
             printf '%s\t%s\t%s\t%s\t%s\n' "$(basename "$dst")" "$size" "$kept" "$dropped" 1 >> "$truncations_file"
           }
 
-          # Text log files: cap + gzip -9.
+          # Text log files: cap + gzip -9. Record gzipped size next to the
+          # truncation ledger so run-metadata can report original vs gzipped.
+          gzipped_sizes_file="$(mktemp)"
+          : > "$gzipped_sizes_file"
           for f in vitest.log vitest.retry.log migrations.log postgres.log; do
             src="artifacts/$f"
             [ -f "$src" ] || continue
             cap_log "$src" "$staging/$f"
             gzip -9 -f "$staging/$f"   # produces $staging/$f.gz
+            gz_size=$(stat -c%s "$staging/$f.gz" 2>/dev/null || wc -c <"$staging/$f.gz")
+            printf '%s\t%s\n' "$f" "$gz_size" >> "$gzipped_sizes_file"
           done
 
           # Structured / small files: copy as-is (report.html and junit.xml
@@ -353,6 +358,79 @@ jobs:
           for f in junit.xml junit.retry.xml report.html node-version.txt postgres-inspect.json; do
             [ -f "artifacts/$f" ] && cp "artifacts/$f" "$staging/" || true
           done
+
+          # Patch run-metadata.{json,txt} with per-log original/kept/gzipped sizes.
+          TRUNCATIONS_FILE="$truncations_file" \
+          GZIPPED_SIZES_FILE="$gzipped_sizes_file" \
+          STAGING="$staging" \
+          python3 - <<'PY'
+          import json, os
+          staging = os.environ["STAGING"]
+          tpath   = os.environ["TRUNCATIONS_FILE"]
+          gpath   = os.environ["GZIPPED_SIZES_FILE"]
+
+          gz = {}
+          if os.path.isfile(gpath):
+              with open(gpath) as fh:
+                  for line in fh:
+                      parts = line.rstrip("\n").split("\t")
+                      if len(parts) == 2:
+                          gz[parts[0]] = int(parts[1])
+
+          logs = []
+          if os.path.isfile(tpath):
+              with open(tpath) as fh:
+                  for line in fh:
+                      parts = line.rstrip("\n").split("\t")
+                      if len(parts) != 5: continue
+                      name, original, kept, dropped, flag = parts
+                      original_i = int(original); kept_i = int(kept); gz_i = gz.get(name, 0)
+                      ratio = (gz_i / kept_i) if kept_i > 0 else 0.0
+                      logs.append({
+                          "name": name,
+                          "truncated": flag == "1",
+                          "original_bytes":     original_i,
+                          "kept_bytes":         kept_i,
+                          "dropped_bytes":      int(dropped),
+                          "gzipped_bytes":      gz_i,
+                          "gzip_ratio_of_kept": round(ratio, 4),
+                      })
+
+          # Patch JSON metadata.
+          jpath = os.path.join(staging, "run-metadata.json")
+          with open(jpath) as fh:
+              meta = json.load(fh)
+          meta["capped_logs"] = logs
+          meta["capped_logs_totals"] = {
+              "count":                len(logs),
+              "truncated_count":      sum(1 for l in logs if l["truncated"]),
+              "total_original_bytes": sum(l["original_bytes"] for l in logs),
+              "total_kept_bytes":     sum(l["kept_bytes"]     for l in logs),
+              "total_gzipped_bytes":  sum(l["gzipped_bytes"]  for l in logs),
+              "total_dropped_bytes":  sum(l["dropped_bytes"]  for l in logs),
+          }
+          with open(jpath, "w") as fh:
+              json.dump(meta, fh, indent=2)
+
+          # Append plain-text section.
+          tpath_txt = os.path.join(staging, "run-metadata.txt")
+          with open(tpath_txt, "a") as fh:
+              fh.write("\nCapped log sizes (original / kept / gzipped, bytes)\n")
+              fh.write("---------------------------------------------------\n")
+              if not logs:
+                  fh.write("(no logs captured)\n")
+              for l in logs:
+                  flag = "TRUNC" if l["truncated"] else "full "
+                  fh.write(
+                      f"  {flag}  {l['name']:<20} "
+                      f"original={l['original_bytes']:>10}  "
+                      f"kept={l['kept_bytes']:>10}  "
+                      f"gzipped={l['gzipped_bytes']:>10}  "
+                      f"dropped={l['dropped_bytes']:>10}\n"
+                  )
+          PY
+
+
 
 
           # Build manifest.json listing every file in the staging dir with
