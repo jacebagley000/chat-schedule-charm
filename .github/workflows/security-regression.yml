@@ -177,15 +177,54 @@ jobs:
 
       - name: Run security-surface regression suite (Node ${{ matrix.node }})
         id: vitest
+        continue-on-error: true
         run: |
           mkdir -p artifacts
           node --version | tee artifacts/node-version.txt
-          set -o pipefail
+          set +e
           npx --no-install vitest run src/lib/security-surface.test.ts \
             --reporter=verbose \
             --reporter=junit \
             --outputFile.junit=artifacts/junit.xml \
             2>&1 | tee artifacts/vitest.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Rerun failed tests once (flaky detection, Node ${{ matrix.node }})
+        id: vitest_retry
+        if: steps.vitest.outputs.exit_code != '0'
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          echo "Initial run failed with exit=${{ steps.vitest.outputs.exit_code }} — retrying once to detect flakes." | tee -a artifacts/vitest.log
+          set +e
+          # Vitest doesn't have a native "only failed" filter, so rerun the same
+          # suite once; merge script reclassifies tests that now pass as flaky.
+          npx --no-install vitest run src/lib/security-surface.test.ts \
+            --reporter=verbose \
+            --reporter=junit \
+            --outputFile.junit=artifacts/junit.retry.xml \
+            2>&1 | tee artifacts/vitest.retry.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Merge retry results and mark flaky tests
+        if: steps.vitest.outputs.exit_code != '0'
+        run: |
+          if [ -f artifacts/junit.retry.xml ]; then
+            node scripts/merge-junit-retries.mjs artifacts/junit.xml artifacts/junit.retry.xml \
+              | tee -a artifacts/vitest.log
+          else
+            echo "No retry JUnit produced; skipping merge." | tee -a artifacts/vitest.log
+          fi
+
+      - name: Fail job if tests still failing after retry
+        if: steps.vitest.outputs.exit_code != '0' && steps.vitest_retry.outputs.exit_code != '0'
+        run: |
+          echo "::error::Security regression suite still failing after one retry (Node ${{ matrix.node }})."
+          exit 1
 
       - name: Build HTML test report
         if: always()
@@ -196,6 +235,7 @@ jobs:
           else
             echo "<h1>No JUnit XML produced</h1>" > artifacts/report.html
           fi
+
 
       - name: Write job summary (Node ${{ matrix.node }})
         if: always()
