@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; plan?: string } => ({
     ...(typeof search.redirect === "string" ? { redirect: search.redirect } : {}),
+    ...(typeof search.plan === "string" ? { plan: search.plan } : {}),
   }),
 
   beforeLoad: async () => {
@@ -27,19 +28,22 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const navigate = useNavigate();
-  const { redirect: redirectTo } = Route.useSearch();
+  const { redirect: redirectTo, plan } = Route.useSearch();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+  // If a plan was selected on the pricing page, send the user to checkout
+  // immediately after account creation. Otherwise honor `?redirect=` or dashboard.
+  const target = plan
+    ? `/checkout/start?plan=${encodeURIComponent(plan)}`
+    : redirectTo && redirectTo.startsWith("/")
+    ? redirectTo
+    : "/dashboard";
+
   const goNext = () => {
-    if (redirectTo && redirectTo.startsWith("/")) {
-      window.location.assign(redirectTo);
-    } else {
-      navigate({ to: "/dashboard" });
-    }
+    window.location.assign(target);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -58,7 +62,7 @@ function SignupPage() {
     if (data.session) {
       goNext();
     } else {
-      toast.success("Check your email to confirm your account.");
+      toast.success("Check your email to confirm your account, then you'll be sent to checkout.");
     }
   };
 
@@ -70,6 +74,7 @@ function SignupPage() {
     if (result.redirected) return;
     goNext();
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
