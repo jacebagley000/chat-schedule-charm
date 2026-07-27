@@ -81,7 +81,26 @@ function CalendarPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const [editing, setEditing] = useState<Appointment | null>(null);
-  const [creating, setCreating] = useState<{ start: Date } | null>(null);
+  const [creating, setCreating] = useState<{ start: Date; serviceHint?: string } | null>(null);
+  const search = Route.useSearch();
+
+  // Auto-open the booking dialog when arriving with ?intent=book, then clear
+  // the search params so a refresh doesn't reopen it.
+  useEffect(() => {
+    if (search.intent !== "book") return;
+    if (!services.length || !staff.length) return;
+    if (creating || editing) return;
+    const start = new Date(day);
+    start.setHours(9, 0, 0, 0);
+    setCreating({ start, serviceHint: search.service || undefined });
+    navigate({
+      to: "/workspaces/$businessId/calendar",
+      params: { businessId },
+      search: {},
+      replace: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.intent, search.service, services.length, staff.length]);
 
   const loadCoreAction = useAbortableToastAction();
   const loadAppointmentsAction = useAbortableToastAction();
