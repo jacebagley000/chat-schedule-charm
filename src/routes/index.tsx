@@ -1,5 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import heroImg from "@/assets/hero-phone-calendar.jpg";
 import calendarImg from "@/assets/calendar-detail.jpg";
 import sarahImg from "@/assets/testimonial-sarah.jpg";
