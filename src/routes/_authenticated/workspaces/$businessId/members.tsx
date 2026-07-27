@@ -275,22 +275,29 @@ function MembersPage() {
               const isLastOwner = m.role === "owner" && ownerCount <= 1;
               const busy = !!pending[m.id];
               return (
-                <li key={m.id} className="flex items-center gap-4 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden shrink-0">
-                    {m.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      initials(m.full_name, m.email)
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium truncate flex items-center gap-2">
-                      {m.full_name || m.email || "Unknown"}
-                      {isSelf && <span className="text-xs text-muted-foreground">(you)</span>}
+                <li key={m.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+                  <button
+                    type="button"
+                    className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                    onClick={() => setDetailsFor(m)}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden shrink-0">
+                      {m.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        initials(m.full_name, m.email)
+                      )}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">{m.email || "—"}</div>
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate flex items-center gap-2">
+                        {m.full_name || m.email || "Unknown"}
+                        {isSelf && <span className="text-xs text-muted-foreground">(you)</span>}
+                        <StatusBadge member={m} lastActivityAt={lastActivity[m.user_id]} />
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">{m.email || "—"}</div>
+                    </div>
+                  </button>
                   <div className="flex items-center gap-2">
                     {canManage ? (
                       <Select
