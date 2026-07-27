@@ -197,6 +197,11 @@ jobs:
             echo "<h1>No JUnit XML produced</h1>" > artifacts/report.html
           fi
 
+      - name: Write job summary (Node ${{ matrix.node }})
+        if: always()
+        run: node scripts/junit-to-summary.mjs artifacts/junit.xml "Node ${{ matrix.node }}"
+
+
       - name: Collect Postgres logs
         if: failure()
         run: |
