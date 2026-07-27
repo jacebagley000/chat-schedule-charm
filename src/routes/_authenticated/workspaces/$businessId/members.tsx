@@ -109,6 +109,10 @@ function MembersPage() {
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
   const [detailsFor, setDetailsFor] = useState<Member | null>(null);
   const [lastActivity, setLastActivity] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRole, setBulkRole] = useState<Role>("staff");
+  const [bulkApplying, setBulkApplying] = useState(false);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
 
   const currentMember = useMemo(
     () => members.find((m) => m.user_id === user?.id) ?? null,
