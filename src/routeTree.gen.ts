@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
 import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
@@ -43,6 +44,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWorkspacesBusinessIdAuditRoute =
+  AuthenticatedWorkspacesBusinessIdAuditRouteImport.update({
+    id: '/workspaces/$businessId/audit',
+    path: '/workspaces/$businessId/audit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedWorkspacesBusinessIdCalendarRoute =
   AuthenticatedWorkspacesBusinessIdCalendarRouteImport.update({
     id: '/workspaces/$businessId/calendar',
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/_authenticated/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
@@ -127,6 +139,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_authenticated/dashboard'
+    | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
     | '/_authenticated/workspaces/$businessId/schedule'
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/workspaces/$businessId/audit': {
+      id: '/_authenticated/workspaces/$businessId/audit'
+      path: '/workspaces/$businessId/audit'
+      fullPath: '/workspaces/$businessId/audit'
+      preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/calendar': {
       id: '/_authenticated/workspaces/$businessId/calendar'
       path: '/workspaces/$businessId/calendar'
@@ -211,6 +231,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   AuthenticatedWorkspacesBusinessIdMembersRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   AuthenticatedWorkspacesBusinessIdScheduleRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
@@ -218,6 +239,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedWorkspacesBusinessIdAuditRoute:
+    AuthenticatedWorkspacesBusinessIdAuditRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
     AuthenticatedWorkspacesBusinessIdCalendarRoute,
   AuthenticatedWorkspacesBusinessIdMembersRoute:

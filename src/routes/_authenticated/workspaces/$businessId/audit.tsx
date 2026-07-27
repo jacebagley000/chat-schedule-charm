@@ -82,8 +82,8 @@ function AuditPage() {
       .order("created_at", { ascending: false })
       .limit(PAGE_SIZE + 1);
 
-    if (actorType !== "any") query = query.eq("actor_type", actorType);
-    if (entityType !== "any") query = query.eq("entity_type", entityType);
+    if (actorType !== "any") query = query.eq("actor_type", actorType as AuditRow["actor_type"]);
+    if (entityType !== "any") query = query.eq("entity_type", entityType as AuditRow["entity_type"]);
     if (channel !== "any") query = query.eq("channel", channel);
     if (q.trim()) query = query.ilike("summary", `%${q.trim()}%`);
     if (fromDate) query = query.gte("created_at", new Date(fromDate).toISOString());
