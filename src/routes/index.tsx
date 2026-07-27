@@ -120,14 +120,23 @@ function Index() {
               FAQ
             </a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user ? (
-              <Link
-                to="/dashboard"
-                className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  to="/dashboard"
+                  search={{ intent: "book", service: "consultation" } as never}
+                  className="hidden rounded-full border border-accent px-4 py-2 text-sm font-medium text-accent transition-all hover:bg-accent hover:text-white sm:inline-block"
+                >
+                  Book a call
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-all hover:bg-accent"
+                >
+                  Dashboard
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -135,6 +144,13 @@ function Index() {
                   className="hidden text-sm font-medium transition-colors hover:text-accent sm:inline"
                 >
                   Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  search={{ intent: "book", service: "consultation" } as never}
+                  className="hidden rounded-full border border-accent px-4 py-2 text-sm font-medium text-accent transition-all hover:bg-accent hover:text-white sm:inline-block"
+                >
+                  Book a call
                 </Link>
                 <Link
                   to="/signup"
