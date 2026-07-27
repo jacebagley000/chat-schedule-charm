@@ -9,18 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
-import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
+import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
+import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -28,13 +32,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -42,23 +42,23 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
-  id: '/api/public/webhooks/meta',
-  path: '/api/public/webhooks/meta',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedWorkspacesBusinessIdScheduleRoute =
-  AuthenticatedWorkspacesBusinessIdScheduleRouteImport.update({
-    id: '/workspaces/$businessId/schedule',
-    path: '/workspaces/$businessId/schedule',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedWorkspacesBusinessIdCalendarRoute =
   AuthenticatedWorkspacesBusinessIdCalendarRouteImport.update({
     id: '/workspaces/$businessId/calendar',
     path: '/workspaces/$businessId/calendar',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedWorkspacesBusinessIdScheduleRoute =
+  AuthenticatedWorkspacesBusinessIdScheduleRouteImport.update({
+    id: '/workspaces/$businessId/schedule',
+    path: '/workspaces/$businessId/schedule',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
+  id: '/api/public/webhooks/meta',
+  path: '/api/public/webhooks/meta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,18 +130,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -151,11 +144,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -165,12 +165,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/api/public/webhooks/meta': {
-      id: '/api/public/webhooks/meta'
-      path: '/api/public/webhooks/meta'
-      fullPath: '/api/public/webhooks/meta'
-      preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/workspaces/$businessId/calendar': {
+      id: '/_authenticated/workspaces/$businessId/calendar'
+      path: '/workspaces/$businessId/calendar'
+      fullPath: '/workspaces/$businessId/calendar'
+      preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/workspaces/$businessId/schedule': {
       id: '/_authenticated/workspaces/$businessId/schedule'
@@ -179,12 +179,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/workspaces/$businessId/calendar': {
-      id: '/_authenticated/workspaces/$businessId/calendar'
-      path: '/workspaces/$businessId/calendar'
-      fullPath: '/workspaces/$businessId/calendar'
-      preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/api/public/webhooks/meta': {
+      id: '/api/public/webhooks/meta'
+      path: '/api/public/webhooks/meta'
+      fullPath: '/api/public/webhooks/meta'
+      preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
