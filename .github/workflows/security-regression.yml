@@ -79,10 +79,38 @@ jobs:
       - name: Apply Supabase migrations
         run: |
           set -e
+          mkdir -p artifacts
           for f in $(ls supabase/migrations/*.sql | sort); do
-            echo "--> applying $f"
-            psql -v ON_ERROR_STOP=1 -f "$f"
+            echo "--> applying $f" | tee -a artifacts/migrations.log
+            psql -v ON_ERROR_STOP=1 -f "$f" 2>&1 | tee -a artifacts/migrations.log
           done
 
       - name: Run security-surface regression suite
-        run: bunx vitest run src/lib/security-surface.test.ts
+        id: vitest
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          bunx vitest run src/lib/security-surface.test.ts --reporter=verbose 2>&1 | tee artifacts/vitest.log
+
+      - name: Collect Postgres logs
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          # The postgres service runs as a docker container on the runner.
+          container=$(docker ps --filter "ancestor=postgres:15" --format '{{.ID}}' | head -n1)
+          if [ -n "$container" ]; then
+            docker logs "$container" > artifacts/postgres.log 2>&1 || true
+            docker inspect "$container" > artifacts/postgres-inspect.json 2>&1 || true
+          else
+            echo "no postgres container found" > artifacts/postgres.log
+          fi
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-regression-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
