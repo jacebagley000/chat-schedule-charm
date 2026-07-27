@@ -1236,20 +1236,34 @@ function StaffRow({ staff, onChanged }: { staff: Staff; onChanged: () => void })
 }
 
 function AppointmentDialog({
-  mode, businessId, appointment, initialStart, staff, services, customers, onClose, onSaved,
+  mode, businessId, appointment, initialStart, initialServiceHint, staff, services, customers, onClose, onSaved,
 }: {
   mode: "create" | "edit";
   businessId: string;
   appointment?: Appointment;
   initialStart?: Date;
+  initialServiceHint?: string;
   staff: Staff[];
   services: Service[];
   customers: Customer[];
   onClose: () => void;
   onSaved: () => void;
 }) {
+  // Match a hinted service (from ?service=... URL param) by case-insensitive
+  // name; fall back to the first service.
+  const hintedServiceId = (() => {
+    if (!initialServiceHint) return null;
+    const q = initialServiceHint.trim().toLowerCase();
+    if (!q) return null;
+    const match = services.find(
+      (s) => s.name.toLowerCase() === q || s.name.toLowerCase().includes(q)
+    );
+    return match?.id ?? null;
+  })();
+  const initialServiceId = appointment?.service_id ?? hintedServiceId ?? services[0]?.id ?? "";
+  const initialDuration = services.find((s) => s.id === initialServiceId)?.duration_minutes ?? services[0]?.duration_minutes ?? 30;
   const start0 = appointment ? parseISO(appointment.starts_at) : initialStart!;
-  const end0 = appointment ? parseISO(appointment.ends_at) : addMinutes(start0, services[0]?.duration_minutes ?? 30);
+  const end0 = appointment ? parseISO(appointment.ends_at) : addMinutes(start0, initialDuration);
 
   const [date, setDate] = useState<Date>(startOfDay(start0));
   const [time, setTime] = useState<string>(format(start0, "HH:mm"));
