@@ -8,6 +8,41 @@ import sarahImg from "@/assets/testimonial-sarah.jpg";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "/#organization",
+              name: "FrontDesk AI",
+              url: "/",
+              description:
+                "AI receptionist for local businesses that answers phone calls, Instagram and Facebook DMs, and books appointments straight into your calendar.",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "/#website",
+              name: "FrontDesk AI",
+              url: "/",
+              publisher: { "@id": "/#organization" },
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: faqs.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            },
+          ],
+        }),
+      },
+    ],
+  }),
 });
 
 const steps = [
