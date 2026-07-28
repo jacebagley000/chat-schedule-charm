@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as CheckoutStartRouteImport } from './routes/checkout.start'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
+import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
@@ -62,6 +63,11 @@ const CheckoutStartRoute = CheckoutStartRouteImport.update({
 const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
   id: '/checkout/success',
   path: '/checkout/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComparisonPolyaiRoute = ComparisonPolyaiRouteImport.update({
+  id: '/comparison/polyai',
+  path: '/comparison/polyai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/polyai'
     | '/invite/$token'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/polyai'
     | '/invite/$token'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/polyai'
     | '/invite/$token'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   CheckoutStartRoute: typeof CheckoutStartRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+  ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRoute
@@ -275,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/success'
       fullPath: '/checkout/success'
       preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparison/polyai': {
+      id: '/comparison/polyai'
+      path: '/comparison/polyai'
+      fullPath: '/comparison/polyai'
+      preLoaderRoute: typeof ComparisonPolyaiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -362,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   CheckoutStartRoute: CheckoutStartRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
+  ComparisonPolyaiRoute: ComparisonPolyaiRoute,
   InviteTokenRoute: InviteTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRoute,
