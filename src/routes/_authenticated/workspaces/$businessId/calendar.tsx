@@ -40,7 +40,27 @@ const calendarSearchSchema = z.object({
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/calendar")({
   component: CalendarPage,
   validateSearch: zodValidator(calendarSearchSchema),
-  head: () => ({ meta: [{ title: "Calendar — FrontDesk AI" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "Calendar — FrontDesk AI" },
+      {
+        name: "description",
+        content:
+          "Workspace calendar: view, create, and reschedule appointments across staff with real-time conflict detection.",
+      },
+      { property: "og:title", content: "Calendar — FrontDesk AI" },
+      {
+        property: "og:description",
+        content:
+          "Manage bookings and staff availability in your FrontDesk AI workspace calendar.",
+      },
+      {
+        property: "og:url",
+        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,
+      },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
 });
 
 type Business = { id: string; name: string };
