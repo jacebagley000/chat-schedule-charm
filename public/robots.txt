@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /workspaces/
+Disallow: /checkout/
+Disallow: /invite/
+Disallow: /api/
+
+Sitemap: https://chat-schedule-charm.lovable.app/sitemap.xml
