@@ -21,7 +21,27 @@ import { ArrowLeft, Trash2, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/audit")({
   component: AuditPage,
-  head: () => ({ meta: [{ title: "Audit log — FrontDesk AI" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "Audit log — FrontDesk AI" },
+      {
+        name: "description",
+        content:
+          "Audit trail of schedule changes, message handling, and member mutations across your FrontDesk AI workspace.",
+      },
+      { property: "og:title", content: "Audit log — FrontDesk AI" },
+      {
+        property: "og:description",
+        content:
+          "See who changed schedules, handled messages, and modified members — with full filtering.",
+      },
+      {
+        property: "og:url",
+        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/audit`,
+      },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
 });
 
 type AuditRow = {
