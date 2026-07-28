@@ -23,7 +23,22 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
   validateSearch: zodValidator(dashboardSearchSchema),
   head: () => ({
-    meta: [{ title: "Dashboard — FrontDesk AI" }],
+    meta: [
+      { title: "Dashboard — FrontDesk AI" },
+      {
+        name: "description",
+        content:
+          "Your FrontDesk AI workspace: manage bookings, staff, live schedule, and incoming call and DM activity in one place.",
+      },
+      { property: "og:title", content: "Dashboard — FrontDesk AI" },
+      {
+        property: "og:description",
+        content:
+          "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages.",
+      },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/dashboard" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
 });
 
