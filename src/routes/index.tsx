@@ -441,7 +441,7 @@ function Index() {
               <span className="mb-3 block font-mono text-[10px] text-accent">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h4 className="font-medium">{name}</h4>
+              <h3 className="font-medium">{name}</h3>
             </div>
           ))}
         </div>
