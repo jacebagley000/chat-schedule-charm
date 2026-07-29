@@ -18,6 +18,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as CheckoutStartRouteImport } from './routes/checkout.start'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
+import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes/comparison/ai-receptionist-vs-live-chat'
 import { Route as ComparisonAnsweringServiceRouteImport } from './routes/comparison/answering-service'
 import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -72,6 +73,12 @@ const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
   path: '/checkout/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComparisonAiReceptionistVsLiveChatRoute =
+  ComparisonAiReceptionistVsLiveChatRouteImport.update({
+    id: '/comparison/ai-receptionist-vs-live-chat',
+    path: '/comparison/ai-receptionist-vs-live-chat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ComparisonAnsweringServiceRoute =
   ComparisonAnsweringServiceRouteImport.update({
     id: '/comparison/answering-service',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -152,6 +160,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -173,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/checkout/start': typeof CheckoutStartRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
@@ -233,6 +245,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/checkout/start'
     | '/checkout/success'
+    | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
@@ -252,6 +265,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CheckoutStartRoute: typeof CheckoutStartRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+  ComparisonAiReceptionistVsLiveChatRoute: typeof ComparisonAiReceptionistVsLiveChatRoute
   ComparisonAnsweringServiceRoute: typeof ComparisonAnsweringServiceRoute
   ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
   InviteTokenRoute: typeof InviteTokenRoute
@@ -322,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout/success'
       fullPath: '/checkout/success'
       preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparison/ai-receptionist-vs-live-chat': {
+      id: '/comparison/ai-receptionist-vs-live-chat'
+      path: '/comparison/ai-receptionist-vs-live-chat'
+      fullPath: '/comparison/ai-receptionist-vs-live-chat'
+      preLoaderRoute: typeof ComparisonAiReceptionistVsLiveChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comparison/answering-service': {
@@ -424,6 +445,8 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CheckoutStartRoute: CheckoutStartRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
+  ComparisonAiReceptionistVsLiveChatRoute:
+    ComparisonAiReceptionistVsLiveChatRoute,
   ComparisonAnsweringServiceRoute: ComparisonAnsweringServiceRoute,
   ComparisonPolyaiRoute: ComparisonPolyaiRoute,
   InviteTokenRoute: InviteTokenRoute,
