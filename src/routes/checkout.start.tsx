@@ -64,7 +64,7 @@ function CheckoutStartPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center">
-        <div className="animate-pulse font-serif text-xl mb-2">Opening secure checkout…</div>
+        <h1 className="animate-pulse font-serif text-xl mb-2">Opening secure checkout…</h1>
         <p className="text-sm text-muted-foreground">Please complete your purchase in the Paddle window.</p>
       </div>
     </div>
