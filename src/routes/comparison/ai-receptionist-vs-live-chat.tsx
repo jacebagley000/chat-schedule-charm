@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/ai-receptionist-vs-live-chat";
 
@@ -27,12 +28,18 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
+          "@graph": [
+            ...brandGraph,
+            {
           "@type": "Article",
           headline: "AI Receptionist vs Live Chat: Which Is the Best Live Chat for Small Business?",
           description:
             "A side-by-side comparison of AI receptionists and live chat software for small businesses, covering cost, availability, booking integration, and response speed.",
-          author: { "@type": "Organization", name: "FrontDesk AI" },
+          author: { "@id": ORGANIZATION_ID },
+          publisher: { "@id": ORGANIZATION_ID },
           mainEntityOfPage: CANONICAL,
+            },
+          ],
         }),
       },
     ],

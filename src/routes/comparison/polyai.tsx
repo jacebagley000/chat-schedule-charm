@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/polyai";
 
@@ -27,12 +28,18 @@ export const Route = createFileRoute("/comparison/polyai")({
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
+          "@graph": [
+            ...brandGraph,
+            {
           "@type": "Article",
           headline: "PolyAI vs FrontDesk AI: Which AI Receptionist Is Right for You?",
           description:
             "A fair, side-by-side comparison of PolyAI and FrontDesk AI covering pricing, setup, target market, and best-fit use cases.",
-          author: { "@type": "Organization", name: "FrontDesk AI" },
+          author: { "@id": ORGANIZATION_ID },
+          publisher: { "@id": ORGANIZATION_ID },
           mainEntityOfPage: CANONICAL,
+            },
+          ],
         }),
       },
     ],
