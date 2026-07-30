@@ -192,6 +192,26 @@ function AnsweringServiceComparison() {
           </Link>
         </div>
       </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-foreground">Related comparisons</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Link
+            to="/comparison/ai-receptionist-vs-live-chat"
+            className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs live chat</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Live chat only catches website visitors — see what it misses.</p>
+          </Link>
+          <Link
+            to="/comparison/polyai"
+            className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <h3 className="font-medium text-foreground group-hover:text-accent">PolyAI vs FrontDesk AI</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Enterprise voice AI versus something a local shop can switch on today.</p>
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
