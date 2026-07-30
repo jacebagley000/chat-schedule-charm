@@ -191,9 +191,16 @@ function Index() {
             <a href="#industries" className="text-sm font-medium transition-colors hover:text-accent">
               Industries
             </a>
+            <Link
+              to="/comparison/answering-service"
+              className="text-sm font-medium transition-colors hover:text-accent"
+            >
+              vs Answering Service
+            </Link>
             <a href="#pricing" className="text-sm font-medium transition-colors hover:text-accent">
               Pricing
             </a>
+
             <a href="#faq" className="text-sm font-medium transition-colors hover:text-accent">
               FAQ
             </a>
