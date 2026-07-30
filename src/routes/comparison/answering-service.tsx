@@ -2,6 +2,38 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/answering-service";
 
+const faqs = [
+  {
+    q: "What is the difference between an answering service and an AI receptionist?",
+    a: "A traditional answering service uses human operators at a call centre to take messages and pass them on. An AI receptionist like FrontDesk AI answers the call itself, understands your services and prices, and books the appointment directly into your calendar — no message relay and no callback needed.",
+  },
+  {
+    q: "How much does an answering service cost compared to FrontDesk AI?",
+    a: "Most human answering services charge per minute or per call, which typically works out at $200–$1,000+ a month once after-hours and overflow calls are included. FrontDesk AI is a flat subscription starting at $49 a month with unlimited calls and messages, so a busy month never produces a surprise invoice.",
+  },
+  {
+    q: "Can an AI receptionist really book appointments?",
+    a: "Yes. FrontDesk AI checks live availability for the right staff member, avoids double bookings, and writes the appointment straight to your calendar during the conversation. A human answering service almost always takes a message and leaves the booking to you.",
+  },
+  {
+    q: "Does it answer calls after hours and on weekends?",
+    a: "Yes — FrontDesk AI answers 24/7, including nights, weekends, and holidays, at the same flat price. Most answering services charge premium rates for out-of-hours coverage.",
+  },
+  {
+    q: "Does it handle Instagram and Facebook messages too?",
+    a: "Yes. Alongside your phone line, FrontDesk AI replies to Instagram and Facebook DMs, answers common questions, and books from those conversations. Answering services are phone-only.",
+  },
+  {
+    q: "Will customers know they're talking to AI?",
+    a: "FrontDesk AI speaks naturally and is trained on your services, prices, and hours, so most conversations feel like talking to a well-briefed receptionist. You choose how it introduces itself, and anything it can't handle can be escalated to you.",
+  },
+  {
+    q: "How long does it take to set up?",
+    a: "Most shops are live the same day. You forward your existing number, upload your service menu and hours, and connect your calendar — no new hardware and no contract with a call centre.",
+  },
+];
+
+
 export const Route = createFileRoute("/comparison/answering-service")({
   head: () => ({
     meta: [
