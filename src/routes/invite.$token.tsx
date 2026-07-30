@@ -12,9 +12,18 @@ export const Route = createFileRoute("/invite/$token")({
     meta: [
       { title: "Accept invitation — FrontDesk AI" },
       { name: "description", content: "Join a workspace on FrontDesk AI." },
+      { property: "og:title", content: "You've been invited to a FrontDesk AI workspace" },
+      {
+        property: "og:description",
+        content: "Accept your invitation to join the team and start managing calls, DMs, and bookings.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
 });
+
 
 type AcceptedInvite = { business_id: string; business_name: string; role: string };
 
