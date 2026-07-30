@@ -545,7 +545,57 @@ function Index() {
         </div>
       </section>
 
+      {/* Comparisons */}
+      <section id="compare" className="border-y border-border bg-secondary/40">
+        <div className="mx-auto max-w-5xl px-6 py-20 md:py-24">
+          <h2 className="mb-3 font-serif text-4xl md:text-5xl">How we compare</h2>
+          <p className="mb-10 max-w-2xl text-muted-foreground">
+            Weighing up your options? Read the honest breakdowns before you commit.
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Link
+              to="/comparison/answering-service"
+              className="group rounded-xl border-2 border-accent bg-background p-6 transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <span className="text-xs font-medium uppercase tracking-wider text-accent">
+                Most read
+              </span>
+              <h3 className="mt-2 font-serif text-xl group-hover:text-accent">
+                AI receptionist vs answering service
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                What a human answering service really costs per month, and where an AI
+                receptionist books more of your calls.
+              </p>
+            </Link>
+            <Link
+              to="/comparison/ai-receptionist-vs-live-chat"
+              className="group rounded-xl border border-border bg-background p-6 transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <h3 className="font-serif text-xl group-hover:text-accent">
+                AI receptionist vs live chat
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Live chat only catches website visitors. See what happens to the calls and DMs.
+              </p>
+            </Link>
+            <Link
+              to="/comparison/polyai"
+              className="group rounded-xl border border-border bg-background p-6 transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <h3 className="font-serif text-xl group-hover:text-accent">
+                PolyAI vs FrontDesk AI
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enterprise voice AI versus something a local shop can switch on today.
+              </p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
+
       <section id="faq" className="mx-auto max-w-3xl px-6 py-24 md:py-32">
         <h2 className="mb-12 font-serif text-4xl md:text-5xl">Common questions</h2>
         <div className="divide-y divide-border">
