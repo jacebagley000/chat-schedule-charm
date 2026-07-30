@@ -67,6 +67,18 @@ export const Route = createFileRoute("/comparison/answering-service")({
           mainEntityOfPage: CANONICAL,
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
     ],
   }),
   component: AnsweringServiceComparison,
