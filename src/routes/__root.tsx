@@ -90,8 +90,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Answer every call and DM. Book every appointment. Lose nothing while you work.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/" },
       { property: "og:site_name", content: "FrontDesk AI" },
+
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

@@ -21,8 +21,19 @@ export const Route = createFileRoute("/login")({
     meta: [
       { title: "Sign in — FrontDesk AI" },
       { name: "description", content: "Sign in to your FrontDesk AI workspace." },
+      { property: "og:title", content: "Sign in to FrontDesk AI" },
+      {
+        property: "og:description",
+        content: "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/login" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/login" }],
   }),
+
 });
 
 function LoginPage() {

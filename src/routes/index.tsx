@@ -9,7 +9,25 @@ import sarahImg from "@/assets/testimonial-sarah.jpg";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
+    meta: [
+      { title: "FrontDesk AI — The receptionist who never misses a call" },
+      {
+        name: "description",
+        content:
+          "FrontDesk AI answers your shop phone and Instagram & Facebook DMs, qualifies customers, and books appointments straight into your calendar.",
+      },
+      { property: "og:title", content: "FrontDesk AI — AI receptionist for local businesses" },
+      {
+        property: "og:description",
+        content: "Answer every call and DM. Book every appointment. Lose nothing while you work.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/" }],
     scripts: [
+
       {
         type: "application/ld+json",
         children: JSON.stringify({

@@ -11,9 +11,12 @@ export const Route = createFileRoute("/checkout/success")({
         content: "Your FrontDesk AI subscription is active. Head to your dashboard to get started.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/success" },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
+
   component: CheckoutSuccess,
 });
 

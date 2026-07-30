@@ -22,8 +22,18 @@ export const Route = createFileRoute("/signup")({
     meta: [
       { title: "Create account — FrontDesk AI" },
       { name: "description", content: "Create your FrontDesk AI workspace in under a minute." },
+      { property: "og:title", content: "Start your FrontDesk AI workspace" },
+      {
+        property: "og:description",
+        content: "Set up your AI receptionist in under a minute. 14-day trial, no card required.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/signup" },
+      { name: "twitter:card", content: "summary" },
     ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/signup" }],
   }),
+
 });
 
 function SignupPage() {

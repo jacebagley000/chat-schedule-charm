@@ -22,8 +22,18 @@ export const Route = createFileRoute("/checkout/start")({
     meta: [
       { title: "Starting checkout — FrontDesk AI" },
       { name: "description", content: "Redirecting you to secure checkout." },
+      { property: "og:title", content: "Starting your FrontDesk AI checkout" },
+      {
+        property: "og:description",
+        content: "We're opening a secure Paddle checkout window for your selected plan.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/start" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
+
 });
 
 function CheckoutStartPage() {
