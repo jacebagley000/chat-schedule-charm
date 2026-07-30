@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/answering-service";
 
@@ -59,12 +60,18 @@ export const Route = createFileRoute("/comparison/answering-service")({
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
+          "@graph": [
+            ...brandGraph,
+            {
           "@type": "Article",
           headline: "AI Receptionist vs Answering Service: A Side-by-Side Comparison",
           description:
             "A fair comparison of traditional human answering services and AI receptionists like FrontDesk AI, covering cost, availability, and booking integration.",
-          author: { "@type": "Organization", name: "FrontDesk AI" },
+          author: { "@id": ORGANIZATION_ID },
+          publisher: { "@id": ORGANIZATION_ID },
           mainEntityOfPage: CANONICAL,
+            },
+          ],
         }),
       },
       {

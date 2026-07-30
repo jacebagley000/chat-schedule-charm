@@ -1,4 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { brandJsonLd } from "@/lib/structured-data";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
@@ -27,38 +28,15 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/" }],
     scripts: [
-
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "Organization",
-              "@id": "/#organization",
-              name: "FrontDesk AI",
-              url: "/",
-              description:
-                "AI receptionist for local businesses that answers phone calls, Instagram and Facebook DMs, and books appointments straight into your calendar.",
-            },
-            {
-              "@type": "WebSite",
-              "@id": "/#website",
-              name: "FrontDesk AI",
-              url: "/",
-              publisher: { "@id": "/#organization" },
-            },
-            {
-              "@type": "FAQPage",
-              mainEntity: faqs.map((f) => ({
-                "@type": "Question",
-                name: f.q,
-                acceptedAnswer: { "@type": "Answer", text: f.a },
-              })),
-            },
-          ],
-        }),
-      },
+      brandJsonLd({
+        "@type": "FAQPage",
+        "@id": "https://chat-schedule-charm.lovable.app/#faq",
+        mainEntity: faqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
     ],
   }),
 });

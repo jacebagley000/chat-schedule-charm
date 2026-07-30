@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { brandJsonLd } from "@/lib/structured-data";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/signup")({
       { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/signup" }],
+    scripts: [brandJsonLd()],
   }),
 
 });
