@@ -243,6 +243,19 @@ function AiReceptionistVsLiveChat() {
       </section>
 
       <section className="mt-12">
+        <h2 className="text-2xl font-semibold text-foreground">Frequently asked questions</h2>
+        <dl className="mt-6 space-y-4">
+          {faqs.map((f) => (
+            <div key={f.q} className="rounded-xl border border-border bg-card p-5">
+              <dt className="font-medium text-foreground">{f.q}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+
+      <section className="mt-12">
         <h2 className="text-xl font-semibold text-foreground">Related comparisons</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Link
