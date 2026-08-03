@@ -13,8 +13,9 @@ export const Route = createFileRoute("/checkout/success")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/success" },
       { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/success" }],
   }),
 
   component: CheckoutSuccess,

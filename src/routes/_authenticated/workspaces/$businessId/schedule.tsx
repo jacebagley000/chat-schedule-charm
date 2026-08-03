@@ -42,12 +42,27 @@ import {
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/schedule")({
   component: SchedulePage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
       { title: "Live Schedule — FrontDesk AI" },
       {
         name: "description",
         content: "Real-time work schedule for your business, grouped by staff.",
+      },
+      { property: "og:title", content: "Live Schedule — FrontDesk AI" },
+      { property: "og:description", content: "Real-time work schedule for your business, grouped by staff." },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:url",
+        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/schedule`,
+      },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/schedule`,
       },
     ],
   }),

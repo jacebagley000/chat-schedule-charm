@@ -58,7 +58,13 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
         property: "og:url",
         content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,
       },
-      { name: "robots", content: "noindex" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,
+      },
     ],
   }),
 });
