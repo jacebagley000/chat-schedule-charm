@@ -3,6 +3,38 @@ import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/ai-receptionist-vs-live-chat";
 
+const faqs = [
+  {
+    q: "What is the difference between live chat and an AI receptionist?",
+    a: "Live chat software puts a chat widget on your website and waits for a visitor to start a conversation, usually with a human on the other end during office hours. An AI receptionist like FrontDesk AI answers your phone line, Instagram and Facebook DMs, and website enquiries automatically, and books the appointment into your calendar during the conversation.",
+  },
+  {
+    q: "What is the best live chat for a small business?",
+    a: "For a small local business, the best option is usually one that covers every channel rather than the website alone. Traditional live chat tools only catch visitors already on your site, while FrontDesk AI handles calls, social DMs, and web enquiries from a single $49-a-month plan with no per-seat pricing.",
+  },
+  {
+    q: "Can live chat book appointments automatically?",
+    a: "Most live chat tools can share a booking link, but someone still has to click it and pick a slot. FrontDesk AI checks live staff availability, avoids double bookings, and writes the appointment straight to your calendar without handing the customer off to another page.",
+  },
+  {
+    q: "Does an AI receptionist work outside office hours?",
+    a: "Yes. FrontDesk AI replies 24/7, including nights, weekends, and holidays. Live chat staffed by your team goes offline when the shop closes, which is exactly when many customers try to book.",
+  },
+  {
+    q: "How fast does it respond compared to live chat?",
+    a: "Replies are instant, every time. Human-staffed live chat averages several minutes during busy periods, and most website visitors leave before an agent picks up the conversation.",
+  },
+  {
+    q: "Do I still need live chat if I use an AI receptionist?",
+    a: "Usually not. FrontDesk AI answers website enquiries alongside calls and DMs, so a separate chat subscription is often redundant. Teams that run a high-volume ecommerce support desk may still prefer a dedicated live chat tool for order issues.",
+  },
+  {
+    q: "How long does it take to set up?",
+    a: "Most businesses are live the same day. You upload your services, prices, and hours, connect your calendar, and forward your number or link your social accounts — no developer work required.",
+  },
+];
+
+
 export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")({
   head: () => ({
     meta: [
