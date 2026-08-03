@@ -28,7 +28,12 @@ export const Route = createFileRoute("/_authenticated/schedule")({
         content:
           "Unified schedule dashboard for viewing upcoming shifts and reassigning staff across every workspace.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/schedule" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/schedule" }],
   }),
 });
 

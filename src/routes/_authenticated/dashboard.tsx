@@ -37,8 +37,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
           "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages.",
       },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/dashboard" },
-      { name: "robots", content: "noindex" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
+    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/dashboard" }],
   }),
 });
 

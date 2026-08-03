@@ -8,7 +8,7 @@ import { Loader2, Mail, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/invite/$token")({
   component: InvitePage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
       { title: "Accept invitation — FrontDesk AI" },
       { name: "description", content: "Join a workspace on FrontDesk AI." },
@@ -19,7 +19,10 @@ export const Route = createFileRoute("/invite/$token")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+    links: [
+      { rel: "canonical", href: `https://chat-schedule-charm.lovable.app/invite/${params.token}` },
     ],
   }),
 });

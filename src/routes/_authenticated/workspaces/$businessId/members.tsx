@@ -50,10 +50,25 @@ type Invitation = {
 
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/members")({
   component: MembersPage,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
       { title: "Team members — FrontDesk AI" },
       { name: "description", content: "Manage who has access to your workspace and their role." },
+      { property: "og:title", content: "Team members — FrontDesk AI" },
+      { property: "og:description", content: "Manage who has access to your workspace and their role." },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:url",
+        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/members`,
+      },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+    links: [
+      {
+        rel: "canonical",
+        href: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/members`,
+      },
     ],
   }),
 });
