@@ -1,3 +1,5 @@
+import { readdirSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BASE_URL,
@@ -6,18 +8,39 @@ import {
   renderRobotsTxt,
   renderSitemapXml,
 } from "@/lib/public-routes";
-import { routeTree } from "@/routeTree.gen";
 
-/** All URL paths the router can serve, excluding params/splats and internals. */
+const ROUTES_DIR = join(process.cwd(), "src/routes");
+
+/** All URL paths the file-based router serves, derived from src/routes/**. */
 function routerPaths(): string[] {
-  const out: string[] = [];
-  const walk = (route: any) => {
-    const full: string | undefined = route.fullPath;
-    if (full) out.push(full);
-    for (const child of route.children ?? []) walk(child);
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(entry.name)) files.push(relative(ROUTES_DIR, full));
+    }
   };
-  walk(routeTree as any);
-  return [...new Set(out)];
+  walk(ROUTES_DIR);
+
+  return [
+    ...new Set(
+      files
+        .map((f) => f.replace(/\.tsx?$/, ""))
+        .filter((f) => !f.startsWith("__root"))
+        .map((f) =>
+          "/" +
+          f
+            .replace(/\[\.\]/g, ".")
+            .split(/[/.]/)
+            .filter((seg) => seg !== "index" && !seg.startsWith("_"))
+            .join("/"),
+        )
+        // sitemap.xml / robots.txt lose their dot above; restore file-like leaves
+        .map((p) => p.replace(/\/(sitemap|robots)\/(xml|txt)$/, "/$1.$2"))
+        .map((p) => (p === "" ? "/" : p)),
+    ),
+  ];
 }
 
 describe("public route registry", () => {
