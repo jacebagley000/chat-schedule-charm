@@ -30,7 +30,6 @@ export const Route = createFileRoute("/login")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/login" },
       { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/login" }],
     scripts: [brandJsonLd()],
