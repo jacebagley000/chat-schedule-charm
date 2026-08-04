@@ -80,7 +80,6 @@ export function trackEvent(event: AnalyticsEvent): void {
       break;
     }
     case "console": {
-      // eslint-disable-next-line no-console
       console.log("[analytics]", event.name, params);
       break;
     }
