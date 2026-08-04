@@ -23,6 +23,7 @@ import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes
 import { Route as ComparisonAnsweringServiceRouteImport } from './routes/comparison/answering-service'
 import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
@@ -101,6 +102,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/admin/leads',
+  path: '/admin/leads',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedWorkspacesBusinessIdAuditRoute =
   AuthenticatedWorkspacesBusinessIdAuditRouteImport.update({
     id: '/workspaces/$businessId/audit',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/admin/leads'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/admin/leads'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/_authenticated/admin/leads'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
@@ -386,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/admin/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/audit': {
       id: '/_authenticated/workspaces/$businessId/audit'
       path: '/workspaces/$businessId/audit'
@@ -434,6 +453,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   AuthenticatedWorkspacesBusinessIdMembersRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -443,6 +463,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
     AuthenticatedWorkspacesBusinessIdAuditRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
