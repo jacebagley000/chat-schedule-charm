@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
+import { TrackedLink } from "@/components/TrackedLink";
+import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
-const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/polyai";
+const PAGE_PATH = "/comparison/polyai";
+const CANONICAL = `https://chat-schedule-charm.lovable.app${PAGE_PATH}`;
 
 export const Route = createFileRoute("/comparison/polyai")({
   head: () => ({
@@ -12,7 +15,10 @@ export const Route = createFileRoute("/comparison/polyai")({
         content:
           "Honest PolyAI review and side-by-side comparison with FrontDesk AI. See pricing, setup time, and which AI receptionist fits local shops vs. enterprise call centers.",
       },
-      { property: "og:title", content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops" },
+      {
+        property: "og:title",
+        content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops",
+      },
       {
         property: "og:description",
         content:
@@ -31,13 +37,13 @@ export const Route = createFileRoute("/comparison/polyai")({
           "@graph": [
             ...brandGraph,
             {
-          "@type": "Article",
-          headline: "PolyAI vs FrontDesk AI: Which AI Receptionist Is Right for You?",
-          description:
-            "A fair, side-by-side comparison of PolyAI and FrontDesk AI covering pricing, setup, target market, and best-fit use cases.",
-          author: { "@id": ORGANIZATION_ID },
-          publisher: { "@id": ORGANIZATION_ID },
-          mainEntityOfPage: CANONICAL,
+              "@type": "Article",
+              headline: "PolyAI vs FrontDesk AI: Which AI Receptionist Is Right for You?",
+              description:
+                "A fair, side-by-side comparison of PolyAI and FrontDesk AI covering pricing, setup, target market, and best-fit use cases.",
+              author: { "@id": ORGANIZATION_ID },
+              publisher: { "@id": ORGANIZATION_ID },
+              mainEntityOfPage: CANONICAL,
             },
           ],
         }),
@@ -61,7 +67,9 @@ function PolyAIComparison() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <nav className="mb-8 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-foreground">Home</Link>
+        <Link to="/" className="hover:text-foreground">
+          Home
+        </Link>
         <span className="mx-2">/</span>
         <span>Comparison</span>
         <span className="mx-2">/</span>
@@ -81,8 +89,8 @@ function PolyAIComparison() {
       <section className="prose prose-neutral max-w-none dark:prose-invert">
         <h2>Short answer</h2>
         <p>
-          <strong>PolyAI</strong> is an enterprise-grade voice AI platform for large contact centers —
-          banks, hotel chains, insurers. Deep customization, long implementation, custom pricing.
+          <strong>PolyAI</strong> is an enterprise-grade voice AI platform for large contact centers
+          — banks, hotel chains, insurers. Deep customization, long implementation, custom pricing.
         </p>
         <p>
           <strong>FrontDesk AI</strong> is a self-serve AI receptionist for local shops — salons,
@@ -107,13 +115,41 @@ function PolyAIComparison() {
               </tr>
             </thead>
             <tbody>
-              <Row label="Target customer" poly="Enterprise contact centers" us="Local shops & SMBs" />
-              <Row label="Pricing" poly="Custom (enterprise contract)" us="From $49/mo, self-serve" />
-              <Row label="Setup time" poly="Weeks to months (implementation team)" us="Same day, no-code" />
-              <Row label="Appointment booking" poly="Custom integration required" us="Built-in calendar & scheduling" />
-              <Row label="Instagram & Facebook DMs" poly="Voice-first, DMs not core" us="Included out of the box" />
-              <Row label="Multi-language" poly="Yes (extensive)" us="12 languages incl. Arabic (RTL)" />
-              <Row label="Ideal call volume" poly="Thousands+/day" us="Any volume — pay as you grow" />
+              <Row
+                label="Target customer"
+                poly="Enterprise contact centers"
+                us="Local shops & SMBs"
+              />
+              <Row
+                label="Pricing"
+                poly="Custom (enterprise contract)"
+                us="From $49/mo, self-serve"
+              />
+              <Row
+                label="Setup time"
+                poly="Weeks to months (implementation team)"
+                us="Same day, no-code"
+              />
+              <Row
+                label="Appointment booking"
+                poly="Custom integration required"
+                us="Built-in calendar & scheduling"
+              />
+              <Row
+                label="Instagram & Facebook DMs"
+                poly="Voice-first, DMs not core"
+                us="Included out of the box"
+              />
+              <Row
+                label="Multi-language"
+                poly="Yes (extensive)"
+                us="12 languages incl. Arabic (RTL)"
+              />
+              <Row
+                label="Ideal call volume"
+                poly="Thousands+/day"
+                us="Any volume — pay as you grow"
+              />
               <Row label="Contract" poly="Annual enterprise" us="Monthly, cancel anytime" />
             </tbody>
           </table>
@@ -154,9 +190,9 @@ function PolyAIComparison() {
           budget, and need custom voice workflows integrated into a legacy telephony stack.
         </p>
         <p>
-          <strong>Pick FrontDesk AI</strong> if you're a shop owner, clinic manager, or multi-location
-          operator who wants to stop missing calls and DMs today — without hiring a receptionist or
-          managing an implementation.
+          <strong>Pick FrontDesk AI</strong> if you're a shop owner, clinic manager, or
+          multi-location operator who wants to stop missing calls and DMs today — without hiring a
+          receptionist or managing an implementation.
         </p>
       </section>
 
@@ -166,38 +202,53 @@ function PolyAIComparison() {
           Answer every call and DM. Book every appointment. Live in minutes.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
+          <TrackedLink
             to="/signup"
+            event={{ page: PAGE_PATH, cta: "start_free", location: "bottom_cta" }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Start free
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             to="/"
+            event={{ page: PAGE_PATH, cta: "see_pricing", location: "bottom_cta" }}
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             See pricing
-          </Link>
+          </TrackedLink>
+        </div>
+        <div className="mt-6 flex justify-center">
+          <ComparisonLeadForm page={PAGE_PATH} cta="get_demo" />
         </div>
       </section>
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold text-foreground">Related comparisons</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Link
+          <TrackedLink
             to="/comparison/answering-service"
+            event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
-            <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs answering service</h3>
-            <p className="mt-1 text-sm text-muted-foreground">What a human answering service costs, and where AI books more calls.</p>
-          </Link>
-          <Link
+            <h3 className="font-medium text-foreground group-hover:text-accent">
+              AI receptionist vs answering service
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              What a human answering service costs, and where AI books more calls.
+            </p>
+          </TrackedLink>
+          <TrackedLink
             to="/comparison/ai-receptionist-vs-live-chat"
+            event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
-            <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs live chat</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Live chat only catches website visitors — see what it misses.</p>
-          </Link>
+            <h3 className="font-medium text-foreground group-hover:text-accent">
+              AI receptionist vs live chat
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Live chat only catches website visitors — see what it misses.
+            </p>
+          </TrackedLink>
         </div>
       </section>
     </main>
