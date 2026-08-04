@@ -47,9 +47,15 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end"
+    >
       <div className="flex-1 text-left">
-        <label htmlFor={`lead-email-${page}`} className="mb-1 block text-sm font-medium text-foreground">
+        <label
+          htmlFor={`lead-email-${page}`}
+          className="mb-1 block text-sm font-medium text-foreground"
+        >
           Work email
         </label>
         <Input

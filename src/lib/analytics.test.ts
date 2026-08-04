@@ -16,7 +16,8 @@ describe("analytics", () => {
 
   it("prefers gtag over posthog and console", () => {
     const gtag = vi.fn();
-    vi.stubGlobal("window", { gtag, posthog: { capture: vi.fn() } } as unknown as Window & typeof globalThis);
+    vi.stubGlobal("window", { gtag, posthog: { capture: vi.fn() } } as unknown as Window &
+      typeof globalThis);
     expect(getAnalyticsProvider()).toBe("gtag");
   });
 

@@ -32,7 +32,6 @@ interface WindowWithGtag extends Window {
   dataLayer?: unknown[];
 }
 
-
 interface WindowWithPosthog extends Window {
   posthog?: {
     capture: (event: string, properties?: Record<string, unknown>) => void;
@@ -63,9 +62,7 @@ export function trackEvent(event: AnalyticsEvent): void {
   const provider = detectProvider();
   const params = sanitizeEventParams({
     page: event.page,
-    ...(event.name === "comparison_cta_click"
-      ? { cta: event.cta, location: event.location }
-      : {}),
+    ...(event.name === "comparison_cta_click" ? { cta: event.cta, location: event.location } : {}),
     ...(event.name === "comparison_lead_submit" || event.name === "comparison_lead_error"
       ? { cta: event.cta, email_domain: event.email_domain, reason: event.reason }
       : {}),

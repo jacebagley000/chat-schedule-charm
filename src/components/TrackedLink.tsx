@@ -9,8 +9,6 @@ export interface TrackedLinkProps extends LinkProps {
   children?: React.ReactNode;
 }
 
-
-
 export const TrackedLink = React.forwardRef<HTMLAnchorElement, TrackedLinkProps>(
   ({ event, onClick, ...props }, ref) => {
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {

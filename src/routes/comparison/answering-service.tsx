@@ -6,7 +6,6 @@ import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
 const PAGE_PATH = "/comparison/answering-service";
 
-
 const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/answering-service";
 
 const faqs = [
@@ -40,7 +39,6 @@ const faqs = [
   },
 ];
 
-
 export const Route = createFileRoute("/comparison/answering-service")({
   head: () => ({
     meta: [
@@ -50,7 +48,10 @@ export const Route = createFileRoute("/comparison/answering-service")({
         content:
           "Compare a traditional answering service with FrontDesk AI's AI receptionist. See cost, 24/7 availability, calendar integration, and which is best for local businesses.",
       },
-      { property: "og:title", content: "AI Receptionist vs Answering Service — Which Is Right for You?" },
+      {
+        property: "og:title",
+        content: "AI Receptionist vs Answering Service — Which Is Right for You?",
+      },
       {
         property: "og:description",
         content:
@@ -69,13 +70,13 @@ export const Route = createFileRoute("/comparison/answering-service")({
           "@graph": [
             ...brandGraph,
             {
-          "@type": "Article",
-          headline: "AI Receptionist vs Answering Service: A Side-by-Side Comparison",
-          description:
-            "A fair comparison of traditional human answering services and AI receptionists like FrontDesk AI, covering cost, availability, and booking integration.",
-          author: { "@id": ORGANIZATION_ID },
-          publisher: { "@id": ORGANIZATION_ID },
-          mainEntityOfPage: CANONICAL,
+              "@type": "Article",
+              headline: "AI Receptionist vs Answering Service: A Side-by-Side Comparison",
+              description:
+                "A fair comparison of traditional human answering services and AI receptionists like FrontDesk AI, covering cost, availability, and booking integration.",
+              author: { "@id": ORGANIZATION_ID },
+              publisher: { "@id": ORGANIZATION_ID },
+              mainEntityOfPage: CANONICAL,
             },
           ],
         }),
@@ -111,7 +112,9 @@ function AnsweringServiceComparison() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <nav className="mb-8 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-foreground">Home</Link>
+        <Link to="/" className="hover:text-foreground">
+          Home
+        </Link>
         <span className="mx-2">/</span>
         <span>Comparison</span>
         <span className="mx-2">/</span>
@@ -123,8 +126,8 @@ function AnsweringServiceComparison() {
           AI Receptionist vs Answering Service
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Traditional answering services have served businesses for decades. AI receptionists are the
-          modern alternative. Here's an honest comparison to help you choose.
+          Traditional answering services have served businesses for decades. AI receptionists are
+          the modern alternative. Here's an honest comparison to help you choose.
         </p>
       </header>
 
@@ -132,18 +135,18 @@ function AnsweringServiceComparison() {
         <h2>Short answer</h2>
         <p>
           A <strong>human answering service</strong> answers your phone during set hours, takes
-          messages, and may book appointments manually. It's reliable, but costs scale with every call
-          and hour of coverage.
+          messages, and may book appointments manually. It's reliable, but costs scale with every
+          call and hour of coverage.
         </p>
         <p>
-          An <strong>AI receptionist</strong> like FrontDesk AI answers calls and Instagram & Facebook
-          DMs 24/7, qualifies customers, and books appointments directly into your calendar. It's
-          faster, always on, and costs a flat monthly fee.
+          An <strong>AI receptionist</strong> like FrontDesk AI answers calls and Instagram &
+          Facebook DMs 24/7, qualifies customers, and books appointments directly into your
+          calendar. It's faster, always on, and costs a flat monthly fee.
         </p>
         <p>
-          If you need a personal touch for complex, high-value conversations, a human service may still
-          win. If you want to stop missing calls and book more appointments while you work, an AI
-          receptionist is the better fit.
+          If you need a personal touch for complex, high-value conversations, a human service may
+          still win. If you want to stop missing calls and book more appointments while you work, an
+          AI receptionist is the better fit.
         </p>
       </section>
 
@@ -154,7 +157,9 @@ function AnsweringServiceComparison() {
             <thead>
               <tr className="border-b border-border">
                 <th className="py-3 pr-4 font-semibold text-foreground">&nbsp;</th>
-                <th className="py-3 pr-4 font-semibold text-foreground">Traditional answering service</th>
+                <th className="py-3 pr-4 font-semibold text-foreground">
+                  Traditional answering service
+                </th>
                 <th className="py-3 font-semibold text-foreground">FrontDesk AI</th>
               </tr>
             </thead>
@@ -164,7 +169,11 @@ function AnsweringServiceComparison() {
                 service="$150–$2,000+ (per-minute or per-agent)"
                 us="From $49/mo flat"
               />
-              <Row label="Availability" service="Business hours or scheduled coverage" us="24/7, instant" />
+              <Row
+                label="Availability"
+                service="Business hours or scheduled coverage"
+                us="24/7, instant"
+              />
               <Row label="Call answering" service="Human agent" us="AI voice assistant" />
               <Row
                 label="Instagram & Facebook DMs"
@@ -176,8 +185,16 @@ function AnsweringServiceComparison() {
                 service="Manual entry or message relay"
                 us="Books straight into your calendar"
               />
-              <Row label="Conflict detection" service="Depends on agent" us="Automatic overlap checks" />
-              <Row label="Languages" service="Limited by staffing" us="12 languages incl. Arabic (RTL)" />
+              <Row
+                label="Conflict detection"
+                service="Depends on agent"
+                us="Automatic overlap checks"
+              />
+              <Row
+                label="Languages"
+                service="Limited by staffing"
+                us="12 languages incl. Arabic (RTL)"
+              />
               <Row label="Setup time" service="Days to weeks" us="Same day, no-code" />
               <Row label="Scalability" service="Hire more agents" us="Instant, no extra hiring" />
             </tbody>
@@ -190,7 +207,9 @@ function AnsweringServiceComparison() {
         <ul>
           <li>Complex, sensitive conversations where empathy and human judgment matter most.</li>
           <li>Industries with strict scripting requirements or heavy compliance oversight.</li>
-          <li>Businesses that already have a trusted relationship with a long-term answering provider.</li>
+          <li>
+            Businesses that already have a trusted relationship with a long-term answering provider.
+          </li>
         </ul>
 
         <h2>Where FrontDesk AI wins</h2>
@@ -204,28 +223,28 @@ function AnsweringServiceComparison() {
             weekends, and holidays.
           </li>
           <li>
-            <strong>Seamless calendar integration.</strong> Appointments are booked, rescheduled, and
-            checked for conflicts automatically.
+            <strong>Seamless calendar integration.</strong> Appointments are booked, rescheduled,
+            and checked for conflicts automatically.
           </li>
           <li>
             <strong>Same-day setup.</strong> No implementation project — connect your calendar and
             start answering.
           </li>
           <li>
-            <strong>Unified inbox.</strong> Calls, Instagram DMs, and Facebook messages flow into one
-            place.
+            <strong>Unified inbox.</strong> Calls, Instagram DMs, and Facebook messages flow into
+            one place.
           </li>
         </ul>
 
         <h2>Who should pick which?</h2>
         <p>
-          <strong>Pick a human answering service</strong> if your calls require deep empathy, bespoke
-          handling, or you operate in a regulated environment where every word is scripted.
+          <strong>Pick a human answering service</strong> if your calls require deep empathy,
+          bespoke handling, or you operate in a regulated environment where every word is scripted.
         </p>
         <p>
-          <strong>Pick FrontDesk AI</strong> if you're a local shop, clinic, salon, or trades business
-          that wants to answer every call, book every appointment, and never lose a customer to a busy
-          signal again.
+          <strong>Pick FrontDesk AI</strong> if you're a local shop, clinic, salon, or trades
+          business that wants to answer every call, book every appointment, and never lose a
+          customer to a busy signal again.
         </p>
       </section>
 
@@ -255,7 +274,6 @@ function AnsweringServiceComparison() {
         </div>
       </section>
 
-
       <section className="mt-12">
         <h2 className="text-2xl font-semibold text-foreground">Frequently asked questions</h2>
         <dl className="mt-6 space-y-4">
@@ -269,7 +287,6 @@ function AnsweringServiceComparison() {
       </section>
 
       <section className="mt-12">
-
         <h2 className="text-xl font-semibold text-foreground">Related comparisons</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <TrackedLink
@@ -277,20 +294,27 @@ function AnsweringServiceComparison() {
             event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
-            <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs live chat</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Live chat only catches website visitors — see what it misses.</p>
+            <h3 className="font-medium text-foreground group-hover:text-accent">
+              AI receptionist vs live chat
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Live chat only catches website visitors — see what it misses.
+            </p>
           </TrackedLink>
           <TrackedLink
             to="/comparison/polyai"
             event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
-            <h3 className="font-medium text-foreground group-hover:text-accent">PolyAI vs FrontDesk AI</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Enterprise voice AI versus something a local shop can switch on today.</p>
+            <h3 className="font-medium text-foreground group-hover:text-accent">
+              PolyAI vs FrontDesk AI
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Enterprise voice AI versus something a local shop can switch on today.
+            </p>
           </TrackedLink>
         </div>
       </section>
-
     </main>
   );
 }
