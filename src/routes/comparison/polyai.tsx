@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
+import { TrackedLink } from "@/components/TrackedLink";
+import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
-const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/polyai";
+const PAGE_PATH = "/comparison/polyai";
+const CANONICAL = `https://chat-schedule-charm.lovable.app${PAGE_PATH}`;
+
 
 export const Route = createFileRoute("/comparison/polyai")({
   head: () => ({
@@ -166,39 +170,48 @@ function PolyAIComparison() {
           Answer every call and DM. Book every appointment. Live in minutes.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
+          <TrackedLink
             to="/signup"
+            event={{ page: PAGE_PATH, cta: "start_free", location: "bottom_cta" }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Start free
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             to="/"
+            event={{ page: PAGE_PATH, cta: "see_pricing", location: "bottom_cta" }}
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             See pricing
-          </Link>
+          </TrackedLink>
+        </div>
+        <div className="mt-6 flex justify-center">
+          <ComparisonLeadForm page={PAGE_PATH} cta="get_demo" />
         </div>
       </section>
+
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold text-foreground">Related comparisons</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Link
+          <TrackedLink
             to="/comparison/answering-service"
+            event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
             <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs answering service</h3>
             <p className="mt-1 text-sm text-muted-foreground">What a human answering service costs, and where AI books more calls.</p>
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             to="/comparison/ai-receptionist-vs-live-chat"
+            event={{ page: PAGE_PATH, cta: "related_comparison", location: "related" }}
             className="group rounded-xl border border-border bg-background p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
             <h3 className="font-medium text-foreground group-hover:text-accent">AI receptionist vs live chat</h3>
             <p className="mt-1 text-sm text-muted-foreground">Live chat only catches website visitors — see what it misses.</p>
-          </Link>
+          </TrackedLink>
         </div>
+
       </section>
     </main>
   );
