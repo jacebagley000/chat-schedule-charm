@@ -26,6 +26,7 @@ DECLARE
   must_be_definer text[] := ARRAY[
     'is_business_member',
     'has_business_role',
+    'has_role',
     'handle_new_user',
     'handle_new_business',
     'add_business_member_by_email',
@@ -224,6 +225,9 @@ BEGIN
   END IF;
   IF public.has_business_role(u, b, ARRAY['owner']::public.business_role[]) THEN
     RAISE EXCEPTION 'has_business_role returned TRUE for random ids';
+  END IF;
+  IF public.has_role(u, 'admin'::public.app_role) THEN
+    RAISE EXCEPTION 'has_role returned TRUE for random ids';
   END IF;
   RAISE NOTICE 'OK  (7) helper functions default to FALSE for unknown ids';
 END $$;
