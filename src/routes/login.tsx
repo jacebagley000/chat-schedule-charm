@@ -110,6 +110,15 @@ function LoginPage() {
             New to FrontDesk AI?{" "}
             <Link to="/signup" className="text-foreground underline underline-offset-4">Create an account</Link>
           </p>
+          <p className="text-sm text-muted-foreground text-center mt-4">
+            Trying to decide?{" "}
+            <Link
+              to="/comparison/ai-receptionist-vs-live-chat"
+              className="text-foreground underline underline-offset-4"
+            >
+              AI receptionist vs live chat
+            </Link>
+          </p>
         </div>
       </div>
     </div>
