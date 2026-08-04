@@ -58,3 +58,33 @@ export const submitLead = createServerFn({ method: "POST" })
 
     return { success: true };
   });
+
+export const listLeads = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+
+    if (roleError) {
+      throw new Error(`Role check failed: ${roleError.message}`);
+    }
+
+    if (!isAdmin) {
+      throw new Error("Forbidden");
+    }
+
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to load leads: ${error.message}`);
+    }
+
+    return { leads: data };
+  });
