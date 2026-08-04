@@ -175,6 +175,12 @@ function Index() {
             >
               vs Answering Service
             </Link>
+            <Link
+              to="/comparison/ai-receptionist-vs-live-chat"
+              className="text-sm font-medium transition-colors hover:text-accent"
+            >
+              vs Live Chat
+            </Link>
             <a href="#pricing" className="text-sm font-medium transition-colors hover:text-accent">
               Pricing
             </a>
@@ -521,6 +527,15 @@ function Index() {
             </div>
           ))}
         </div>
+        <p className="mt-10 text-center text-sm text-muted-foreground">
+          Not sure how we compare to website chat tools?{" "}
+          <Link
+            to="/comparison/ai-receptionist-vs-live-chat"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-accent"
+          >
+            See AI receptionist vs live chat
+          </Link>
+        </p>
       </section>
 
       {/* Comparisons */}
