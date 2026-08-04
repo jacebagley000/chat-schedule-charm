@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useState, type FormEvent } from "react";
-import { useSearch } from "@tanstack/react-router";
+import { useState, useMemo, type FormEvent } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,17 @@ interface ComparisonLeadFormProps {
 }
 
 export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFormProps) {
-  const search = useSearch({ from: undefined, strict: false });
+  const location = useLocation();
   const submit = useServerFn(submitLead);
+
+  const utm = useMemo(() => {
+    const params = new URLSearchParams(location.searchStr);
+    return {
+      source: params.get("utm_source") || undefined,
+      medium: params.get("utm_medium") || undefined,
+      campaign: params.get("utm_campaign") || undefined,
+    };
+  }, [location.searchStr]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -57,9 +66,9 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
           preferredCallTime: preferredCallTime || undefined,
           sourcePage: page,
           notes: notes.trim(),
-          utmSource: search?.utm_source,
-          utmMedium: search?.utm_medium,
-          utmCampaign: search?.utm_campaign,
+          utmSource: utm.source,
+          utmMedium: utm.medium,
+          utmCampaign: utm.campaign,
         },
       });
 
