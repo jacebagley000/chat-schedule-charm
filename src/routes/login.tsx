@@ -66,7 +66,7 @@ function LoginPage() {
   };
 
   const handleGoogle = async () => {
-    const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+    const target = safeRedirectPath(redirectTo);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + target,
     });
