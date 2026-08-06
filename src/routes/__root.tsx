@@ -81,8 +81,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "FrontDesk AI answers your shop phone and Instagram & Facebook DMs, qualifies customers, and books appointments straight into your calendar. Built for local businesses.",
+          "FrontDesk AI answers your phone and Instagram & Facebook DMs, then books appointments into your calendar. Built for local businesses.",
       },
+
       { property: "og:title", content: "FrontDesk AI — AI receptionist for local businesses" },
       {
         property: "og:description",
