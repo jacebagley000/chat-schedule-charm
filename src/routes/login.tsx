@@ -1,5 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
+import { safeRedirectPath } from "@/lib/safe-redirect";
+
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -45,12 +47,14 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const goNext = () => {
-    if (redirectTo && redirectTo.startsWith("/")) {
-      window.location.assign(redirectTo);
+    const target = safeRedirectPath(redirectTo);
+    if (target !== "/dashboard") {
+      window.location.assign(target);
     } else {
       navigate({ to: "/dashboard" });
     }
   };
+
 
   const handleEmail = async (e: FormEvent) => {
     e.preventDefault();
