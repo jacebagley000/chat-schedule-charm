@@ -1,5 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
+import { safeRedirectPath } from "@/lib/safe-redirect";
+
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -50,9 +52,8 @@ function SignupPage() {
   // immediately after account creation. Otherwise honor `?redirect=` or dashboard.
   const target = plan
     ? `/checkout/start?plan=${encodeURIComponent(plan)}`
-    : redirectTo && redirectTo.startsWith("/")
-    ? redirectTo
-    : "/dashboard";
+    : safeRedirectPath(redirectTo);
+
 
   const goNext = () => {
     window.location.assign(target);
