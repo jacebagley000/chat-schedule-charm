@@ -121,7 +121,10 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
 function Row({ label, liveChat, us }: { label: string; liveChat: string; us: string }) {
   return (
     <tr className="border-t border-border">
-      <td className="py-3 pr-4 font-medium text-foreground">{label}</td>
+      <th scope="row" className="py-3 pr-4 text-left font-medium text-foreground">
+        {label}
+      </th>
+
       <td className="py-3 pr-4 text-muted-foreground">{liveChat}</td>
       <td className="py-3 text-foreground">{us}</td>
     </tr>
@@ -131,7 +134,7 @@ function Row({ label, liveChat, us }: { label: string; liveChat: string; us: str
 function AiReceptionistVsLiveChat() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
-      <nav className="mb-8 text-sm text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="mb-8 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">
           Home
         </Link>
@@ -177,9 +180,16 @@ function AiReceptionistVsLiveChat() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="py-3 pr-4 font-semibold text-foreground">&nbsp;</th>
-                <th className="py-3 pr-4 font-semibold text-foreground">Live chat software</th>
-                <th className="py-3 font-semibold text-foreground">FrontDesk AI</th>
+                <th scope="col" className="py-3 pr-4 font-semibold text-foreground">
+                  <span className="sr-only">Feature</span>
+                </th>
+                <th scope="col" className="py-3 pr-4 font-semibold text-foreground">
+                  Live chat software
+                </th>
+                <th scope="col" className="py-3 font-semibold text-foreground">
+                  FrontDesk AI
+                </th>
+
               </tr>
             </thead>
             <tbody>
