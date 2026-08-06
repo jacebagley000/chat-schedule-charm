@@ -80,7 +80,25 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
               publisher: { "@id": ORGANIZATION_ID },
               mainEntityOfPage: CANONICAL,
             },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://chat-schedule-charm.lovable.app/",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "AI Receptionist vs Live Chat",
+                  item: CANONICAL,
+                },
+              ],
+            },
           ],
+
         }),
       },
       {
