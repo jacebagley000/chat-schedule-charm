@@ -23,7 +23,7 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Sign in — FrontDesk AI" },
-      { name: "description", content: "Sign in to your FrontDesk AI workspace." },
+      { name: "description", content: "Sign in to your FrontDesk AI workspace to review calls, Instagram and Facebook DMs, and today's bookings in one place." },
       { property: "og:title", content: "Sign in to FrontDesk AI" },
       {
         property: "og:description",

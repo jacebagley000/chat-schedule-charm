@@ -41,9 +41,9 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
   head: () => ({
     meta: [
       {
-        title:
-          "AI Receptionist vs Live Chat: Best Live Chat for Small Business (2026) — FrontDesk AI",
+        title: "AI Receptionist vs Live Chat (2026) — FrontDesk AI",
       },
+
       {
         name: "description",
         content:
