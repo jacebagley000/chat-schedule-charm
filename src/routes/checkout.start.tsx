@@ -30,6 +30,8 @@ export const Route = createFileRoute("/checkout/start")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/start" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Starting your FrontDesk AI checkout" },
+      { name: "twitter:description", content: "We're opening a secure Paddle checkout window for your selected plan." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/start" }],

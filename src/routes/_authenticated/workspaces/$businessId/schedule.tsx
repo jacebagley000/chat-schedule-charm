@@ -57,6 +57,8 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/sch
         content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/schedule`,
       },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Live Schedule — FrontDesk AI" },
+      { name: "twitter:description", content: "Real-time work schedule for your business, grouped by staff." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [

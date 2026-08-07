@@ -35,6 +35,9 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/aud
         content:
           "See who changed schedules, handled messages, and modified members — with full filtering.",
       },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Audit log — FrontDesk AI" },
+      { name: "twitter:description", content: "See who changed schedules, handled messages, and modified members — with full filtering." },
       {
         property: "og:url",
         content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/audit`,

@@ -31,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/schedule" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Upcoming Shifts — FrontDesk AI" },
+      { name: "twitter:description", content: "Unified schedule dashboard for viewing upcoming shifts and reassigning staff across every workspace." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/schedule" }],

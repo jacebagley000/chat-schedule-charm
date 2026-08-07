@@ -94,6 +94,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "FrontDesk AI" },
 
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "FrontDesk AI — AI receptionist for local businesses" },
+      { name: "twitter:description", content: "Answer every call and DM. Book every appointment. Lose nothing while you work." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

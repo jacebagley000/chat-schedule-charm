@@ -25,6 +25,8 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "FrontDesk AI — AI receptionist for local businesses" },
+      { name: "twitter:description", content: "Answer every call and DM. Book every appointment. Lose nothing while you work." },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/" }],
     scripts: [

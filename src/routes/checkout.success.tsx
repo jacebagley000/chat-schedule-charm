@@ -13,6 +13,8 @@ export const Route = createFileRoute("/checkout/success")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/success" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "You're subscribed — FrontDesk AI" },
+      { name: "twitter:description", content: "Your FrontDesk AI subscription is active. Head to your dashboard to get started." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/success" }],

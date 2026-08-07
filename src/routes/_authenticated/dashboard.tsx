@@ -36,6 +36,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
         content:
           "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages.",
       },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Dashboard — FrontDesk AI" },
+      { name: "twitter:description", content: "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages." },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/dashboard" },
       { name: "robots", content: "noindex, nofollow" },
     ],

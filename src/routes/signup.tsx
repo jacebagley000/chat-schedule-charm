@@ -33,6 +33,8 @@ export const Route = createFileRoute("/signup")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/signup" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Start your FrontDesk AI workspace" },
+      { name: "twitter:description", content: "Set up your AI receptionist in under a minute. 14-day trial, no card required." },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/signup" }],
     scripts: [brandJsonLd()],

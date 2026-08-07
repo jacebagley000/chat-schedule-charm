@@ -60,6 +60,8 @@ export const Route = createFileRoute("/comparison/answering-service")({
       { property: "og:type", content: "article" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AI Receptionist vs Answering Service — Which Is Right for You?" },
+      { name: "twitter:description", content: "Traditional answering service or AI receptionist? Compare cost, 24/7 availability, and calendar booking to decide what's best for your business." },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
