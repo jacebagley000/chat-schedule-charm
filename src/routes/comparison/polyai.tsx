@@ -26,9 +26,13 @@ export const Route = createFileRoute("/comparison/polyai")({
       },
       { property: "og:type", content: "article" },
       { property: "og:url", content: CANONICAL },
+      { property: "og:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-polyai.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops" },
       { name: "twitter:description", content: "PolyAI targets enterprise contact centers. FrontDesk AI is built for local shops. Compare pricing, setup, and features to pick the right AI receptionist." },
+      { name: "twitter:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-polyai.jpg" },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
