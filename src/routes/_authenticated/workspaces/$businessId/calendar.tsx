@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { format, addDays, startOfDay, addMinutes, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,28 +42,15 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
   component: CalendarPage,
   validateSearch: zodValidator(calendarSearchSchema),
   head: ({ params }) => ({
-    meta: [
-      { title: "Calendar — FrontDesk AI" },
-      {
-        name: "description",
-        content:
-          "Workspace calendar: view, create, and reschedule appointments across staff with real-time conflict detection.",
-      },
-      { property: "og:title", content: "Calendar — FrontDesk AI" },
-      {
-        property: "og:description",
-        content:
-          "Manage bookings and staff availability in your FrontDesk AI workspace calendar.",
-      },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Calendar — FrontDesk AI" },
-      { name: "twitter:description", content: "Manage bookings and staff availability in your FrontDesk AI workspace calendar." },
-      {
-        property: "og:url",
-        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,
-      },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Calendar — FrontDesk AI",
+      description:
+        "Workspace calendar: view, create, and reschedule appointments across staff with real-time conflict detection.",
+      ogDescription:
+        "Manage bookings and staff availability in your FrontDesk AI workspace calendar.",
+      path: `/workspaces/${params.businessId}/calendar`,
+      noindex: true,
+    }),
     links: [
       {
         rel: "canonical",

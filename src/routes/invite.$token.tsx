@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,20 +10,15 @@ import { Loader2, Mail, AlertTriangle, CheckCircle2 } from "lucide-react";
 export const Route = createFileRoute("/invite/$token")({
   component: InvitePage,
   head: ({ params }) => ({
-    meta: [
-      { title: "Accept invitation — FrontDesk AI" },
-      { name: "description", content: "Join a workspace on FrontDesk AI." },
-      { property: "og:title", content: "You've been invited to a FrontDesk AI workspace" },
-      {
-        property: "og:description",
-        content: "Accept your invitation to join the team and start managing calls, DMs, and bookings.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "You've been invited to a FrontDesk AI workspace" },
-      { name: "twitter:description", content: "Accept your invitation to join the team and start managing calls, DMs, and bookings." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Accept invitation — FrontDesk AI",
+      description: "Join a workspace on FrontDesk AI.",
+      ogTitle: "You've been invited to a FrontDesk AI workspace",
+      ogDescription:
+        "Accept your invitation to join the team and start managing calls, DMs, and bookings.",
+      path: `/invite/${params.token}`,
+      noindex: true,
+    }),
     links: [
       { rel: "canonical", href: `https://chat-schedule-charm.lovable.app/invite/${params.token}` },
     ],

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { addDays, format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,24 +44,12 @@ import {
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/schedule")({
   component: SchedulePage,
   head: ({ params }) => ({
-    meta: [
-      { title: "Live Schedule — FrontDesk AI" },
-      {
-        name: "description",
-        content: "Real-time work schedule for your business, grouped by staff.",
-      },
-      { property: "og:title", content: "Live Schedule — FrontDesk AI" },
-      { property: "og:description", content: "Real-time work schedule for your business, grouped by staff." },
-      { property: "og:type", content: "website" },
-      {
-        property: "og:url",
-        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/schedule`,
-      },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Live Schedule — FrontDesk AI" },
-      { name: "twitter:description", content: "Real-time work schedule for your business, grouped by staff." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Live Schedule — FrontDesk AI",
+      description: "Real-time work schedule for your business, grouped by staff.",
+      path: `/workspaces/${params.businessId}/schedule`,
+      noindex: true,
+    }),
     links: [
       {
         rel: "canonical",
