@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -21,20 +22,15 @@ export const Route = createFileRoute("/login")({
   },
   component: LoginPage,
   head: () => ({
-    meta: [
-      { title: "Sign in — FrontDesk AI" },
-      { name: "description", content: "Sign in to your FrontDesk AI workspace to review calls, Instagram and Facebook DMs, and today's bookings in one place." },
-      { property: "og:title", content: "Sign in to FrontDesk AI" },
-      {
-        property: "og:description",
-        content: "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/login" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Sign in to FrontDesk AI" },
-      { name: "twitter:description", content: "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings." },
-    ],
+    meta: pageMeta({
+      title: "Sign in — FrontDesk AI",
+      description:
+        "Sign in to your FrontDesk AI workspace to review calls, Instagram and Facebook DMs, and today's bookings in one place.",
+      ogTitle: "Sign in to FrontDesk AI",
+      ogDescription:
+        "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings.",
+      path: "/login",
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/login" }],
     scripts: [brandJsonLd()],
   }),

@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 import { TrackedLink } from "@/components/TrackedLink";
@@ -41,32 +42,17 @@ const faqs = [
 
 export const Route = createFileRoute("/comparison/answering-service")({
   head: () => ({
-    meta: [
-      { title: "AI Receptionist vs Answering Service (2026) — FrontDesk AI" },
-      {
-        name: "description",
-        content:
-          "Compare a traditional answering service with FrontDesk AI's AI receptionist. See cost, 24/7 availability, calendar integration, and which is best for local businesses.",
-      },
-      {
-        property: "og:title",
-        content: "AI Receptionist vs Answering Service — Which Is Right for You?",
-      },
-      {
-        property: "og:description",
-        content:
-          "Traditional answering service or AI receptionist? Compare cost, 24/7 availability, and calendar booking to decide what's best for your business.",
-      },
-      { property: "og:type", content: "article" },
-      { property: "og:url", content: CANONICAL },
-      { property: "og:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-answering-service.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AI Receptionist vs Answering Service — Which Is Right for You?" },
-      { name: "twitter:description", content: "Traditional answering service or AI receptionist? Compare cost, 24/7 availability, and calendar booking to decide what's best for your business." },
-      { name: "twitter:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-answering-service.jpg" },
-    ],
+    meta: pageMeta({
+      title: "AI Receptionist vs Answering Service (2026) — FrontDesk AI",
+      description:
+        "Compare a traditional answering service with FrontDesk AI's AI receptionist. See cost, 24/7 availability, calendar integration, and which is best for local businesses.",
+      ogTitle: "AI Receptionist vs Answering Service — Which Is Right for You?",
+      ogDescription:
+        "Traditional answering service or AI receptionist? Compare cost, 24/7 availability, and calendar booking to decide what's best for your business.",
+      path: CANONICAL,
+      type: "article",
+      image: "/og/comparison-answering-service.jpg",
+    }),
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
       {

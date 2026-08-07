@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { toast } from "sonner";
@@ -10,24 +11,15 @@ import sarahImg from "@/assets/testimonial-sarah.jpg";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
-    meta: [
-      { title: "FrontDesk AI — The receptionist who never misses a call" },
-      {
-        name: "description",
-        content:
-          "FrontDesk AI answers your shop phone and Instagram & Facebook DMs, qualifies customers, and books appointments straight into your calendar.",
-      },
-      { property: "og:title", content: "FrontDesk AI — AI receptionist for local businesses" },
-      {
-        property: "og:description",
-        content: "Answer every call and DM. Book every appointment. Lose nothing while you work.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "FrontDesk AI — AI receptionist for local businesses" },
-      { name: "twitter:description", content: "Answer every call and DM. Book every appointment. Lose nothing while you work." },
-    ],
+    meta: pageMeta({
+      title: "FrontDesk AI — The receptionist who never misses a call",
+      description:
+        "FrontDesk AI answers your shop phone and Instagram & Facebook DMs, qualifies customers, and books appointments straight into your calendar.",
+      ogTitle: "FrontDesk AI — AI receptionist for local businesses",
+      ogDescription:
+        "Answer every call and DM. Book every appointment. Lose nothing while you work.",
+      path: "/",
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/" }],
     scripts: [
       brandJsonLd({

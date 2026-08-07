@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,21 +20,14 @@ export const Route = createFileRoute("/checkout/start")({
   },
   component: CheckoutStartPage,
   head: () => ({
-    meta: [
-      { title: "Starting checkout — FrontDesk AI" },
-      { name: "description", content: "Redirecting you to secure checkout." },
-      { property: "og:title", content: "Starting your FrontDesk AI checkout" },
-      {
-        property: "og:description",
-        content: "We're opening a secure Paddle checkout window for your selected plan.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/start" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Starting your FrontDesk AI checkout" },
-      { name: "twitter:description", content: "We're opening a secure Paddle checkout window for your selected plan." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Starting checkout — FrontDesk AI",
+      description: "Redirecting you to secure checkout.",
+      ogTitle: "Starting your FrontDesk AI checkout",
+      ogDescription: "We're opening a secure Paddle checkout window for your selected plan.",
+      path: "/checkout/start",
+      noindex: true,
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/start" }],
   }),
 

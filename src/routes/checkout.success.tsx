@@ -1,22 +1,16 @@
+import { pageMeta } from "@/lib/seo";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/checkout/success")({
   head: () => ({
-    meta: [
-      { title: "You're subscribed — FrontDesk AI" },
-      { name: "description", content: "Your FrontDesk AI subscription is active." },
-      { property: "og:title", content: "You're subscribed — FrontDesk AI" },
-      {
-        property: "og:description",
-        content: "Your FrontDesk AI subscription is active. Head to your dashboard to get started.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/checkout/success" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "You're subscribed — FrontDesk AI" },
-      { name: "twitter:description", content: "Your FrontDesk AI subscription is active. Head to your dashboard to get started." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "You're subscribed — FrontDesk AI",
+      description: "Your FrontDesk AI subscription is active.",
+      ogDescription:
+        "Your FrontDesk AI subscription is active. Head to your dashboard to get started.",
+      path: "/checkout/success",
+      noindex: true,
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/success" }],
   }),
 
