@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -22,20 +23,14 @@ export const Route = createFileRoute("/signup")({
   },
   component: SignupPage,
   head: () => ({
-    meta: [
-      { title: "Create account — FrontDesk AI" },
-      { name: "description", content: "Create your FrontDesk AI workspace in under a minute." },
-      { property: "og:title", content: "Start your FrontDesk AI workspace" },
-      {
-        property: "og:description",
-        content: "Set up your AI receptionist in under a minute. 14-day trial, no card required.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/signup" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Start your FrontDesk AI workspace" },
-      { name: "twitter:description", content: "Set up your AI receptionist in under a minute. 14-day trial, no card required." },
-    ],
+    meta: pageMeta({
+      title: "Create account — FrontDesk AI",
+      description: "Create your FrontDesk AI workspace in under a minute.",
+      ogTitle: "Start your FrontDesk AI workspace",
+      ogDescription:
+        "Set up your AI receptionist in under a minute. 14-day trial, no card required.",
+      path: "/signup",
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/signup" }],
     scripts: [brandJsonLd()],
   }),

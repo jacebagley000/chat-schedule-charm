@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 import { TrackedLink } from "@/components/TrackedLink";
@@ -8,32 +9,17 @@ const CANONICAL = `https://chat-schedule-charm.lovable.app${PAGE_PATH}`;
 
 export const Route = createFileRoute("/comparison/polyai")({
   head: () => ({
-    meta: [
-      { title: "PolyAI Review & Alternative: PolyAI vs FrontDesk AI (2026)" },
-      {
-        name: "description",
-        content:
-          "Honest PolyAI review and side-by-side comparison with FrontDesk AI. See pricing, setup time, and which AI receptionist fits local shops vs. enterprise call centers.",
-      },
-      {
-        property: "og:title",
-        content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops",
-      },
-      {
-        property: "og:description",
-        content:
-          "PolyAI targets enterprise contact centers. FrontDesk AI is built for local shops. Compare pricing, setup, and features to pick the right AI receptionist.",
-      },
-      { property: "og:type", content: "article" },
-      { property: "og:url", content: CANONICAL },
-      { property: "og:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-polyai.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops" },
-      { name: "twitter:description", content: "PolyAI targets enterprise contact centers. FrontDesk AI is built for local shops. Compare pricing, setup, and features to pick the right AI receptionist." },
-      { name: "twitter:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-polyai.jpg" },
-    ],
+    meta: pageMeta({
+      title: "PolyAI Review & Alternative: PolyAI vs FrontDesk AI (2026)",
+      description:
+        "Honest PolyAI review and side-by-side comparison with FrontDesk AI. See pricing, setup time, and which AI receptionist fits local shops vs. enterprise call centers.",
+      ogTitle: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops",
+      ogDescription:
+        "PolyAI targets enterprise contact centers. FrontDesk AI is built for local shops. Compare pricing, setup, and features to pick the right AI receptionist.",
+      path: PAGE_PATH,
+      type: "article",
+      image: "/og/comparison-polyai.jpg",
+    }),
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
       {

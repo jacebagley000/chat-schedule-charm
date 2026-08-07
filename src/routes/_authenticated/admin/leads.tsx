@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, HeadContent } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
@@ -17,12 +18,12 @@ import {
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
   head: () => ({
-    meta: [
-      { title: "Lead Inbox | FrontDesk AI" },
-      { name: "description", content: "Manage inbound leads from comparison pages." },
-      { name: "robots", content: "noindex, nofollow" },
-      { name: "canonical", content: "/admin/leads" },
-    ],
+    meta: pageMeta({
+      title: "Lead Inbox — FrontDesk AI",
+      description: "Manage inbound leads from comparison pages.",
+      path: "/admin/leads",
+      noindex: true,
+    }),
   }),
   component: LeadsPage,
 });

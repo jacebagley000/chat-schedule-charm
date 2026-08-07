@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,25 +24,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
   validateSearch: zodValidator(dashboardSearchSchema),
   head: () => ({
-    meta: [
-      { title: "Dashboard — FrontDesk AI" },
-      {
-        name: "description",
-        content:
-          "Your FrontDesk AI workspace: manage bookings, staff, live schedule, and incoming call and DM activity in one place.",
-      },
-      { property: "og:title", content: "Dashboard — FrontDesk AI" },
-      {
-        property: "og:description",
-        content:
-          "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages.",
-      },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Dashboard — FrontDesk AI" },
-      { name: "twitter:description", content: "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages." },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/dashboard" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Dashboard — FrontDesk AI",
+      description:
+        "Your FrontDesk AI workspace: manage bookings, staff, live schedule, and incoming call and DM activity in one place.",
+      ogDescription:
+        "Run your local business from one dashboard: bookings, staff, schedules, and AI-handled messages.",
+      path: "/dashboard",
+      noindex: true,
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/dashboard" }],
   }),
 });

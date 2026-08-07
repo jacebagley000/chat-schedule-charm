@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 import { TrackedLink } from "@/components/TrackedLink";
@@ -39,35 +40,17 @@ const faqs = [
 
 export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")({
   head: () => ({
-    meta: [
-      {
-        title: "AI Receptionist vs Live Chat (2026) — FrontDesk AI",
-      },
-
-      {
-        name: "description",
-        content:
-          "Compare an AI receptionist with live chat software. See which is the best live chat for small business, plus cost, 24/7 coverage, booking integration, and response speed.",
-      },
-      {
-        property: "og:title",
-        content: "AI Receptionist vs Live Chat — Best Option for Small Business?",
-      },
-      {
-        property: "og:description",
-        content:
-          "Live chat software is reactive; an AI receptionist answers calls and DMs 24/7 and books appointments. Compare features, pricing, and fit for your business.",
-      },
-      { property: "og:type", content: "article" },
-      { property: "og:url", content: CANONICAL },
-      { property: "og:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-live-chat.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AI Receptionist vs Live Chat — Best Option for Small Business?" },
-      { name: "twitter:description", content: "Live chat software is reactive; an AI receptionist answers calls and DMs 24/7 and books appointments. Compare features, pricing, and fit for your business." },
-      { name: "twitter:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-live-chat.jpg" },
-    ],
+    meta: pageMeta({
+      title: "AI Receptionist vs Live Chat (2026) — FrontDesk AI",
+      description:
+        "Compare an AI receptionist with live chat software. See which is the best live chat for small business, plus cost, 24/7 coverage, booking integration, and response speed.",
+      ogTitle: "AI Receptionist vs Live Chat — Best Option for Small Business?",
+      ogDescription:
+        "Live chat software is reactive; an AI receptionist answers calls and DMs 24/7 and books appointments. Compare features, pricing, and fit for your business.",
+      path: CANONICAL,
+      type: "article",
+      image: "/og/comparison-live-chat.jpg",
+    }),
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
       {

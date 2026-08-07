@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,26 +16,15 @@ import {
 export const Route = createFileRoute("/_authenticated/schedule")({
   component: UnifiedSchedulePage,
   head: () => ({
-    meta: [
-      { title: "Upcoming Shifts — FrontDesk AI" },
-      {
-        name: "description",
-        content:
-          "One dashboard for every workspace: view upcoming shifts and update work assignments in real time.",
-      },
-      { property: "og:title", content: "Upcoming Shifts — FrontDesk AI" },
-      {
-        property: "og:description",
-        content:
-          "Unified schedule dashboard for viewing upcoming shifts and reassigning staff across every workspace.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://chat-schedule-charm.lovable.app/schedule" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Upcoming Shifts — FrontDesk AI" },
-      { name: "twitter:description", content: "Unified schedule dashboard for viewing upcoming shifts and reassigning staff across every workspace." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Upcoming Shifts — FrontDesk AI",
+      description:
+        "One dashboard for every workspace: view upcoming shifts and update work assignments in real time.",
+      ogDescription:
+        "Unified schedule dashboard for viewing upcoming shifts and reassigning staff across every workspace.",
+      path: "/schedule",
+      noindex: true,
+    }),
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/schedule" }],
   }),
 });

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,28 +23,15 @@ import { ArrowLeft, Trash2, RefreshCw } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/audit")({
   component: AuditPage,
   head: ({ params }) => ({
-    meta: [
-      { title: "Audit log — FrontDesk AI" },
-      {
-        name: "description",
-        content:
-          "Audit trail of schedule changes, message handling, and member mutations across your FrontDesk AI workspace.",
-      },
-      { property: "og:title", content: "Audit log — FrontDesk AI" },
-      {
-        property: "og:description",
-        content:
-          "See who changed schedules, handled messages, and modified members — with full filtering.",
-      },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Audit log — FrontDesk AI" },
-      { name: "twitter:description", content: "See who changed schedules, handled messages, and modified members — with full filtering." },
-      {
-        property: "og:url",
-        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/audit`,
-      },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Audit log — FrontDesk AI",
+      description:
+        "Audit trail of schedule changes, message handling, and member mutations across your FrontDesk AI workspace.",
+      ogDescription:
+        "See who changed schedules, handled messages, and modified members — with full filtering.",
+      path: `/workspaces/${params.businessId}/audit`,
+      noindex: true,
+    }),
     links: [
       {
         rel: "canonical",

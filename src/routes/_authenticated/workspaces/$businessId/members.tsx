@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -51,21 +52,12 @@ type Invitation = {
 export const Route = createFileRoute("/_authenticated/workspaces/$businessId/members")({
   component: MembersPage,
   head: ({ params }) => ({
-    meta: [
-      { title: "Team members — FrontDesk AI" },
-      { name: "description", content: "Manage who has access to your workspace and their role." },
-      { property: "og:title", content: "Team members — FrontDesk AI" },
-      { property: "og:description", content: "Manage who has access to your workspace and their role." },
-      { property: "og:type", content: "website" },
-      {
-        property: "og:url",
-        content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/members`,
-      },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Team members — FrontDesk AI" },
-      { name: "twitter:description", content: "Manage who has access to your workspace and their role." },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: pageMeta({
+      title: "Team members — FrontDesk AI",
+      description: "Manage who has access to your workspace and their role.",
+      path: `/workspaces/${params.businessId}/members`,
+      noindex: true,
+    }),
     links: [
       {
         rel: "canonical",
