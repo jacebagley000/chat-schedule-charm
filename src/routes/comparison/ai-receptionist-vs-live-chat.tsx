@@ -61,6 +61,8 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
       { property: "og:type", content: "article" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AI Receptionist vs Live Chat — Best Option for Small Business?" },
+      { name: "twitter:description", content: "Live chat software is reactive; an AI receptionist answers calls and DMs 24/7 and books appointments. Compare features, pricing, and fit for your business." },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [

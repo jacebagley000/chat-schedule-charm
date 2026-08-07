@@ -54,6 +54,9 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
         content:
           "Manage bookings and staff availability in your FrontDesk AI workspace calendar.",
       },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Calendar — FrontDesk AI" },
+      { name: "twitter:description", content: "Manage bookings and staff availability in your FrontDesk AI workspace calendar." },
       {
         property: "og:url",
         content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,

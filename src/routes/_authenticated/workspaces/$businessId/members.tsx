@@ -62,6 +62,8 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/mem
         content: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/members`,
       },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Team members — FrontDesk AI" },
+      { name: "twitter:description", content: "Manage who has access to your workspace and their role." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [

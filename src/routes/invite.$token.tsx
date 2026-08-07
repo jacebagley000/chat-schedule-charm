@@ -19,6 +19,8 @@ export const Route = createFileRoute("/invite/$token")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "You've been invited to a FrontDesk AI workspace" },
+      { name: "twitter:description", content: "Accept your invitation to join the team and start managing calls, DMs, and bookings." },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [

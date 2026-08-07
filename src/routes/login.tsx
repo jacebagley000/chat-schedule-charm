@@ -32,6 +32,8 @@ export const Route = createFileRoute("/login")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://chat-schedule-charm.lovable.app/login" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Sign in to FrontDesk AI" },
+      { name: "twitter:description", content: "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings." },
     ],
     links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/login" }],
     scripts: [brandJsonLd()],

@@ -27,6 +27,8 @@ export const Route = createFileRoute("/comparison/polyai")({
       { property: "og:type", content: "article" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PolyAI vs FrontDesk AI — Honest Comparison for Local Shops" },
+      { name: "twitter:description", content: "PolyAI targets enterprise contact centers. FrontDesk AI is built for local shops. Compare pricing, setup, and features to pick the right AI receptionist." },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
