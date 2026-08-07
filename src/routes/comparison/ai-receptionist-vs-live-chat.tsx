@@ -60,9 +60,13 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
       },
       { property: "og:type", content: "article" },
       { property: "og:url", content: CANONICAL },
+      { property: "og:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-live-chat.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "AI Receptionist vs Live Chat — Best Option for Small Business?" },
       { name: "twitter:description", content: "Live chat software is reactive; an AI receptionist answers calls and DMs 24/7 and books appointments. Compare features, pricing, and fit for your business." },
+      { name: "twitter:image", content: "https://chat-schedule-charm.lovable.app/og/comparison-live-chat.jpg" },
     ],
     links: [{ rel: "canonical", href: CANONICAL }],
     scripts: [
