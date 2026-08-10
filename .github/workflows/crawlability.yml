@@ -1,0 +1,64 @@
+name: Crawlability
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: crawlability-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  crawlability:
+    name: robots.txt / sitemap.xml contract
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun install store
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb', 'bun.lock', 'package.json') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Start dev server
+        run: |
+          mkdir -p artifacts
+          (bun run dev > artifacts/server.log 2>&1 &)
+          for i in $(seq 1 90); do
+            if curl -sf -o /dev/null http://localhost:8080/; then
+              echo "server is up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::dev server did not start within 90s"
+          tail -n 100 artifacts/server.log
+          exit 1
+
+      - name: Check robots.txt / sitemap.xml crawlability contract
+        run: bash scripts/check-crawlability.sh http://localhost:8080
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawlability-server-log
+          path: artifacts/server.log
+          if-no-files-found: ignore
