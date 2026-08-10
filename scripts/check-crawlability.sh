@@ -117,7 +117,13 @@ PY
 echo "==> Checking sitemap URLs are 200 and robots-allowed"
 while IFS= read -r path; do
   [ -n "$path" ] || continue
-  code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$BASE_URL$path")"
+  code=""
+  # Retry transient connection failures (server restart / cold SSR compile).
+  for attempt in 1 2 3 4 5; do
+    code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$BASE_URL$path" 2>/dev/null)"
+    [ "$code" != "000" ] && break
+    sleep 3
+  done
   if [ "$code" != "200" ]; then
     echo "  FAIL $path -> HTTP $code (expected 200)"
     failures=$((failures + 1))
