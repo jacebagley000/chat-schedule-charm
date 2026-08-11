@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Deployed URL to crawl-test (defaults to the STAGING_URL / PREVIEW_URL repo variable)"
+        required: false
+        type: string
 
 concurrency:
   group: crawlability-${{ github.ref }}
@@ -67,3 +72,54 @@ jobs:
           name: crawlability-server-log
           path: artifacts/server.log
           if-no-files-found: ignore
+
+  deployed:
+    name: crawlability against deployed site
+    runs-on: ubuntu-latest
+    # Only run when a target URL is configured; skips cleanly otherwise.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      github.event_name == 'schedule'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve target URL
+        id: target
+        env:
+          INPUT_URL: ${{ inputs.deployment_url }}
+          STAGING_URL: ${{ vars.STAGING_URL }}
+          PREVIEW_URL: ${{ vars.PREVIEW_URL }}
+        run: |
+          url="${INPUT_URL:-${STAGING_URL:-$PREVIEW_URL}}"
+          url="${url%/}"
+          if [ -z "$url" ]; then
+            echo "::notice::No STAGING_URL/PREVIEW_URL repo variable and no input URL - skipping deployed crawlability check."
+            echo "url=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Target: $url"
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for deployment to respond
+        if: steps.target.outputs.url != ''
+        run: |
+          for i in $(seq 1 30); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "${{ steps.target.outputs.url }}/robots.txt" || echo 000)"
+            if [ "$code" = "200" ]; then
+              echo "deployment reachable after ${i} attempt(s)"
+              exit 0
+            fi
+            echo "attempt ${i}: /robots.txt -> $code"
+            sleep 10
+          done
+          echo "::error::${{ steps.target.outputs.url }}/robots.txt never returned 200"
+          exit 1
+
+      - name: Check robots.txt / sitemap.xml crawlability contract
+        if: steps.target.outputs.url != ''
+        run: bash scripts/check-crawlability.sh "${{ steps.target.outputs.url }}"
