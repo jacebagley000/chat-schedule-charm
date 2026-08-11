@@ -105,3 +105,23 @@ export function renderSitemapXml(): string {
     `</urlset>`,
   ].join("\n");
 }
+
+/** Non-page files that crawlers may fetch and index normally. */
+const CRAWLABLE_FILES = new Set([...EXTRA_ALLOWED, "/robots.txt"]);
+
+/**
+ * True when the given URL path is part of the public allowlist (or a crawlable
+ * non-page file). Everything else is private and must be sent with a
+ * `X-Robots-Tag: noindex` response header.
+ */
+export function isCrawlablePath(pathname: string): boolean {
+  const path =
+    pathname.length > 1 && pathname.endsWith("/")
+      ? pathname.replace(/\/+$/, "")
+      : pathname;
+  if (CRAWLABLE_FILES.has(path)) return true;
+  return PUBLIC_ROUTES.some((r) => r.path === path);
+}
+
+/** Value sent on every non-crawlable response. */
+export const NOINDEX_HEADER = "noindex, nofollow, noarchive";
