@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, HeadContent } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { pageMeta, canonicalLink } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
       path: "/admin/leads",
       noindex: true,
     }),
+    links: [canonicalLink("/admin/leads")],
   }),
   component: LeadsPage,
 });
