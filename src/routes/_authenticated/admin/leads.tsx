@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
       path: "/admin/leads",
       noindex: true,
     }),
+    links: [canonicalLink("/admin/leads")],
   }),
   component: LeadsPage,
 });
