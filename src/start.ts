@@ -28,6 +28,7 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 const robotsHeaderMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     const { pathname } = getRequestUrl();
+    console.log("[robots-mw]", pathname, isCrawlablePath(pathname));
     if (!isCrawlablePath(pathname)) {
       setResponseHeader("X-Robots-Tag", NOINDEX_HEADER);
     }
