@@ -3,7 +3,7 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 import { renderErrorPage } from "./lib/error-page";
 import { isCrawlablePath, NOINDEX_HEADER } from "./lib/public-routes";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
-import { getRequestUrl, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestUrl } from "@tanstack/react-start/server";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -26,16 +26,17 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
  * search results even if a route's meta tags are changed or dropped.
  */
 const robotsHeaderMiddleware = createMiddleware().server(async ({ next }) => {
+  const result = await next();
   try {
     const { pathname } = getRequestUrl();
-    console.log("[robots-mw]", pathname, isCrawlablePath(pathname));
     if (!isCrawlablePath(pathname)) {
-      setResponseHeader("X-Robots-Tag", NOINDEX_HEADER);
+      const response = (result as { response?: Response }).response;
+      response?.headers.set("X-Robots-Tag", NOINDEX_HEADER);
     }
   } catch {
     // No request context (non-HTTP invocation) — nothing to tag.
   }
-  return next();
+  return result;
 });
 
 export const startInstance = createStart(() => ({
