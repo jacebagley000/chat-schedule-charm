@@ -165,12 +165,12 @@ for (const path of publicPaths) {
   }
 }
 
-
 if (errors.length) {
   console.error("\n✗ noindex / robots allowlist contradictions:\n");
-  for (const e of errors) console.error(`  - ${e}`);
-  console.error(`\n${errors.length} problem(s) found.\n`);
+  errors.forEach((e, i) => console.error(`  ${i + 1}) ${e}\n`));
+  console.error(`${errors.length} problem(s) found.\n`);
   process.exit(1);
 }
+
 
 console.log(`✓ noindex settings agree with robots/sitemap allowlist (${seen.size} routes)`);
