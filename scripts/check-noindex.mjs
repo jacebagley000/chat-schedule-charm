@@ -67,11 +67,34 @@ function routeFiles() {
   return out.filter((f) => !f.startsWith("__root"));
 }
 
-function hasNoindex(source) {
-  return (
-    /noindex\s*:\s*true/.test(source) ||
-    /content:\s*["'`][^"'`]*noindex/i.test(source)
-  );
+/**
+ * Collect the actual robots signals a route emits, so error output can quote
+ * them verbatim instead of just saying "noindex missing".
+ */
+function robotsSignals(source) {
+  const signals = [];
+  for (const m of source.matchAll(/noindex\s*:\s*(true|false)/g)) {
+    signals.push({ kind: "pageMeta", value: `noindex: ${m[1]}`, noindex: m[1] === "true" });
+  }
+  for (const m of source.matchAll(
+    /name:\s*["'`]robots["'`]\s*,\s*content:\s*["'`]([^"'`]*)["'`]/g,
+  )) {
+    signals.push({
+      kind: 'meta name="robots"',
+      value: m[1],
+      noindex: /noindex/i.test(m[1]),
+    });
+  }
+  for (const m of source.matchAll(/content:\s*["'`]([^"'`]*noindex[^"'`]*)["'`]/gi)) {
+    if (signals.some((s) => s.value === m[1])) continue;
+    signals.push({ kind: "meta content", value: m[1], noindex: true });
+  }
+  return signals;
+}
+
+function describeSignals(signals) {
+  if (!signals.length) return "none (no robots meta and no `noindex` flag)";
+  return signals.map((s) => `${s.kind} -> "${s.value}"`).join("; ");
 }
 
 const { publicPaths, privatePrefixes } = parseRegistry();
@@ -85,23 +108,44 @@ for (const file of routeFiles()) {
   seen.add(url);
 
   const source = readFileSync(join(ROUTES_DIR, file), "utf8");
-  const noindex = hasNoindex(source);
+  const signals = robotsSignals(source);
+  const noindex = signals.some((s) => s.noindex);
   const isPublic = publicSet.has(url);
   const isPrivatePrefix = privatePrefixes.some((p) => url === p || url.startsWith(p));
 
-  if (isPublic && noindex) {
+  const report = (expected, why, fix) =>
     errors.push(
-      `${file}: route "${url}" is allowlisted in robots.txt and listed in sitemap.xml, ` +
-        `but the page sets noindex. Remove noindex, or drop it from PUBLIC_ROUTES.`,
+      [
+        `route:      ${url}`,
+        `file:       src/routes/${file}`,
+        `allowlist:  ${isPublic ? "PUBLIC (in PUBLIC_ROUTES + sitemap.xml)" : "PRIVATE"}${
+          !isPublic && isPrivatePrefix
+            ? ` (matches PRIVATE_PREFIXES entry "${privatePrefixes.find((p) => url === p || url.startsWith(p))}")`
+            : ""
+        }`,
+        `robots.txt: ${isPublic ? `Allow: ${url === "/" ? "/$" : url}` : "Disallow (catch-all or explicit prefix)"}`,
+        `expected:   ${expected}`,
+        `actual:     ${describeSignals(signals)}`,
+        `x-robots:   ${isPublic ? "no X-Robots-Tag header" : "X-Robots-Tag: noindex, nofollow, noarchive"}`,
+        `why:        ${why}`,
+        `fix:        ${fix}`,
+      ].join("\n    "),
+    );
+
+  if (isPublic && noindex) {
+    report(
+      "indexable (no `noindex` anywhere in the page metadata)",
+      "the route is allowlisted in robots.txt and advertised in sitemap.xml, but the rendered page tells crawlers not to index it",
+      "remove `noindex: true` from its pageMeta(), or drop the path from PUBLIC_ROUTES in src/lib/public-routes.ts",
     );
   }
   if (!isPublic && !noindex) {
-    const why = isPrivatePrefix
-      ? `matches the private prefix it falls under`
-      : `is not allowlisted, so robots.txt blocks it via the catch-all Disallow`;
-    errors.push(
-      `${file}: route "${url}" ${why}, but the page does not set noindex. ` +
-        `Add \`noindex: true\` to its pageMeta(), or add it to PUBLIC_ROUTES.`,
+    report(
+      'noindex (pageMeta({ noindex: true }) -> <meta name="robots" content="noindex, nofollow">)',
+      isPrivatePrefix
+        ? "the route falls under a private prefix, so robots.txt disallows it, yet the rendered page carries no noindex signal"
+        : "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
+      "add `noindex: true` to its pageMeta(), or add the path to PUBLIC_ROUTES in src/lib/public-routes.ts",
     );
   }
 }
@@ -109,11 +153,18 @@ for (const file of routeFiles()) {
 for (const path of publicPaths) {
   if (!seen.has(path)) {
     errors.push(
-      `PUBLIC_ROUTES lists "${path}" but no page route file resolves to it — ` +
-        `sitemap.xml would advertise a URL the router does not serve.`,
+      [
+        `route:      ${path}`,
+        `file:       (none — no route file resolves to this path)`,
+        `allowlist:  PUBLIC (in PUBLIC_ROUTES + sitemap.xml)`,
+        `expected:   a page route file rendering indexable metadata`,
+        `actual:     404 — sitemap.xml advertises a URL the router does not serve`,
+        `fix:        create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+      ].join("\n    "),
     );
   }
 }
+
 
 if (errors.length) {
   console.error("\n✗ noindex / robots allowlist contradictions:\n");
