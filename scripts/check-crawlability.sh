@@ -18,7 +18,9 @@ BASE_URL="${BASE_URL%/}"
 # PRIVATE_PREFIXES in src/lib/public-routes.ts.
 PRIVATE_PATHS=(
   "/dashboard"
+  "/admin/leads"
   "/schedule"
+
   "/workspaces/abc/calendar"
   "/checkout/start"
   "/invite/token123"
