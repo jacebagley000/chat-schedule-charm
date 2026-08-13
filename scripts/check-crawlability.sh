@@ -114,7 +114,14 @@ sys.exit(0 if (best is None or best[1]) else 1)
 PY
 }
 
-echo "==> Checking sitemap URLs are 200 and robots-allowed"
+x_robots() { # x_robots <path> -> prints the X-Robots-Tag header value (may be empty)
+  curl -sSI --max-time 30 "$BASE_URL$1" 2>/dev/null \
+    | tr -d '\r' \
+    | awk -F': ' 'tolower($1)=="x-robots-tag" {print tolower($2)}' \
+    | paste -sd, -
+}
+
+echo "==> Checking sitemap URLs are 200, robots-allowed and not noindexed"
 while IFS= read -r path; do
   [ -n "$path" ] || continue
   code=""
@@ -124,27 +131,36 @@ while IFS= read -r path; do
     [ "$code" != "000" ] && break
     sleep 3
   done
+  tag="$(x_robots "$path")"
   if [ "$code" != "200" ]; then
     echo "  FAIL $path -> HTTP $code (expected 200)"
     failures=$((failures + 1))
   elif ! robots_allows "$path"; then
     echo "  FAIL $path -> HTTP 200 but disallowed by robots.txt"
     failures=$((failures + 1))
+  elif echo "$tag" | grep -qE 'noindex|none'; then
+    echo "  FAIL $path -> allowlisted in robots.txt/sitemap.xml but served with X-Robots-Tag: $tag"
+    failures=$((failures + 1))
   else
-    echo "  ok   $path -> 200, robots-allowed"
+    echo "  ok   $path -> 200, robots-allowed, X-Robots-Tag: ${tag:-<none>}"
   fi
 done < "$tmp/paths.txt"
 
 echo
-echo "==> Checking private routes are robots-blocked"
+echo "==> Checking private routes are robots-blocked and X-Robots-Tag noindexed"
 for path in "${PRIVATE_PATHS[@]}"; do
+  tag="$(x_robots "$path")"
   if robots_allows "$path"; then
     echo "  FAIL $path -> allowed by robots.txt (must be disallowed)"
     failures=$((failures + 1))
+  elif ! echo "$tag" | grep -qE 'noindex|none'; then
+    echo "  FAIL $path -> disallowed by robots.txt but missing X-Robots-Tag noindex (got: ${tag:-<none>})"
+    failures=$((failures + 1))
   else
-    echo "  ok   $path -> disallowed"
+    echo "  ok   $path -> disallowed, X-Robots-Tag: $tag"
   fi
 done
+
 
 echo
 echo "==> Checking robots.txt advertises the sitemap"
