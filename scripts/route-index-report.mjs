@@ -12,7 +12,7 @@
  * $GITHUB_STEP_SUMMARY when running in GitHub Actions.
  */
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, basename } from "node:path";
 import {
   NON_PAGE,
   parseRegistry,
@@ -29,7 +29,7 @@ const flag = (name, fallback) => {
 };
 
 const ROOT = process.cwd();
-const OUT_DIR = join(ROOT, flag("out", "artifacts/route-index"));
+const OUT_DIR = resolve(ROOT, flag("out", "artifacts/route-index"));
 const BASE_URL = (flag("base-url", "") || "").replace(/\/+$/, "");
 
 const routesDir = join(ROOT, "src/routes");
@@ -40,13 +40,20 @@ const publicSet = new Set(publicPaths);
 const rows = [];
 const seen = new Set();
 
+/** Crawlable non-page files that robots.txt allows explicitly. */
+const ALLOWED_FILES = new Set(["/sitemap.xml", "/robots.txt"]);
+
 for (const file of routeFiles(routesDir)) {
+  const base = basename(file).replace(/\.tsx?$/, "");
+  // Pathless layouts (_authenticated.tsx, route.tsx) render no indexable URL.
+  if (base.startsWith("_") || base === "route") continue;
+
   const url = filePathToUrl(file);
   const nonPage = NON_PAGE.some((re) => re.test(url));
   const source = readFileSync(join(routesDir, file), "utf8");
   const signals = robotsSignals(source);
   const noindex = signals.some((s) => s.noindex);
-  const isPublic = publicSet.has(url);
+  const isPublic = publicSet.has(url) || ALLOWED_FILES.has(url);
   const privatePrefix = privatePrefixes.find((p) => url === p || url.startsWith(p)) ?? null;
   if (!nonPage) seen.add(url);
 
@@ -62,7 +69,7 @@ for (const file of routeFiles(routesDir)) {
       : privatePrefix
         ? `Disallow: ${privatePrefix}`
         : "Disallow: / (catch-all)",
-    inSitemap: isPublic,
+    inSitemap: publicSet.has(url),
     expectedXRobotsTag: isPublic ? null : "noindex, nofollow, noarchive",
     consistent: nonPage ? true : isPublic !== noindex,
   });
