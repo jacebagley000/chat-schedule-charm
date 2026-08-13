@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Route index report</title>
+<style>
+ body{font:14px/1.5 ui-sans-serif,system-ui,sans-serif;margin:2rem;color:#111}
+ h1{font-size:1.4rem;margin:0 0 .25rem}
+ .meta{color:#555;margin-bottom:1rem}
+ table{border-collapse:collapse;width:100%}
+ th,td{border:1px solid #ddd;padding:.4rem .6rem;text-align:left;vertical-align:top}
+ th{background:#f5f5f5}
+ tr.bad{background:#fff4f4}
+ code{font:12px ui-monospace,monospace}
+</style></head><body>
+<h1>Route index report</h1>
+<p class="meta">2026-08-13T15:16:57.782Z · http://localhost:8080<br>21 routes · 7 crawlable · 10 noindex · 0 inconsistent</p>
+<table><thead><tr><th>Route</th><th>Type</th><th>noindex</th><th>robots.txt</th><th>sitemap.xml</th><th>Rule</th><th>Consistent</th><th>HTTP</th><th>X-Robots-Tag</th></tr></thead><tbody>
+<tr class=""><td><code>/</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /$</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /$</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/admin/leads</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /admin/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/api/public/payments/webhook</code></td><td>non-page</td><td>—</td><td>no</td><td>no</td><td><code>Disallow: /api/</code></td><td>✅</td><td>200</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/api/public/webhooks/meta</code></td><td>non-page</td><td>—</td><td>no</td><td>no</td><td><code>Disallow: /api/</code></td><td>✅</td><td>403</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/checkout/start</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /checkout/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/checkout/success</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /checkout/</code></td><td>✅</td><td>200</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/comparison/ai-receptionist-vs-live-chat</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /comparison/ai-receptionist-vs-live-chat</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/comparison/answering-service</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /comparison/answering-service</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/comparison/polyai</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /comparison/polyai</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/dashboard</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /dashboard</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/invite/$token</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /invite/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/login</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /login</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/robots.txt</code></td><td>non-page</td><td>—</td><td>no</td><td>no</td><td><code>Disallow: / (catch-all)</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/schedule</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /schedule</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/signup</code></td><td>page</td><td>no</td><td>yes</td><td>yes</td><td><code>Allow: /signup</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/sitemap.xml</code></td><td>non-page</td><td>—</td><td>no</td><td>no</td><td><code>Disallow: / (catch-all)</code></td><td>✅</td><td>200</td><td>—</td></tr>
+<tr class=""><td><code>/workspaces/$businessId/audit</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /workspaces/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/workspaces/$businessId/calendar</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /workspaces/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/workspaces/$businessId/members</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /workspaces/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+<tr class=""><td><code>/workspaces/$businessId/schedule</code></td><td>page</td><td>yes</td><td>no</td><td>no</td><td><code>Disallow: /workspaces/</code></td><td>✅</td><td>307</td><td>noindex, nofollow, noarchive</td></tr>
+</tbody></table>
+<h2>Details</h2>
+<table><thead><tr><th>Route</th><th>File</th><th>noindex signal</th><th>Expected X-Robots-Tag</th></tr></thead><tbody>
+<tr><td><code>/</code></td><td><code>src/routes/_authenticated.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/</code></td><td><code>src/routes/index.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/admin/leads</code></td><td><code>src/routes/_authenticated/admin/leads.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/api/public/payments/webhook</code></td><td><code>src/routes/api/public/payments/webhook.ts</code></td><td>n/a</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/api/public/webhooks/meta</code></td><td><code>src/routes/api/public/webhooks/meta.ts</code></td><td>n/a</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/checkout/start</code></td><td><code>src/routes/checkout.start.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/checkout/success</code></td><td><code>src/routes/checkout.success.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/comparison/ai-receptionist-vs-live-chat</code></td><td><code>src/routes/comparison/ai-receptionist-vs-live-chat.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/comparison/answering-service</code></td><td><code>src/routes/comparison/answering-service.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/comparison/polyai</code></td><td><code>src/routes/comparison/polyai.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/dashboard</code></td><td><code>src/routes/_authenticated/dashboard.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/invite/$token</code></td><td><code>src/routes/invite.$token.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/login</code></td><td><code>src/routes/login.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/robots.txt</code></td><td><code>src/routes/robots[.]txt.ts</code></td><td>n/a</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/schedule</code></td><td><code>src/routes/_authenticated/schedule.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/signup</code></td><td><code>src/routes/signup.tsx</code></td><td>none (no robots meta and no `noindex` flag)</td><td>—</td></tr>
+<tr><td><code>/sitemap.xml</code></td><td><code>src/routes/sitemap[.]xml.ts</code></td><td>n/a</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/workspaces/$businessId/audit</code></td><td><code>src/routes/_authenticated/workspaces/$businessId/audit.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/workspaces/$businessId/calendar</code></td><td><code>src/routes/_authenticated/workspaces/$businessId/calendar.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/workspaces/$businessId/members</code></td><td><code>src/routes/_authenticated/workspaces/$businessId/members.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+<tr><td><code>/workspaces/$businessId/schedule</code></td><td><code>src/routes/_authenticated/workspaces/$businessId/schedule.tsx</code></td><td>pageMeta -&gt; "noindex: true"</td><td>noindex, nofollow, noarchive</td></tr>
+</tbody></table>
+</body></html>

@@ -65,6 +65,18 @@ jobs:
       - name: Check robots.txt / sitemap.xml crawlability contract
         run: bash scripts/check-crawlability.sh http://localhost:8080
 
+      - name: Generate route index report
+        if: always()
+        run: node scripts/route-index-report.mjs --out artifacts/route-index --base-url http://localhost:8080
+
+      - name: Upload route index report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-index-report
+          path: artifacts/route-index
+          if-no-files-found: warn
+
       - name: Upload server log on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -123,3 +135,15 @@ jobs:
       - name: Check robots.txt / sitemap.xml crawlability contract
         if: steps.target.outputs.url != ''
         run: bash scripts/check-crawlability.sh "${{ steps.target.outputs.url }}"
+
+      - name: Generate route index report (deployed)
+        if: always() && steps.target.outputs.url != ''
+        run: node scripts/route-index-report.mjs --out artifacts/route-index-deployed --base-url "${{ steps.target.outputs.url }}"
+
+      - name: Upload route index report (deployed)
+        if: always() && steps.target.outputs.url != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-index-report-deployed
+          path: artifacts/route-index-deployed
+          if-no-files-found: warn
