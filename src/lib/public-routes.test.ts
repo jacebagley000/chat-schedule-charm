@@ -3,11 +3,14 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BASE_URL,
+  NOINDEX_HEADER,
   PRIVATE_PREFIXES,
   PUBLIC_ROUTES,
+  isCrawlablePath,
   renderRobotsTxt,
   renderSitemapXml,
 } from "@/lib/public-routes";
+
 
 const ROUTES_DIR = join(process.cwd(), "src/routes");
 
