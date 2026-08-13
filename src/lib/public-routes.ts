@@ -45,7 +45,9 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
  */
 export const PRIVATE_PREFIXES: string[] = [
   "/dashboard",
+  "/admin/",
   "/schedule",
+
   "/workspaces/",
   "/checkout/",
   "/invite/",
