@@ -3,11 +3,14 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BASE_URL,
+  NOINDEX_HEADER,
   PRIVATE_PREFIXES,
   PUBLIC_ROUTES,
+  isCrawlablePath,
   renderRobotsTxt,
   renderSitemapXml,
 } from "@/lib/public-routes";
+
 
 const ROUTES_DIR = join(process.cwd(), "src/routes");
 
@@ -87,3 +90,48 @@ describe("public route registry", () => {
     );
   });
 });
+
+/**
+ * The X-Robots-Tag middleware in src/start.ts tags every response whose path
+ * fails isCrawlablePath(). These tests pin that decision to the same allowlist
+ * that drives robots.txt and sitemap.xml, so a header can never contradict them.
+ */
+describe("X-Robots-Tag vs robots/sitemap allowlist", () => {
+  it("never noindexes a route advertised in sitemap.xml / allowed in robots.txt", () => {
+    const robots = renderRobotsTxt();
+    const sitemap = renderSitemapXml();
+    for (const { path } of PUBLIC_ROUTES) {
+      expect(isCrawlablePath(path), `${path} would be sent with X-Robots-Tag`).toBe(true);
+      expect(robots).toContain(`Allow: ${path === "/" ? "/$" : path}`);
+      expect(sitemap).toContain(`<loc>${BASE_URL}${path}</loc>`);
+    }
+  });
+
+  it("treats trailing-slash variants of public routes as crawlable", () => {
+    for (const { path } of PUBLIC_ROUTES) {
+      if (path === "/") continue;
+      expect(isCrawlablePath(`${path}/`)).toBe(true);
+    }
+  });
+
+  it("noindexes every private prefix and unknown route", () => {
+    const samples = [
+      ...PRIVATE_PREFIXES.map((p) => (p.endsWith("/") ? `${p}sample` : p)),
+      "/dashboard/settings",
+      "/this-route-does-not-exist",
+    ];
+    for (const path of samples) {
+      expect(isCrawlablePath(path), `${path} must be noindexed`).toBe(false);
+    }
+  });
+
+  it("keeps robots.txt-served files crawlable", () => {
+    expect(isCrawlablePath("/robots.txt")).toBe(true);
+    expect(isCrawlablePath("/sitemap.xml")).toBe(true);
+  });
+
+  it("uses a noindex header value", () => {
+    expect(NOINDEX_HEADER).toMatch(/noindex/);
+  });
+});
+
