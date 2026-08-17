@@ -88,12 +88,14 @@ export function describeSignals(signals) {
 
 /**
  * Check a route tree against a registry.
- * @returns {{ errors: string[], routes: string[] }}
+ * @returns {{ errors: string[], problems: object[], routes: string[] }}
  */
 export function checkNoindex({ routesDir, registrySource }) {
   const { publicPaths, privatePrefixes } = parseRegistry(registrySource);
   const publicSet = new Set(publicPaths);
   const errors = [];
+  /** Machine-readable mirror of `errors`, for the JSON CI artifact. */
+  const problems = [];
   const seen = new Set();
 
   for (const file of routeFiles(routesDir)) {
@@ -107,7 +109,27 @@ export function checkNoindex({ routesDir, registrySource }) {
     const isPublic = publicSet.has(url);
     const isPrivatePrefix = privatePrefixes.some((p) => url === p || url.startsWith(p));
 
-    const report = (expected, why, fix) =>
+    const report = (expected, why, fix, kind) => {
+      problems.push({
+        kind,
+        route: url,
+        file: `src/routes/${file}`,
+        allowlist: isPublic ? "public" : "private",
+        privatePrefix:
+          !isPublic && isPrivatePrefix
+            ? (privatePrefixes.find((p) => url === p || url.startsWith(p)) ?? null)
+            : null,
+        robotsRule: isPublic
+          ? `Allow: ${url === "/" ? "/$" : url}`
+          : "Disallow (catch-all or explicit prefix)",
+        inSitemap: isPublic,
+        expected,
+        actual: describeSignals(signals),
+        signals,
+        expectedXRobotsTag: isPublic ? null : "noindex, nofollow, noarchive",
+        why,
+        fix,
+      });
       errors.push(
         [
           `route:      ${url}`,
@@ -125,12 +147,14 @@ export function checkNoindex({ routesDir, registrySource }) {
           `fix:        ${fix}`,
         ].join("\n    "),
       );
+    };
 
     if (isPublic && noindex) {
       report(
         "indexable (no `noindex` anywhere in the page metadata)",
         "the route is allowlisted in robots.txt and advertised in sitemap.xml, but the rendered page tells crawlers not to index it",
         "remove `noindex: true` from its pageMeta(), or drop the path from PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "public-route-noindexed",
       );
     }
     if (!isPublic && !noindex) {
@@ -140,12 +164,28 @@ export function checkNoindex({ routesDir, registrySource }) {
           ? "the route falls under a private prefix, so robots.txt disallows it, yet the rendered page carries no noindex signal"
           : "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
         "add `noindex: true` to its pageMeta(), or add the path to PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "private-route-indexable",
       );
     }
   }
 
   for (const path of publicPaths) {
     if (!seen.has(path)) {
+      problems.push({
+        kind: "sitemap-route-missing",
+        route: path,
+        file: null,
+        allowlist: "public",
+        privatePrefix: null,
+        robotsRule: `Allow: ${path === "/" ? "/$" : path}`,
+        inSitemap: true,
+        expected: "a page route file rendering indexable metadata",
+        actual: "404 — sitemap.xml advertises a URL the router does not serve",
+        signals: [],
+        expectedXRobotsTag: null,
+        why: "sitemap.xml advertises a URL the router does not serve",
+        fix: `create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+      });
       errors.push(
         [
           `route:      ${path}`,
@@ -159,5 +199,5 @@ export function checkNoindex({ routesDir, registrySource }) {
     }
   }
 
-  return { errors, routes: [...seen] };
+  return { errors, problems, routes: [...seen] };
 }
