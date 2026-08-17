@@ -16,6 +16,7 @@
  * Always writes a machine-readable JSON report so CI can parse the results:
  *   --json <path>   report location (default artifacts/noindex/noindex-report.json)
  *   --no-json       skip writing the report
+ *   --dry-run       list every route as PASS/FAIL and always exit 0 (no CI failure)
  */
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
@@ -31,17 +32,38 @@ const ROOT = process.cwd();
 const routesDir = join(ROOT, "src/routes");
 const registrySource = readFileSync(join(ROOT, "src/lib/public-routes.ts"), "utf8");
 
+const dryRun = args.includes("--dry-run");
+
 const { errors, problems, routes } = checkNoindex({ routesDir, registrySource });
+
+/** Per-route pass/fail breakdown (a route can only have one problem). */
+const problemByRoute = new Map(problems.map((p) => [p.route, p]));
+const results = [...new Set([...routes, ...problems.map((p) => p.route)])]
+  .sort((a, b) => a.localeCompare(b))
+  .map((route) => {
+    const problem = problemByRoute.get(route) ?? null;
+    return {
+      route,
+      status: problem ? "fail" : "pass",
+      file: problem?.file ?? null,
+      kind: problem?.kind ?? null,
+      reason: problem?.why ?? null,
+      fix: problem?.fix ?? null,
+    };
+  });
 
 const report = {
   check: "noindex-vs-robots-allowlist",
   generatedAt: new Date().toISOString(),
   status: errors.length ? "fail" : "pass",
+  dryRun,
   commit: process.env["GITHUB_SHA"] ?? null,
   ref: process.env["GITHUB_REF"] ?? null,
   runId: process.env["GITHUB_RUN_ID"] ?? null,
   summary: {
     routesChecked: routes.length,
+    passed: results.filter((r) => r.status === "pass").length,
+    failed: results.filter((r) => r.status === "fail").length,
     problemCount: problems.length,
     byKind: problems.reduce((acc, p) => {
       acc[p.kind] = (acc[p.kind] ?? 0) + 1;
@@ -49,6 +71,7 @@ const report = {
     }, {}),
   },
   routesChecked: routes,
+  results,
   problems,
 };
 
@@ -57,6 +80,42 @@ if (!args.includes("--no-json")) {
   mkdirSync(dirname(jsonPath), { recursive: true });
   writeFileSync(jsonPath, JSON.stringify(report, null, 2) + "\n");
   console.log(`ℹ JSON report: ${jsonPath}`);
+}
+
+if (dryRun) {
+  console.log("\nnoindex / robots allowlist — dry run (no failures reported)\n");
+  for (const r of results) {
+    const mark = r.status === "pass" ? "✓ PASS" : "✗ FAIL";
+    console.log(`  ${mark}  ${r.route}${r.file ? `  (${r.file})` : ""}`);
+    if (r.status === "fail") {
+      console.log(`          ${r.kind}: ${r.reason}`);
+      console.log(`          fix: ${r.fix}`);
+    }
+  }
+  console.log(
+    `\n${report.summary.passed} passing, ${report.summary.failed} failing of ${results.length} route(s).` +
+      (report.summary.failed ? " Dry run — exiting 0." : ""),
+  );
+
+  if (process.env["GITHUB_STEP_SUMMARY"]) {
+    appendFileSync(
+      process.env["GITHUB_STEP_SUMMARY"],
+      [
+        "## noindex / robots allowlist (dry run)",
+        "",
+        `${report.summary.passed} passing · ${report.summary.failed} failing · ${results.length} routes`,
+        "",
+        "| Route | Result | Detail |",
+        "| --- | --- | --- |",
+        ...results.map(
+          (r) =>
+            `| \`${r.route}\` | ${r.status === "pass" ? "✅ pass" : "❌ fail"} | ${r.reason ?? "—"} |`,
+        ),
+        "",
+      ].join("\n") + "\n",
+    );
+  }
+  process.exit(0);
 }
 
 if (errors.length) {
