@@ -12,21 +12,77 @@
  *
  * Logic lives in scripts/noindex-core.mjs (unit tested).
  * Run standalone: `node scripts/check-noindex.mjs`
+ *
+ * Always writes a machine-readable JSON report so CI can parse the results:
+ *   --json <path>   report location (default artifacts/noindex/noindex-report.json)
+ *   --no-json       skip writing the report
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from "node:fs";
+import { join, resolve, dirname } from "node:path";
 import { checkNoindex } from "./noindex-core.mjs";
+
+const args = process.argv.slice(2);
+const flagValue = (name, fallback) => {
+  const i = args.indexOf(`--${name}`);
+  return i !== -1 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : fallback;
+};
 
 const ROOT = process.cwd();
 const routesDir = join(ROOT, "src/routes");
 const registrySource = readFileSync(join(ROOT, "src/lib/public-routes.ts"), "utf8");
 
-const { errors, routes } = checkNoindex({ routesDir, registrySource });
+const { errors, problems, routes } = checkNoindex({ routesDir, registrySource });
+
+const report = {
+  check: "noindex-vs-robots-allowlist",
+  generatedAt: new Date().toISOString(),
+  status: errors.length ? "fail" : "pass",
+  commit: process.env["GITHUB_SHA"] ?? null,
+  ref: process.env["GITHUB_REF"] ?? null,
+  runId: process.env["GITHUB_RUN_ID"] ?? null,
+  summary: {
+    routesChecked: routes.length,
+    problemCount: problems.length,
+    byKind: problems.reduce((acc, p) => {
+      acc[p.kind] = (acc[p.kind] ?? 0) + 1;
+      return acc;
+    }, {}),
+  },
+  routesChecked: routes,
+  problems,
+};
+
+if (!args.includes("--no-json")) {
+  const jsonPath = resolve(ROOT, flagValue("json", "artifacts/noindex/noindex-report.json"));
+  mkdirSync(dirname(jsonPath), { recursive: true });
+  writeFileSync(jsonPath, JSON.stringify(report, null, 2) + "\n");
+  console.log(`ℹ JSON report: ${jsonPath}`);
+}
 
 if (errors.length) {
   console.error("\n✗ noindex / robots allowlist contradictions:\n");
   errors.forEach((e, i) => console.error(`  ${i + 1}) ${e}\n`));
   console.error(`${errors.length} problem(s) found.\n`);
+
+  if (process.env["GITHUB_STEP_SUMMARY"]) {
+    appendFileSync(
+      process.env["GITHUB_STEP_SUMMARY"],
+      [
+        "## ✗ noindex / robots allowlist contradictions",
+        "",
+        "| Route | Kind | Expected | Actual | Fix |",
+        "| --- | --- | --- | --- | --- |",
+        ...problems.map(
+          (p) =>
+            `| \`${p.route}\` | ${p.kind} | ${p.expected} | ${p.actual} | ${p.fix} |`,
+        ),
+        "",
+      ].join("\n") + "\n",
+    );
+  }
+  for (const p of problems) {
+    console.error(`::error file=${p.file ?? "src/lib/public-routes.ts"}::${p.route}: ${p.why}`);
+  }
   process.exit(1);
 }
 
