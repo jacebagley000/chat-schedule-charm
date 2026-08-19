@@ -131,8 +131,8 @@ if (errors.length) {
       [
         "## ✗ noindex / robots allowlist contradictions",
         "",
-        "| Route | Kind | Expected | Actual | Fix |",
-        "| --- | --- | --- | --- | --- |",
+        "| Route | Kind | Expected | Actual | Source | Fix |",
+        "| --- | --- | --- | --- | --- | --- |",
         ...problems.map(
           (p) =>
             `| \`${p.route}\` | ${p.kind} | ${p.expected} | ${p.actual} | ${(p.evidence ?? []).map((e) => `\`${e.replace(/\|/g, "\\|")}\``).join("<br>")} | ${p.fix} |`,
