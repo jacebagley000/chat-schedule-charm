@@ -162,6 +162,8 @@ export function checkNoindex({ routesDir, registrySource }) {
 
     const source = readFileSync(join(routesDir, file), "utf8");
     const signals = robotsSignals(source);
+    const anchors = signals.length ? [] : metadataAnchors(source);
+    const evidence = evidenceLines(`src/routes/${file}`, signals, anchors);
     const noindex = signals.some((s) => s.noindex);
     const isPublic = publicSet.has(url);
     const isPrivatePrefix = privatePrefixes.some((p) => url === p || url.startsWith(p));
@@ -183,6 +185,8 @@ export function checkNoindex({ routesDir, registrySource }) {
         expected,
         actual: describeSignals(signals),
         signals,
+        anchors,
+        evidence,
         expectedXRobotsTag: isPublic ? null : "noindex, nofollow, noarchive",
         why,
         fix,
@@ -199,12 +203,15 @@ export function checkNoindex({ routesDir, registrySource }) {
           `robots.txt: ${isPublic ? `Allow: ${url === "/" ? "/$" : url}` : "Disallow (catch-all or explicit prefix)"}`,
           `expected:   ${expected}`,
           `actual:     ${describeSignals(signals)}`,
+          `source:`,
+          ...evidence.map((line) => `  ${line}`),
           `x-robots:   ${isPublic ? "no X-Robots-Tag header" : "X-Robots-Tag: noindex, nofollow, noarchive"}`,
           `why:        ${why}`,
           `fix:        ${fix}`,
         ].join("\n    "),
       );
     };
+
 
     if (isPublic && noindex) {
       report(
