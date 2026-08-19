@@ -2,7 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { checkNoindex, filePathToUrl, parseRegistry, robotsSignals } from "./noindex-core.mjs";
+import {
+  checkNoindex,
+  evidenceLines,
+  filePathToUrl,
+  metadataAnchors,
+  parseRegistry,
+  robotsSignals,
+} from "./noindex-core.mjs";
 
 /** Minimal registry source shaped like src/lib/public-routes.ts. */
 function registry(publicPaths, privatePrefixes = ["/dashboard", "/admin"]) {
@@ -72,16 +79,18 @@ describe("parseRegistry", () => {
 
 describe("robotsSignals", () => {
   it("detects pageMeta noindex flags", () => {
-    expect(robotsSignals(NOINDEX)).toEqual([
+    expect(robotsSignals(NOINDEX)).toMatchObject([
       { kind: "pageMeta", value: "noindex: true", noindex: true },
     ]);
   });
 
   it("detects raw robots meta tags", () => {
     const signals = robotsSignals(`{ name: "robots", content: "noindex, nofollow" }`);
-    expect(signals).toEqual([
-      { kind: 'meta name="robots"', value: "noindex, nofollow", noindex: true },
+    expect(signals).toMatchObject([
+      { kind: 'meta name="robots"', value: "noindex, nofollow", noindex: true, line: 1 },
     ]);
+    expect(signals[0].snippet).toContain("robots");
+    expect(signals[0].snippet).toContain("»");
   });
 
   it("treats `noindex: false` as indexable", () => {
@@ -90,6 +99,24 @@ describe("robotsSignals", () => {
 
   it("returns no signals for a plain indexable route", () => {
     expect(robotsSignals(INDEXABLE)).toEqual([]);
+  });
+});
+
+describe("robots source fragments", () => {
+  it("reports file:line and the surrounding fragment for a signal", () => {
+    const signals = robotsSignals(`line one\nexport const Route = pageMeta({ noindex: true });`);
+    expect(signals[0].line).toBe(2);
+    expect(signals[0].snippet).toMatch(/pageMeta.*»noindex: true«/);
+  });
+
+  it("falls back to metadata anchors when no robots signal exists", () => {
+    const anchors = metadataAnchors(`\nexport const meta = pageMeta({ title: "x" });`);
+    expect(anchors[0]).toMatchObject({ kind: "pageMeta()", line: 2 });
+    expect(evidenceLines("src/routes/a.tsx", [], anchors)[0]).toContain("src/routes/a.tsx:2");
+  });
+
+  it("says so when there is no metadata block at all", () => {
+    expect(evidenceLines("src/routes/a.tsx", [], [])[0]).toContain("no pageMeta()");
   });
 });
 
