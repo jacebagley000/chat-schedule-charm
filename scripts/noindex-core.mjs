@@ -246,6 +246,8 @@ export function checkNoindex({ routesDir, registrySource }) {
         expected: "a page route file rendering indexable metadata",
         actual: "404 — sitemap.xml advertises a URL the router does not serve",
         signals: [],
+        anchors: [],
+        evidence: ["(no route file — nothing to quote)"],
         expectedXRobotsTag: null,
         why: "sitemap.xml advertises a URL the router does not serve",
         fix: `create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,

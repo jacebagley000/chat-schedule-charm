@@ -48,6 +48,7 @@ const results = [...new Set([...routes, ...problems.map((p) => p.route)])]
       file: problem?.file ?? null,
       kind: problem?.kind ?? null,
       reason: problem?.why ?? null,
+      evidence: problem?.evidence ?? [],
       fix: problem?.fix ?? null,
     };
   });
@@ -89,6 +90,7 @@ if (dryRun) {
     console.log(`  ${mark}  ${r.route}${r.file ? `  (${r.file})` : ""}`);
     if (r.status === "fail") {
       console.log(`          ${r.kind}: ${r.reason}`);
+      for (const line of r.evidence) console.log(`          source: ${line}`);
       console.log(`          fix: ${r.fix}`);
     }
   }
@@ -133,14 +135,14 @@ if (errors.length) {
         "| --- | --- | --- | --- | --- |",
         ...problems.map(
           (p) =>
-            `| \`${p.route}\` | ${p.kind} | ${p.expected} | ${p.actual} | ${p.fix} |`,
+            `| \`${p.route}\` | ${p.kind} | ${p.expected} | ${p.actual} | ${(p.evidence ?? []).map((e) => `\`${e.replace(/\|/g, "\\|")}\``).join("<br>")} | ${p.fix} |`,
         ),
         "",
       ].join("\n") + "\n",
     );
   }
   for (const p of problems) {
-    console.error(`::error file=${p.file ?? "src/lib/public-routes.ts"}::${p.route}: ${p.why}`);
+    console.error(`::error file=${p.file ?? "src/lib/public-routes.ts"},line=${p.signals?.[0]?.line ?? p.anchors?.[0]?.line ?? 1}::${p.route}: ${p.why} | source: ${(p.evidence ?? []).join(" ⏎ ")}`);
   }
   process.exit(1);
 }
