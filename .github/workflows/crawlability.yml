@@ -43,15 +43,33 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Check noindex vs robots/sitemap allowlist
+        id: noindex_check
         run: node scripts/check-noindex.mjs --json artifacts/noindex/noindex-report.json
 
       - name: Upload noindex JSON report
+        id: noindex_report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: noindex-report
-          path: artifacts/noindex/noindex-report.json
+          path: artifacts/noindex/
           if-no-files-found: warn
+
+      - name: Link noindex report in job summary
+        if: always() && steps.noindex_check.outcome == 'failure'
+        run: |
+          {
+            echo "### 📄 noindex checker report"
+            echo ""
+            if [ -n "${{ steps.noindex_report.outputs.artifact-url }}" ]; then
+              echo "The noindex/robots allowlist check failed — download the full report: [**noindex-report**](${{ steps.noindex_report.outputs.artifact-url }}) (\`noindex-report.json\`)."
+            else
+              echo "The noindex/robots allowlist check failed — see the \`noindex-report\` artifact on this run for \`noindex-report.json\`."
+            fi
+            echo ""
+            echo "Artifacts for this run: [run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
 
 
 
