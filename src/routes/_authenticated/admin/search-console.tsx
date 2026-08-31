@@ -5,7 +5,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
-import { getSitemapSubmission, submitSitemap } from "@/lib/search-console.functions";
+import {
+  getSitemapSubmission,
+  submitSitemap,
+  getLiveCrawlFiles,
+} from "@/lib/search-console.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/search-console")({
   head: () => ({
@@ -42,12 +46,20 @@ function SearchConsolePage() {
   const [selected, setSelected] = useState<string | undefined>(undefined);
   const loadStatus = useServerFn(getSitemapSubmission);
   const submit = useServerFn(submitSitemap);
+  const loadFiles = useServerFn(getLiveCrawlFiles);
 
   const query = useQuery({
     queryKey: ["gsc-sitemap", selected],
     queryFn: () => loadStatus({ data: { siteUrl: selected } }),
     retry: false,
   });
+
+  const filesQuery = useQuery({
+    queryKey: ["gsc-live-files"],
+    queryFn: () => loadFiles({ data: {} }),
+    retry: false,
+  });
+  const files = filesQuery.data;
 
   const mutation = useMutation({
     mutationFn: () => submit({ data: { siteUrl: selected } }),

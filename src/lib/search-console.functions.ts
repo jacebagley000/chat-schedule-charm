@@ -1,11 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { BASE_URL } from "@/lib/public-routes";
+import { BASE_URL, sitemapUrls, renderRobotsTxt } from "@/lib/public-routes";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_search_console";
 
-export const SITEMAP_URL = `${BASE_URL.replace(/\/$/, "")}/sitemap.xml`;
+const ORIGIN = BASE_URL.replace(/\/$/, "");
+export const SITEMAP_URL = `${ORIGIN}/sitemap.xml`;
+export const ROBOTS_URL = `${ORIGIN}/robots.txt`;
 
 type SiteEntry = { siteUrl: string; permissionLevel?: string };
 
@@ -141,4 +143,53 @@ export const submitSitemap = createServerFn({ method: "POST" })
 
     const status = await fetchSitemapStatus(resolution.siteUrl);
     return { sitemapUrl: SITEMAP_URL, resolution, status, submitted: true };
+  });
+
+/** Live check of the two files Google fetches, plus expected/actual URL sync. */
+export const getLiveCrawlFiles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as never);
+
+    const expectedUrls = sitemapUrls();
+
+    async function probe(url: string) {
+      try {
+        const res = await fetch(url, { headers: { "User-Agent": "FrontDeskAI-CrawlCheck" } });
+        const body = await res.text();
+        return { url, ok: res.ok, status: res.status, body };
+      } catch (error) {
+        return { url, ok: false, status: 0, body: "", error: (error as Error).message };
+      }
+    }
+
+    const [sitemap, robots] = await Promise.all([probe(SITEMAP_URL), probe(ROBOTS_URL)]);
+
+    const liveUrls = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const missingFromLive = expectedUrls.filter((u) => !liveUrls.includes(u));
+    const extraInLive = liveUrls.filter((u) => !expectedUrls.includes(u));
+    const robotsMatchesGenerated = robots.body.trim() === renderRobotsTxt().trim();
+    const robotsReferencesSitemap = robots.body.includes(SITEMAP_URL);
+
+    return {
+      sitemap: {
+        url: sitemap.url,
+        ok: sitemap.ok,
+        status: sitemap.status,
+        urlCount: liveUrls.length,
+        error: (sitemap as { error?: string }).error ?? null,
+      },
+      robots: {
+        url: robots.url,
+        ok: robots.ok,
+        status: robots.status,
+        matchesGenerated: robotsMatchesGenerated,
+        referencesSitemap: robotsReferencesSitemap,
+        error: (robots as { error?: string }).error ?? null,
+      },
+      expectedUrls,
+      missingFromLive,
+      extraInLive,
+      checkedAt: new Date().toISOString(),
+    };
   });
