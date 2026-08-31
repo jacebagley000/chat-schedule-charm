@@ -173,3 +173,31 @@ jobs:
           name: route-index-report-deployed
           path: artifacts/route-index-deployed
           if-no-files-found: warn
+
+      - name: Setup Node
+        if: steps.target.outputs.url != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: steps.target.outputs.url != ''
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Playwright Chromium
+        if: steps.target.outputs.url != ''
+        run: npx playwright install --with-deps chromium
+
+      - name: Run robots signal E2E tests (deployed)
+        if: steps.target.outputs.url != ''
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.target.outputs.url }}
+        run: npm run test:e2e -- --reporter=list,html
+
+      - name: Upload Playwright report
+        if: always() && steps.target.outputs.url != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-robots-report
+          path: playwright-report
+          if-no-files-found: warn
