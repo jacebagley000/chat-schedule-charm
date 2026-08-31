@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "check:noindex": "node scripts/check-noindex.mjs",
+    "build:robots": "bun scripts/build-robots.mjs --sitemap",
     "test:e2e": "playwright test"
   },
   "dependencies": {

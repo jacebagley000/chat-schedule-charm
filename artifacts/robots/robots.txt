@@ -1,0 +1,29 @@
+# FrontDesk AI - robots.txt
+# Generated from src/config/robots-rules.json — edit at /admin/robots.
+# Explicit allowlist: only public marketing/auth pages are crawlable.
+
+User-agent: *
+
+# Public routes (matches sitemap.xml)
+Allow: /$
+Allow: /login
+Allow: /signup
+Allow: /comparison/polyai
+Allow: /comparison/answering-service
+Allow: /comparison/ai-receptionist-vs-live-chat
+Allow: /sitemap.xml
+
+# Authenticated / internal routes
+Disallow: /dashboard
+Disallow: /admin/
+Disallow: /schedule
+Disallow: /workspaces/
+Disallow: /checkout/
+Disallow: /invite/
+Disallow: /api/
+Disallow: /_authenticated/
+
+# Catch-all: disallow everything else not explicitly allowed above
+Disallow: /
+
+Sitemap: https://chat-schedule-charm.lovable.app/sitemap.xml
