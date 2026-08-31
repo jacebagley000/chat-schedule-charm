@@ -86,6 +86,93 @@ function SearchConsolePage() {
         </p>
       </header>
 
+      <section className="mb-6 rounded-lg border border-border p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-medium">Live crawl files</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => filesQuery.refetch()}
+            disabled={filesQuery.isFetching}
+          >
+            {filesQuery.isFetching ? "Checking…" : "Re-check"}
+          </Button>
+        </div>
+
+        {filesQuery.isLoading && (
+          <p className="text-sm text-muted-foreground">Fetching robots.txt and sitemap.xml…</p>
+        )}
+        {filesQuery.isError && (
+          <p className="text-sm text-destructive">{(filesQuery.error as Error).message}</p>
+        )}
+
+        {files && (
+          <dl>
+            <Row
+              label="sitemap.xml"
+              value={
+                <span className={files.sitemap.ok ? "" : "text-destructive"}>
+                  HTTP {files.sitemap.status || "—"} · {files.sitemap.urlCount} URLs ·{" "}
+                  <a
+                    href={files.sitemap.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-xs underline underline-offset-4"
+                  >
+                    {files.sitemap.url}
+                  </a>
+                  {files.sitemap.error ? ` · ${files.sitemap.error}` : ""}
+                </span>
+              }
+            />
+            <Row
+              label="robots.txt"
+              value={
+                <span className={files.robots.ok ? "" : "text-destructive"}>
+                  HTTP {files.robots.status || "—"} ·{" "}
+                  {files.robots.matchesGenerated ? "matches generated rules" : "differs from generated rules"}
+                  {" · "}
+                  {files.robots.referencesSitemap ? "links the sitemap" : "missing Sitemap: line"} ·{" "}
+                  <a
+                    href={files.robots.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-xs underline underline-offset-4"
+                  >
+                    {files.robots.url}
+                  </a>
+                  {files.robots.error ? ` · ${files.robots.error}` : ""}
+                </span>
+              }
+            />
+            <Row
+              label="Allowlisted routes in sync"
+              value={
+                files.missingFromLive.length === 0 && files.extraInLive.length === 0 ? (
+                  `Yes — all ${files.expectedUrls.length} allowlisted URLs are live`
+                ) : (
+                  <span className="text-destructive">
+                    {files.missingFromLive.length > 0 && (
+                      <>Missing from live sitemap: {files.missingFromLive.join(", ")}. </>
+                    )}
+                    {files.extraInLive.length > 0 && (
+                      <>Unexpected in live sitemap: {files.extraInLive.join(", ")}.</>
+                    )}
+                  </span>
+                )
+              }
+            />
+            <Row label="Checked" value={formatDate(files.checkedAt)} />
+          </dl>
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          Google fetches robots.txt on its own schedule — it cannot be submitted through the
+          API. Keeping it live and in sync here is what lets Google crawl the allowlisted
+          routes listed in the sitemap you submit below.
+        </p>
+      </section>
+
+
       <div className="rounded-lg border border-border p-5">
         <dl className="mb-4">
           <Row
