@@ -70,18 +70,41 @@ function allowDirective(path: string): string {
   return `Allow: ${path === "/" ? "/$" : path}`;
 }
 
+/**
+ * The single list of URLs that go into sitemap.xml. robots.txt is generated
+ * from this same list, so the two can never drift apart.
+ */
+export function sitemapUrls(config: RobotsRulesConfig = ROBOTS_RULES): string[] {
+  return config.allow
+    .filter(hasPublicRobots)
+    .map((e) => `${config.baseUrl}${e.path}`);
+}
+
+/** Path form of every sitemap URL (`https://host/login` -> `/login`). */
+export function sitemapPaths(config: RobotsRulesConfig = ROBOTS_RULES): string[] {
+  return sitemapUrls(config).map((url) => {
+    try {
+      return normalizePath(new URL(url).pathname);
+    } catch {
+      return normalizePath(url);
+    }
+  });
+}
+
 export function renderRobotsTxt(config: RobotsRulesConfig = ROBOTS_RULES): string {
-  const publicRoutes = config.allow.filter(hasPublicRobots);
+  // Allow rules are derived from the sitemap URLs themselves — one source of
+  // truth, so every crawlable URL in sitemap.xml is allowed here and nothing else is.
+  const allowedPaths = sitemapPaths(config);
   const privatePrefixes = config.disallow.filter((p) => p.trim() !== "/");
   const lines = [
     "# FrontDesk AI - robots.txt",
-    "# Generated from src/config/robots-rules.json — edit at /admin/robots.",
-    "# Explicit allowlist: only public marketing/auth pages are crawlable.",
+    "# Generated from the sitemap.xml URLs (source: src/config/robots-rules.json,",
+    "# edit at /admin/robots). Every Allow below mirrors a <loc> in sitemap.xml.",
     "",
     "User-agent: *",
     "",
-    "# Public routes (matches sitemap.xml)",
-    ...publicRoutes.map((r) => allowDirective(r.path)),
+    "# Public routes (generated from sitemap.xml)",
+    ...allowedPaths.map(allowDirective),
     ...EXTRA_ALLOWED.map((p) => `Allow: ${p}`),
     "",
     "# Authenticated / internal routes",
@@ -100,10 +123,12 @@ export function renderRobotsTxt(config: RobotsRulesConfig = ROBOTS_RULES): strin
 }
 
 export function renderSitemapXml(config: RobotsRulesConfig = ROBOTS_RULES): string {
-  const urls = config.allow.filter(hasPublicRobots).map((e) =>
+  const entries = config.allow.filter(hasPublicRobots);
+  const locs = sitemapUrls(config);
+  const urls = entries.map((e, i) =>
     [
       `  <url>`,
-      `    <loc>${config.baseUrl}${e.path}</loc>`,
+      `    <loc>${locs[i]}</loc>`,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,
@@ -119,6 +144,7 @@ export function renderSitemapXml(config: RobotsRulesConfig = ROBOTS_RULES): stri
     `</urlset>`,
   ].join("\n");
 }
+
 
 /** Non-page files that crawlers may fetch and index normally. */
 const CRAWLABLE_FILES = new Set([...EXTRA_ALLOWED, "/robots.txt"]);
