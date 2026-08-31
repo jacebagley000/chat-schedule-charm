@@ -56,7 +56,7 @@ function CrawlDashboardPage() {
   const load = useServerFn(getCrawlStatus);
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["crawl-status"],
-    queryFn: () => load({ data: {} }),
+    queryFn: () => load(),
     retry: false,
   });
 
