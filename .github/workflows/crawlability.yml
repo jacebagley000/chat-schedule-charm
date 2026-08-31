@@ -159,6 +159,18 @@ jobs:
       - name: Check robots.txt / sitemap.xml crawlability contract
         run: bash scripts/check-crawlability.sh http://localhost:8080
 
+      - name: Fetch every sitemap URL (404 / robots contradictions)
+        if: always()
+        run: node scripts/check-sitemap-urls.mjs --base-url http://localhost:8080 --out artifacts/sitemap-urls
+
+      - name: Upload sitemap URL report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitemap-urls-report
+          path: artifacts/sitemap-urls
+          if-no-files-found: warn
+
       - name: Generate route index report
         if: always()
         run: node scripts/route-index-report.mjs --out artifacts/route-index --base-url http://localhost:8080
