@@ -263,9 +263,13 @@ describe("classifyUrl (query params, trailing slashes, unknown routes)", () => {
     "/login-extra",
     "/comparison/polyai-vs-someone",
     "/comparison/polyai/deep/unknown",
-    "/comparison/polyai/?x=1/../secret",
   ])("treats unknown route %s as catch-all blocked", (url) => {
     expect(classifyUrl(url, reg).allowlist).toBe("unknown");
+  });
+
+  it("ignores query values that look like paths", () => {
+    // the query string is not part of the route: this is still the public page
+    expect(classifyUrl("/comparison/polyai/?next=/admin/leads", reg).allowlist).toBe("public");
   });
 
   it("keeps the root path public across query/hash variants", () => {
