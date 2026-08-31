@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -14,10 +15,24 @@ import { Toaster } from "@/components/ui/sonner";
 import "@/i18n";
 import { LanguagePicker } from "@/components/language-picker";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { NOINDEX_HEADER } from "@/lib/public-routes";
 
 function NotFoundComponent() {
+  // 404s already carry `X-Robots-Tag: noindex` from the request middleware;
+  // mirror that in the rendered DOM so crawlers that only read meta tags agree.
+  useEffect(() => {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "robots");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", NOINDEX_HEADER);
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>

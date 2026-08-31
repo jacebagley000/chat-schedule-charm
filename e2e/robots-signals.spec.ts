@@ -1,5 +1,12 @@
+import type { APIRequestContext, APIResponse, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
-import { NOINDEX_HEADER } from "../src/lib/public-routes";
+import {
+  BASE_URL,
+  isCrawlablePath,
+  normalizePath,
+  NOINDEX_HEADER,
+  PUBLIC_ROUTES,
+} from "../src/lib/public-routes";
 
 /**
  * Robots contract, end to end against a real deployment:
@@ -11,8 +18,56 @@ import { NOINDEX_HEADER } from "../src/lib/public-routes";
  * Both layers are asserted because either one alone can silently regress.
  */
 
-const PUBLIC_PATHS = ["/", "/login", "/comparison/polyai"];
-const PRIVATE_PATHS = ["/dashboard", "/admin/leads", "/schedule"];
+/** Every allowlisted page — the representative public set is the allowlist itself. */
+const PUBLIC_PATHS = PUBLIC_ROUTES.map((r) => r.path);
+
+/** One representative path per private area, plus real-world URL variants. */
+const PRIVATE_PATHS = [
+  "/dashboard",
+  "/admin/leads",
+  "/schedule",
+  "/workspaces/demo/calendar",
+  "/checkout/start",
+  "/some/unknown/page",
+  "/comparison/polyai/extra",
+  "/dashboard?utm_source=newsletter",
+];
+
+/**
+ * Preview/staging servers restart and cold-start; a connection error is not a
+ * robots regression. Retry transport failures before letting the test fail.
+ */
+async function getWithRetry(
+  request: APIRequestContext,
+  path: string,
+  attempts = 20,
+): Promise<APIResponse> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await request.get(path, { maxRedirects: 0, timeout: 20_000 });
+    } catch (error) {
+      lastError = error;
+      await new Promise((r) => setTimeout(r, 5_000));
+    }
+  }
+  throw new Error(`${path} unreachable after ${attempts} attempts: ${String(lastError)}`);
+}
+
+/** Same tolerance for navigations. */
+async function gotoWithRetry(page: Page, path: string, attempts = 10): Promise<void> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await page.goto(path, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((r) => setTimeout(r, 5_000));
+    }
+  }
+  throw new Error(`${path} navigation failed: ${String(lastError)}`);
+}
 
 /** Pull <meta name="robots" content="..."> values out of raw HTML. */
 function robotsMetaFromHtml(html: string): string[] {
@@ -25,10 +80,12 @@ function robotsMetaFromHtml(html: string): string[] {
   return out;
 }
 
+test.describe.configure({ timeout: 120_000 });
+
 test.describe("public routes stay indexable", () => {
   for (const path of PUBLIC_PATHS) {
     test(`${path} has no noindex header or meta`, async ({ request, page }) => {
-      const res = await request.get(path, { maxRedirects: 0 });
+      const res = await getWithRetry(request, path);
       expect(res.status(), `${path} should be served directly`).toBe(200);
 
       const header = res.headers()["x-robots-tag"];
@@ -40,7 +97,7 @@ test.describe("public routes stay indexable", () => {
       );
 
       // Rendered (post-hydration) DOM must agree with the SSR HTML.
-      await page.goto(path, { waitUntil: "domcontentloaded" });
+      await gotoWithRetry(page, path);
       const rendered = await page
         .locator('meta[name="robots"]')
         .evaluateAll((els) => els.map((e) => e.getAttribute("content") ?? ""));
@@ -54,7 +111,7 @@ test.describe("public routes stay indexable", () => {
 test.describe("private routes are blocked from indexing", () => {
   for (const path of PRIVATE_PATHS) {
     test(`${path} sends noindex header and meta`, async ({ request, page }) => {
-      const res = await request.get(path, { maxRedirects: 0 });
+      const res = await getWithRetry(request, path);
       expect(
         res.headers()["x-robots-tag"],
         `${path} must send the noindex X-Robots-Tag`,
@@ -68,9 +125,9 @@ test.describe("private routes are blocked from indexing", () => {
         expect(metas.join(" | ")).toMatch(/noindex/i);
       }
 
-      await page.goto(path, { waitUntil: "domcontentloaded" });
+      await gotoWithRetry(page, path);
       const landed = new URL(page.url()).pathname;
-      if (landed === path) {
+      if (landed === normalizePath(path)) {
         const rendered = await page
           .locator('meta[name="robots"]')
           .evaluateAll((els) => els.map((e) => e.getAttribute("content") ?? ""));
@@ -85,9 +142,29 @@ test.describe("private routes are blocked from indexing", () => {
   }
 });
 
+test("every sitemap URL is allowlisted and header-clean", async ({ request }) => {
+  const res = await getWithRetry(request, "/sitemap.xml");
+  expect(res.status()).toBe(200);
+  const locs = [...(await res.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(locs.length, "sitemap must list URLs").toBeGreaterThan(0);
+
+  for (const loc of locs) {
+    expect(loc, "sitemap URLs must use the canonical origin").toContain(BASE_URL);
+    const path = normalizePath(loc);
+    expect(isCrawlablePath(path), `${path} is in the sitemap but not allowlisted`).toBe(true);
+
+    const page = await getWithRetry(request, path);
+    expect(page.status(), `${path} from sitemap must return 200`).toBe(200);
+    expect(
+      page.headers()["x-robots-tag"],
+      `${path} is in the sitemap but sends X-Robots-Tag`,
+    ).toBeUndefined();
+  }
+});
+
 test("robots.txt and sitemap.xml stay crawlable", async ({ request }) => {
   for (const path of ["/robots.txt", "/sitemap.xml"]) {
-    const res = await request.get(path, { maxRedirects: 0 });
+    const res = await getWithRetry(request, path);
     expect(res.status(), `${path} should return 200`).toBe(200);
     expect(res.headers()["x-robots-tag"], `${path} must not be noindexed`).toBeUndefined();
   }
