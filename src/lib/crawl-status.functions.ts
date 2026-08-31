@@ -108,7 +108,7 @@ export const getCrawlStatus = createServerFn({ method: "POST" })
         const path = normalizePath(route.path);
         const inSitemap = hasPublicRobots(route);
         const policy = robotsPolicyFor(path);
-        const robotsAllowed = policy.allowed ?? !policy.noindex;
+        const robotsAllowed = policy.crawlable;
         const problems: string[] = [];
 
         try {
