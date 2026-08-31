@@ -56,7 +56,7 @@ function SearchConsolePage() {
 
   const filesQuery = useQuery({
     queryKey: ["gsc-live-files"],
-    queryFn: () => loadFiles({ data: {} }),
+    queryFn: () => loadFiles(),
     retry: false,
   });
   const files = filesQuery.data;
