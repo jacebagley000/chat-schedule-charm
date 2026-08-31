@@ -49,7 +49,15 @@ jobs:
 
       - name: Check noindex vs robots/sitemap allowlist
         id: noindex_check
-        run: node scripts/check-noindex.mjs --json artifacts/noindex/noindex-report.json
+        env:
+          ALLOWLIST_FILE: ${{ inputs.allowlist_file }}
+        run: |
+          extra=""
+          if [ -n "$ALLOWLIST_FILE" ]; then
+            echo "Using allowlist override: $ALLOWLIST_FILE"
+            extra="--allowlist $ALLOWLIST_FILE"
+          fi
+          node scripts/check-noindex.mjs $extra --json artifacts/noindex/noindex-report.json
 
       - name: Upload noindex JSON report
         id: noindex_report
