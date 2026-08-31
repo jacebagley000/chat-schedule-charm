@@ -1,20 +1,22 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-08-31T00:40:53.614Z",
+  "generatedAt": "2026-08-31T15:25:53.644Z",
   "status": "pass",
   "dryRun": false,
+  "allowlistFile": "/dev-server/src/config/robots-rules.json",
   "commit": null,
   "ref": null,
   "runId": null,
   "summary": {
-    "routesChecked": 16,
-    "passed": 16,
+    "routesChecked": 17,
+    "passed": 17,
     "failed": 0,
     "problemCount": 0,
     "byKind": {}
   },
   "routesChecked": [
     "/admin/leads",
+    "/admin/robots",
     "/dashboard",
     "/schedule",
     "/workspaces/$businessId/audit",
@@ -43,6 +45,15 @@
     },
     {
       "route": "/admin/leads",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/robots",
       "status": "pass",
       "file": null,
       "kind": null,
