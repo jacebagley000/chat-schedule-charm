@@ -16,33 +16,40 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { isCrawlablePath, NOINDEX_HEADER, PUBLIC_ROUTES } from "../public-routes";
+import {
+  isCrawlablePath,
+  normalizePath,
+  NOINDEX_HEADER,
+  PUBLIC_ROUTES,
+} from "../public-routes";
 
 /** Origin: mirrors the production request middleware. */
 function createOrigin() {
   return http.createServer((req, res) => {
-    const url = new URL(req.url ?? "/", "http://origin.local");
+    // Normalize the raw request target the way the app middleware does; a
+    // protocol-relative-looking target like "//dashboard" is still a path here.
+    const pathname = normalizePath(req.url ?? "/");
     const headers: Record<string, string> = {
       "content-type": "text/html; charset=utf-8",
       // CDNs commonly cache anything with a positive max-age.
       "cache-control": "public, max-age=60",
     };
-    if (!isCrawlablePath(url.pathname)) {
+    if (!isCrawlablePath(pathname)) {
       headers["X-Robots-Tag"] = NOINDEX_HEADER;
     }
 
-    if (url.pathname === "/dashboard/redirect") {
+    if (pathname === "/dashboard/redirect") {
       res.writeHead(302, { ...headers, location: "/login" });
       res.end();
       return;
     }
-    if (url.pathname === "/dashboard/boom") {
+    if (pathname === "/dashboard/boom") {
       res.writeHead(500, headers);
       res.end("<html><body>error</body></html>");
       return;
     }
     res.writeHead(200, headers);
-    res.end(req.method === "HEAD" ? undefined : `<html><body>${url.pathname}</body></html>`);
+    res.end(req.method === "HEAD" ? undefined : `<html><body>${pathname}</body></html>`);
   });
 }
 
