@@ -25,6 +25,7 @@ import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
+import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
@@ -114,6 +115,12 @@ const AuthenticatedAdminRobotsRoute =
     path: '/admin/robots',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSitemapRoute =
+  AuthenticatedAdminSitemapRouteImport.update({
+    id: '/admin/sitemap',
+    path: '/admin/sitemap',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedWorkspacesBusinessIdAuditRoute =
   AuthenticatedWorkspacesBusinessIdAuditRouteImport.update({
     id: '/workspaces/$businessId/audit',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -189,6 +197,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/leads'
     | '/admin/robots'
+    | '/admin/sitemap'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/leads'
     | '/admin/robots'
+    | '/admin/sitemap'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -286,6 +298,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/robots'
+    | '/_authenticated/admin/sitemap'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRobotsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/sitemap': {
+      id: '/_authenticated/admin/sitemap'
+      path: '/admin/sitemap'
+      fullPath: '/admin/sitemap'
+      preLoaderRoute: typeof AuthenticatedAdminSitemapRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/audit': {
       id: '/_authenticated/workspaces/$businessId/audit'
       path: '/workspaces/$businessId/audit'
@@ -475,6 +495,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
+  AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   AuthenticatedWorkspacesBusinessIdMembersRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -486,6 +507,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
+  AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
     AuthenticatedWorkspacesBusinessIdAuditRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
