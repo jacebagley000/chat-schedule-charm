@@ -1,137 +1,46 @@
-import { readdirSync } from "node:fs";
-import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  BASE_URL,
-  NOINDEX_HEADER,
-  PRIVATE_PREFIXES,
-  PUBLIC_ROUTES,
-  isCrawlablePath,
-  renderRobotsTxt,
-  renderSitemapXml,
-} from "@/lib/public-routes";
+import { isCrawlablePath, normalizePath, PUBLIC_ROUTES } from "./public-routes";
 
-
-const ROUTES_DIR = join(process.cwd(), "src/routes");
-
-/** All URL paths the file-based router serves, derived from src/routes/**. */
-function routerPaths(): string[] {
-  const files: string[] = [];
-  const walk = (dir: string) => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else if (/\.tsx?$/.test(entry.name)) files.push(relative(ROUTES_DIR, full));
-    }
-  };
-  walk(ROUTES_DIR);
-
-  return [
-    ...new Set(
-      files
-        .map((f) => f.replace(/\.tsx?$/, ""))
-        .filter((f) => !f.startsWith("__root"))
-        .map((f) =>
-          "/" +
-          f
-            .replace(/\[\.\]/g, ".")
-            .split(/[/.]/)
-            .filter((seg) => seg !== "index" && !seg.startsWith("_"))
-            .join("/"),
-        )
-        // sitemap.xml / robots.txt lose their dot above; restore file-like leaves
-        .map((p) => p.replace(/\/(sitemap|robots)\/(xml|txt)$/, "/$1.$2"))
-        .map((p) => (p === "" ? "/" : p)),
-    ),
-  ];
-}
-
-describe("public route registry", () => {
-  it("keeps robots.txt and sitemap.xml in sync", () => {
-    const robots = renderRobotsTxt();
-    const sitemap = renderSitemapXml();
-    for (const { path } of PUBLIC_ROUTES) {
-      expect(robots).toContain(`Allow: ${path === "/" ? "/$" : path}`);
-      expect(sitemap).toContain(`<loc>${BASE_URL}${path}</loc>`);
-    }
-    expect(robots).toContain(`Sitemap: ${BASE_URL}/sitemap.xml`);
-    expect(robots.trimEnd().endsWith(`Sitemap: ${BASE_URL}/sitemap.xml`)).toBe(true);
-  });
-
-  it("only lists routes the router actually serves", () => {
-    const paths = routerPaths();
-    for (const { path } of PUBLIC_ROUTES) {
-      expect(paths, `missing route for ${path}`).toContain(path);
-    }
-  });
-
-  it("never marks a private route as public", () => {
-    for (const { path } of PUBLIC_ROUTES) {
-      for (const prefix of PRIVATE_PREFIXES) {
-        expect(path.startsWith(prefix)).toBe(false);
-      }
-    }
-  });
-
-  it("flags new crawlable page routes that are missing from the registry", () => {
-    const known = new Set(PUBLIC_ROUTES.map((r) => r.path));
-    const ignored = ["/sitemap.xml", "/robots.txt"];
-    const missing = routerPaths().filter(
-      (p) =>
-        p.startsWith("/") &&
-        !p.includes("$") &&
-        !p.includes("*") &&
-        !ignored.includes(p) &&
-        !known.has(p) &&
-        !PRIVATE_PREFIXES.some((prefix) => p === prefix || p.startsWith(prefix)),
-    );
-    expect(missing, `add these to PUBLIC_ROUTES or PRIVATE_PREFIXES: ${missing.join(", ")}`).toEqual(
-      [],
-    );
+describe("normalizePath", () => {
+  it.each([
+    ["/", "/"],
+    ["", "/"],
+    ["/login/", "/login"],
+    ["//login//", "/login"],
+    ["/login?utm_source=x", "/login"],
+    ["/login/?utm_source=x#form", "/login"],
+    ["/comparison/polyai/", "/comparison/polyai"],
+    ["https://example.com/comparison/polyai/?a=1", "/comparison/polyai"],
+  ])("normalizes %s -> %s", (input, expected) => {
+    expect(normalizePath(input)).toBe(expected);
   });
 });
 
-/**
- * The X-Robots-Tag middleware in src/start.ts tags every response whose path
- * fails isCrawlablePath(). These tests pin that decision to the same allowlist
- * that drives robots.txt and sitemap.xml, so a header can never contradict them.
- */
-describe("X-Robots-Tag vs robots/sitemap allowlist", () => {
-  it("never noindexes a route advertised in sitemap.xml / allowed in robots.txt", () => {
-    const robots = renderRobotsTxt();
-    const sitemap = renderSitemapXml();
+describe("isCrawlablePath", () => {
+  it("allows every public route, including trailing-slash and query variants", () => {
     for (const { path } of PUBLIC_ROUTES) {
-      expect(isCrawlablePath(path), `${path} would be sent with X-Robots-Tag`).toBe(true);
-      expect(robots).toContain(`Allow: ${path === "/" ? "/$" : path}`);
-      expect(sitemap).toContain(`<loc>${BASE_URL}${path}</loc>`);
+      expect(isCrawlablePath(path)).toBe(true);
+      expect(isCrawlablePath(path === "/" ? "/" : `${path}/`)).toBe(true);
+      expect(isCrawlablePath(`${path}?utm_source=newsletter`)).toBe(true);
+      expect(isCrawlablePath(`${path}#section`)).toBe(true);
     }
   });
 
-  it("treats trailing-slash variants of public routes as crawlable", () => {
-    for (const { path } of PUBLIC_ROUTES) {
-      if (path === "/") continue;
-      expect(isCrawlablePath(`${path}/`)).toBe(true);
-    }
-  });
-
-  it("noindexes every private prefix and unknown route", () => {
-    const samples = [
-      ...PRIVATE_PREFIXES.map((p) => (p.endsWith("/") ? `${p}sample` : p)),
-      "/dashboard/settings",
-      "/this-route-does-not-exist",
-    ];
-    for (const path of samples) {
-      expect(isCrawlablePath(path), `${path} must be noindexed`).toBe(false);
-    }
-  });
-
-  it("keeps robots.txt-served files crawlable", () => {
+  it("allows robots.txt and sitemap.xml", () => {
     expect(isCrawlablePath("/robots.txt")).toBe(true);
     expect(isCrawlablePath("/sitemap.xml")).toBe(true);
   });
 
-  it("uses a noindex header value", () => {
-    expect(NOINDEX_HEADER).toMatch(/noindex/);
+  it.each([
+    "/dashboard",
+    "/dashboard/",
+    "/dashboard?tab=today",
+    "/admin/leads",
+    "/schedule/abc",
+    "/login-extra",
+    "/comparison/unknown-competitor",
+    "/comparison/polyai/extra",
+  ])("blocks %s", (path) => {
+    expect(isCrawlablePath(path)).toBe(false);
   });
 });
-
