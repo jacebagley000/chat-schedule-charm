@@ -14,9 +14,11 @@
  * Run standalone: `node scripts/check-noindex.mjs`
  *
  * Always writes a machine-readable JSON report so CI can parse the results:
- *   --json <path>   report location (default artifacts/noindex/noindex-report.json)
- *   --no-json       skip writing the report
- *   --dry-run       list every route as PASS/FAIL and always exit 0 (no CI failure)
+ *   --json <path>      report location (default artifacts/noindex/noindex-report.json)
+ *   --no-json          skip writing the report
+ *   --dry-run          list every route as PASS/FAIL and always exit 0 (no CI failure)
+ *   --allowlist <path> override the allowlist file (default src/lib/public-routes.ts)
+ *                      Useful for testing alternate policies without changing repo code.
  */
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
@@ -30,7 +32,9 @@ const flagValue = (name, fallback) => {
 
 const ROOT = process.cwd();
 const routesDir = join(ROOT, "src/routes");
-const registrySource = readFileSync(join(ROOT, "src/lib/public-routes.ts"), "utf8");
+const allowlistPath = resolve(ROOT, flagValue("allowlist", "src/lib/public-routes.ts"));
+const registrySource = readFileSync(allowlistPath, "utf8");
+console.log(`ℹ Allowlist file: ${allowlistPath}`);
 
 const dryRun = args.includes("--dry-run");
 
