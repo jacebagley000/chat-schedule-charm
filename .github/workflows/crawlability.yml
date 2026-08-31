@@ -89,6 +89,17 @@ jobs:
             echo "Artifacts for this run: [run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build robots.txt from the allowlist
+        run: bun scripts/build-robots.mjs --out artifacts/robots/robots.txt --sitemap
+
+      - name: Upload generated robots.txt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robots-txt
+          path: artifacts/robots/
+          if-no-files-found: warn
+
       - name: Comment on PR with noindex results
         if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
