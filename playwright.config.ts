@@ -15,6 +15,8 @@ const baseURL =
   "http://localhost:8080";
 
 const isLocal = baseURL.includes("localhost");
+/** Set when a dev server is already running and Playwright must not spawn one. */
+const externalServer = process.env["PLAYWRIGHT_NO_WEBSERVER"] === "1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -27,14 +29,18 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    // Escape hatch for environments that already ship a compatible browser.
+    launchOptions: process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+      ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+      : {},
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  ...(isLocal
+  ...(isLocal && !externalServer
     ? {
         webServer: {
           command: "bun run dev",
           url: "http://localhost:8080",
-          reuseExistingServer: true,
+          reuseExistingServer: !process.env["CI"],
           timeout: 120_000,
         },
       }
