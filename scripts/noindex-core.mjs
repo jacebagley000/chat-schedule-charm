@@ -48,8 +48,28 @@ export function classifyUrl(url, { publicPaths = [], privatePrefixes = [] } = {}
 }
 
 
-/** Extract PUBLIC_ROUTES paths + PRIVATE_PREFIXES from the registry source. */
-export function parseRegistry(src, label = "public-routes registry") {
+/**
+ * Extract the public allowlist + private prefixes from the rules source.
+ * Accepts the editable JSON rules file (src/config/robots-rules.json) or, for
+ * backwards compatibility, a TS registry module exporting PUBLIC_ROUTES /
+ * PRIVATE_PREFIXES.
+ */
+export function parseRegistry(src, label = "robots rules") {
+  if (src.trimStart().startsWith("{")) {
+    let json;
+    try {
+      json = JSON.parse(src);
+    } catch (e) {
+      throw new Error(`could not parse ${label} as JSON: ${e.message}`);
+    }
+    const publicPaths = (json.allow ?? [])
+      .filter((r) => r.publicRobots !== false)
+      .map((r) => r.path);
+    const privatePrefixes = (json.disallow ?? []).filter((p) => p.trim() !== "/");
+    if (!publicPaths.length) throw new Error("robots rules contain no Allow entries");
+    return { publicPaths, privatePrefixes };
+  }
+
   const section = (name) => {
     const m = src.match(new RegExp(`${name}[^=]*=\\s*\\[([\\s\\S]*?)\\n\\];`));
     if (!m) throw new Error(`could not parse ${name} from ${label}`);
