@@ -48,8 +48,28 @@ export function classifyUrl(url, { publicPaths = [], privatePrefixes = [] } = {}
 }
 
 
-/** Extract PUBLIC_ROUTES paths + PRIVATE_PREFIXES from the registry source. */
-export function parseRegistry(src, label = "public-routes registry") {
+/**
+ * Extract the public allowlist + private prefixes from the rules source.
+ * Accepts the editable JSON rules file (src/config/robots-rules.json) or, for
+ * backwards compatibility, a TS registry module exporting PUBLIC_ROUTES /
+ * PRIVATE_PREFIXES.
+ */
+export function parseRegistry(src, label = "robots rules") {
+  if (src.trimStart().startsWith("{")) {
+    let json;
+    try {
+      json = JSON.parse(src);
+    } catch (e) {
+      throw new Error(`could not parse ${label} as JSON: ${e.message}`);
+    }
+    const publicPaths = (json.allow ?? [])
+      .filter((r) => r.publicRobots !== false)
+      .map((r) => r.path);
+    const privatePrefixes = (json.disallow ?? []).filter((p) => p.trim() !== "/");
+    if (!publicPaths.length) throw new Error("robots rules contain no Allow entries");
+    return { publicPaths, privatePrefixes };
+  }
+
   const section = (name) => {
     const m = src.match(new RegExp(`${name}[^=]*=\\s*\\[([\\s\\S]*?)\\n\\];`));
     if (!m) throw new Error(`could not parse ${name} from ${label}`);
@@ -264,7 +284,7 @@ export function checkNoindex({ routesDir, registrySource }) {
       report(
         "indexable (no `noindex` anywhere in the page metadata)",
         "the route is allowlisted in robots.txt and advertised in sitemap.xml, but the rendered page tells crawlers not to index it",
-        "remove `noindex: true` from its pageMeta(), or drop the path from PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "remove `noindex: true` from its pageMeta(), or drop the path from the Allow rules in src/config/robots-rules.json (/admin/robots)",
         "public-route-noindexed",
       );
     }
@@ -274,7 +294,7 @@ export function checkNoindex({ routesDir, registrySource }) {
         isPrivatePrefix
           ? "the route falls under a private prefix, so robots.txt disallows it, yet the rendered page carries no noindex signal"
           : "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
-        "add `noindex: true` to its pageMeta(), or add the path to PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "add `noindex: true` to its pageMeta(), or add the path to the Allow rules in src/config/robots-rules.json (/admin/robots)",
         "private-route-indexable",
       );
     }
@@ -298,7 +318,7 @@ export function checkNoindex({ routesDir, registrySource }) {
         evidence: ["(no route file — nothing to quote)"],
         expectedXRobotsTag: null,
         why: "sitemap.xml advertises a URL the router does not serve",
-        fix: `create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+        fix: `create the route, or remove "${path}" from the Allow rules in src/config/robots-rules.json (/admin/robots)`,
       });
       errors.push(
         [
@@ -307,7 +327,7 @@ export function checkNoindex({ routesDir, registrySource }) {
           `allowlist:  PUBLIC (in PUBLIC_ROUTES + sitemap.xml)`,
           `expected:   a page route file rendering indexable metadata`,
           `actual:     404 — sitemap.xml advertises a URL the router does not serve`,
-          `fix:        create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+          `fix:        create the route, or remove "${path}" from the Allow rules in src/config/robots-rules.json (/admin/robots)`,
         ].join("\n    "),
       );
     }

@@ -1,0 +1,26 @@
+{
+  "baseUrl": "https://chat-schedule-charm.lovable.app",
+  "allow": [
+    { "path": "/", "changefreq": "weekly", "priority": "1.0" },
+    { "path": "/login", "changefreq": "yearly", "priority": "0.3" },
+    { "path": "/signup", "changefreq": "yearly", "priority": "0.6" },
+    { "path": "/comparison/polyai", "changefreq": "monthly", "priority": "0.7" },
+    { "path": "/comparison/answering-service", "changefreq": "monthly", "priority": "0.7" },
+    {
+      "path": "/comparison/ai-receptionist-vs-live-chat",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    }
+  ],
+  "disallow": [
+    "/dashboard",
+    "/admin/",
+    "/schedule",
+    "/workspaces/",
+    "/checkout/",
+    "/invite/",
+    "/api/",
+    "/_authenticated/"
+  ],
+  "sitemaps": ["https://chat-schedule-charm.lovable.app/sitemap.xml"]
+}

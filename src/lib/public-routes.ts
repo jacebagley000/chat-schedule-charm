@@ -1,12 +1,13 @@
 /**
  * Single source of truth for which routes are publicly crawlable.
  *
- * Both /sitemap.xml and /robots.txt are generated from this registry, so the
- * allowlist and the sitemap can never drift apart. When you add a public page,
- * add it here — nothing else to update.
+ * The rules themselves live in `src/config/robots-rules.json`, which is edited
+ * from the admin robots.txt editor (/admin/robots). robots.txt, sitemap.xml,
+ * the X-Robots-Tag middleware and the build-time noindex checker all read that
+ * one file, so the allowlist can never drift apart.
  */
 
-export const BASE_URL = "https://chat-schedule-charm.lovable.app";
+import rulesConfig from "@/config/robots-rules.json";
 
 export type ChangeFreq =
   | "always"
@@ -32,41 +33,34 @@ export interface PublicRoute {
   publicRobots?: boolean;
 }
 
+export interface RobotsRulesConfig {
+  baseUrl: string;
+  allow: PublicRoute[];
+  disallow: string[];
+  sitemaps: string[];
+}
+
+/** Parsed contents of src/config/robots-rules.json. */
+export const ROBOTS_RULES = rulesConfig as RobotsRulesConfig;
+
+export const BASE_URL = ROBOTS_RULES.baseUrl;
+
 /** A route is public only when it opts in explicitly (default true). */
 export function hasPublicRobots(route: PublicRoute): boolean {
   return route.publicRobots !== false;
 }
 
-/** Public, indexable pages. Keep in sync with src/routes/**. */
-export const PUBLIC_ROUTES: PublicRoute[] = [
-  { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/login", changefreq: "yearly", priority: "0.3" },
-  { path: "/signup", changefreq: "yearly", priority: "0.6" },
-  { path: "/comparison/polyai", changefreq: "monthly", priority: "0.7" },
-  { path: "/comparison/answering-service", changefreq: "monthly", priority: "0.7" },
-  {
-    path: "/comparison/ai-receptionist-vs-live-chat",
-    changefreq: "monthly",
-    priority: "0.7",
-  },
-];
+/** Public, indexable pages, from the editable rules file. */
+export const PUBLIC_ROUTES: PublicRoute[] = ROBOTS_RULES.allow;
 
 /**
  * Route prefixes that must never be crawled. Everything not in PUBLIC_ROUTES is
  * already blocked by the catch-all `Disallow: /`; these are listed explicitly so
  * the intent is readable in robots.txt.
  */
-export const PRIVATE_PREFIXES: string[] = [
-  "/dashboard",
-  "/admin/",
-  "/schedule",
-
-  "/workspaces/",
-  "/checkout/",
-  "/invite/",
-  "/api/",
-  "/_authenticated/",
-];
+export const PRIVATE_PREFIXES: string[] = ROBOTS_RULES.disallow.filter(
+  (p) => p.trim() !== "/",
+);
 
 /** Extra crawlable files that are not pages. */
 const EXTRA_ALLOWED = ["/sitemap.xml"];
@@ -76,38 +70,40 @@ function allowDirective(path: string): string {
   return `Allow: ${path === "/" ? "/$" : path}`;
 }
 
-export function renderRobotsTxt(): string {
+export function renderRobotsTxt(config: RobotsRulesConfig = ROBOTS_RULES): string {
+  const publicRoutes = config.allow.filter(hasPublicRobots);
+  const privatePrefixes = config.disallow.filter((p) => p.trim() !== "/");
   const lines = [
     "# FrontDesk AI - robots.txt",
-    "# Generated from src/lib/public-routes.ts — do not edit by hand.",
+    "# Generated from src/config/robots-rules.json — edit at /admin/robots.",
     "# Explicit allowlist: only public marketing/auth pages are crawlable.",
     "",
     "User-agent: *",
     "",
     "# Public routes (matches sitemap.xml)",
-    ...PUBLIC_ROUTES.filter(hasPublicRobots).map((r) => allowDirective(r.path)),
+    ...publicRoutes.map((r) => allowDirective(r.path)),
     ...EXTRA_ALLOWED.map((p) => `Allow: ${p}`),
     "",
     "# Authenticated / internal routes",
-    ...PRIVATE_PREFIXES.map((p) => `Disallow: ${p}`),
-    ...PUBLIC_ROUTES.filter((r) => !hasPublicRobots(r)).map(
-      (r) => `Disallow: ${normalizePath(r.path)}`,
-    ),
+    ...privatePrefixes.map((p) => `Disallow: ${p}`),
+    ...config.allow
+      .filter((r) => !hasPublicRobots(r))
+      .map((r) => `Disallow: ${normalizePath(r.path)}`),
     "",
     "# Catch-all: disallow everything else not explicitly allowed above",
     "Disallow: /",
     "",
-    `Sitemap: ${BASE_URL}/sitemap.xml`,
+    ...config.sitemaps.map((s) => `Sitemap: ${s}`),
     "",
   ];
   return lines.join("\n");
 }
 
-export function renderSitemapXml(): string {
-  const urls = PUBLIC_ROUTES.filter(hasPublicRobots).map((e) =>
+export function renderSitemapXml(config: RobotsRulesConfig = ROBOTS_RULES): string {
+  const urls = config.allow.filter(hasPublicRobots).map((e) =>
     [
       `  <url>`,
-      `    <loc>${BASE_URL}${e.path}</loc>`,
+      `    <loc>${config.baseUrl}${e.path}</loc>`,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,
@@ -191,7 +187,6 @@ export function robotsPolicyFor(pathname: string): RobotsPolicy {
   }
   return { path, crawlable: true, reason: "public-route" };
 }
-
 
 /** Value sent on every non-crawlable response. */
 export const NOINDEX_HEADER = "noindex, nofollow, noarchive";
