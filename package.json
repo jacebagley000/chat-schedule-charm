@@ -13,6 +13,7 @@
     "test": "vitest run",
     "check:noindex": "node scripts/check-noindex.mjs",
     "build:robots": "bun scripts/build-robots.mjs --sitemap",
+    "check:sitemap-urls": "node scripts/check-sitemap-urls.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {

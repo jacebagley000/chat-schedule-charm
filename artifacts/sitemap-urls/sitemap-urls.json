@@ -1,0 +1,76 @@
+{
+  "check": "sitemap-url-fetch",
+  "generatedAt": "2026-08-31T15:34:18.229Z",
+  "baseUrl": "http://localhost:8080",
+  "dryRun": false,
+  "status": "pass",
+  "summary": {
+    "urlsChecked": 6,
+    "passed": 6,
+    "failed": 0,
+    "notFound": 0,
+    "robotsContradictions": 0
+  },
+  "results": [
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/",
+      "path": "/",
+      "url": "http://localhost:8080/",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    },
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/login",
+      "path": "/login",
+      "url": "http://localhost:8080/login",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    },
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/signup",
+      "path": "/signup",
+      "url": "http://localhost:8080/signup",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    },
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/comparison/polyai",
+      "path": "/comparison/polyai",
+      "url": "http://localhost:8080/comparison/polyai",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    },
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/comparison/answering-service",
+      "path": "/comparison/answering-service",
+      "url": "http://localhost:8080/comparison/answering-service",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    },
+    {
+      "loc": "https://chat-schedule-charm.lovable.app/comparison/ai-receptionist-vs-live-chat",
+      "path": "/comparison/ai-receptionist-vs-live-chat",
+      "url": "http://localhost:8080/comparison/ai-receptionist-vs-live-chat",
+      "status": 200,
+      "xRobotsTag": null,
+      "metaRobots": null,
+      "ok": true,
+      "problems": []
+    }
+  ]
+}
