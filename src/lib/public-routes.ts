@@ -112,18 +112,30 @@ export function renderSitemapXml(): string {
 const CRAWLABLE_FILES = new Set([...EXTRA_ALLOWED, "/robots.txt"]);
 
 /**
+ * Normalize a real-world URL path: drop query string, hash and trailing
+ * slashes, collapse duplicate slashes. `/login/?utm_source=x#top` -> `/login`.
+ */
+export function normalizePath(pathname: string): string {
+  if (!pathname) return "/";
+  let path = pathname.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/i, "");
+  path = path.split("#")[0].split("?")[0];
+  if (!path.startsWith("/")) path = `/${path}`;
+  path = path.replace(/\/{2,}/g, "/");
+  if (path.length > 1) path = path.replace(/\/+$/, "");
+  return path || "/";
+}
+
+/**
  * True when the given URL path is part of the public allowlist (or a crawlable
  * non-page file). Everything else is private and must be sent with a
  * `X-Robots-Tag: noindex` response header.
  */
 export function isCrawlablePath(pathname: string): boolean {
-  const path =
-    pathname.length > 1 && pathname.endsWith("/")
-      ? pathname.replace(/\/+$/, "")
-      : pathname;
+  const path = normalizePath(pathname);
   if (CRAWLABLE_FILES.has(path)) return true;
-  return PUBLIC_ROUTES.some((r) => r.path === path);
+  return PUBLIC_ROUTES.some((r) => normalizePath(r.path) === path);
 }
+
 
 /** Value sent on every non-crawlable response. */
 export const NOINDEX_HEADER = "noindex, nofollow, noarchive";
