@@ -230,6 +230,18 @@ jobs:
         if: steps.target.outputs.url != ''
         run: bash scripts/check-crawlability.sh "${{ steps.target.outputs.url }}"
 
+      - name: Fetch every sitemap URL (deployed)
+        if: always() && steps.target.outputs.url != ''
+        run: node scripts/check-sitemap-urls.mjs --base-url "${{ steps.target.outputs.url }}" --out artifacts/sitemap-urls-deployed
+
+      - name: Upload sitemap URL report (deployed)
+        if: always() && steps.target.outputs.url != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitemap-urls-report-deployed
+          path: artifacts/sitemap-urls-deployed
+          if-no-files-found: warn
+
       - name: Generate route index report (deployed)
         if: always() && steps.target.outputs.url != ''
         run: node scripts/route-index-report.mjs --out artifacts/route-index-deployed --base-url "${{ steps.target.outputs.url }}"
