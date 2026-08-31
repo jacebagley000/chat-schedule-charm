@@ -22,6 +22,19 @@ export interface PublicRoute {
   path: string;
   changefreq?: ChangeFreq;
   priority?: string;
+  /**
+   * Explicit robots policy for this route. `true` (the default) means the page
+   * is crawlable and indexable. Set to `false` to keep a route registered here
+   * — for links, reports and tests — while never emitting public robots rules
+   * for it: it is excluded from robots.txt Allow lines and from sitemap.xml,
+   * and it is served with the noindex header like any other private path.
+   */
+  publicRobots?: boolean;
+}
+
+/** A route is public only when it opts in explicitly (default true). */
+export function hasPublicRobots(route: PublicRoute): boolean {
+  return route.publicRobots !== false;
 }
 
 /** Public, indexable pages. Keep in sync with src/routes/**. */
@@ -72,11 +85,14 @@ export function renderRobotsTxt(): string {
     "User-agent: *",
     "",
     "# Public routes (matches sitemap.xml)",
-    ...PUBLIC_ROUTES.map((r) => allowDirective(r.path)),
+    ...PUBLIC_ROUTES.filter(hasPublicRobots).map((r) => allowDirective(r.path)),
     ...EXTRA_ALLOWED.map((p) => `Allow: ${p}`),
     "",
     "# Authenticated / internal routes",
     ...PRIVATE_PREFIXES.map((p) => `Disallow: ${p}`),
+    ...PUBLIC_ROUTES.filter((r) => !hasPublicRobots(r)).map(
+      (r) => `Disallow: ${normalizePath(r.path)}`,
+    ),
     "",
     "# Catch-all: disallow everything else not explicitly allowed above",
     "Disallow: /",
@@ -88,7 +104,7 @@ export function renderRobotsTxt(): string {
 }
 
 export function renderSitemapXml(): string {
-  const urls = PUBLIC_ROUTES.map((e) =>
+  const urls = PUBLIC_ROUTES.filter(hasPublicRobots).map((e) =>
     [
       `  <url>`,
       `    <loc>${BASE_URL}${e.path}</loc>`,
@@ -131,9 +147,49 @@ export function normalizePath(pathname: string): string {
  * `X-Robots-Tag: noindex` response header.
  */
 export function isCrawlablePath(pathname: string): boolean {
+  return robotsPolicyFor(pathname).crawlable;
+}
+
+/** True when the path sits under an explicitly private prefix. */
+export function isPrivatePrefixPath(pathname: string): boolean {
   const path = normalizePath(pathname);
-  if (CRAWLABLE_FILES.has(path)) return true;
-  return PUBLIC_ROUTES.some((r) => normalizePath(r.path) === path);
+  return PRIVATE_PREFIXES.some((prefix) => {
+    const base = normalizePath(prefix);
+    return path === base || path.startsWith(`${base}/`);
+  });
+}
+
+export interface RobotsPolicy {
+  path: string;
+  crawlable: boolean;
+  reason:
+    | "crawlable-file"
+    | "private-prefix"
+    | "public-robots-disabled"
+    | "public-route"
+    | "not-registered";
+}
+
+/**
+ * Resolve the robots policy for a path. Private prefixes are evaluated BEFORE
+ * the public allowlist, and a registered route with `publicRobots: false` is
+ * always treated as private — so a private path can never inherit the robots
+ * rules of a public route (or of a public parent path).
+ */
+export function robotsPolicyFor(pathname: string): RobotsPolicy {
+  const path = normalizePath(pathname);
+  if (CRAWLABLE_FILES.has(path)) {
+    return { path, crawlable: true, reason: "crawlable-file" };
+  }
+  if (isPrivatePrefixPath(path)) {
+    return { path, crawlable: false, reason: "private-prefix" };
+  }
+  const route = PUBLIC_ROUTES.find((r) => normalizePath(r.path) === path);
+  if (!route) return { path, crawlable: false, reason: "not-registered" };
+  if (!hasPublicRobots(route)) {
+    return { path, crawlable: false, reason: "public-robots-disabled" };
+  }
+  return { path, crawlable: true, reason: "public-route" };
 }
 
 
