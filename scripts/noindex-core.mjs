@@ -187,14 +187,14 @@ export function evidenceLines(file, signals, anchors = []) {
  */
 export function checkNoindex({ routesDir, registrySource }) {
   const { publicPaths, privatePrefixes } = parseRegistry(registrySource);
-  const publicSet = new Set(publicPaths);
+  const publicSet = new Set(publicPaths.map(normalizePath));
   const errors = [];
   /** Machine-readable mirror of `errors`, for the JSON CI artifact. */
   const problems = [];
   const seen = new Set();
 
   for (const file of routeFiles(routesDir)) {
-    const url = filePathToUrl(file);
+    const url = normalizePath(filePathToUrl(file));
     if (NON_PAGE.some((re) => re.test(url))) continue;
     seen.add(url);
 
@@ -204,7 +204,10 @@ export function checkNoindex({ routesDir, registrySource }) {
     const evidence = evidenceLines(`src/routes/${file}`, signals, anchors);
     const noindex = signals.some((s) => s.noindex);
     const isPublic = publicSet.has(url);
-    const isPrivatePrefix = privatePrefixes.some((p) => url === p || url.startsWith(p));
+    const isPrivatePrefix = privatePrefixes.some((p) => {
+      const prefix = normalizePath(p);
+      return url === prefix || url.startsWith(`${prefix}/`);
+    });
 
     const report = (expected, why, fix, kind) => {
       problems.push({
@@ -214,7 +217,10 @@ export function checkNoindex({ routesDir, registrySource }) {
         allowlist: isPublic ? "public" : "private",
         privatePrefix:
           !isPublic && isPrivatePrefix
-            ? (privatePrefixes.find((p) => url === p || url.startsWith(p)) ?? null)
+            ? (privatePrefixes.find((p) => {
+                const prefix = normalizePath(p);
+                return url === prefix || url.startsWith(`${prefix}/`);
+              }) ?? null)
             : null,
         robotsRule: isPublic
           ? `Allow: ${url === "/" ? "/$" : url}`
@@ -235,7 +241,10 @@ export function checkNoindex({ routesDir, registrySource }) {
           `file:       src/routes/${file}`,
           `allowlist:  ${isPublic ? "PUBLIC (in PUBLIC_ROUTES + sitemap.xml)" : "PRIVATE"}${
             !isPublic && isPrivatePrefix
-              ? ` (matches PRIVATE_PREFIXES entry "${privatePrefixes.find((p) => url === p || url.startsWith(p))}")`
+              ? ` (matches PRIVATE_PREFIXES entry "${privatePrefixes.find((p) => {
+                  const prefix = normalizePath(p);
+                  return url === prefix || url.startsWith(`${prefix}/`);
+                })}")`
               : ""
           }`,
           `robots.txt: ${isPublic ? `Allow: ${url === "/" ? "/$" : url}` : "Disallow (catch-all or explicit prefix)"}`,
@@ -271,7 +280,8 @@ export function checkNoindex({ routesDir, registrySource }) {
     }
   }
 
-  for (const path of publicPaths) {
+  for (const rawPath of publicPaths) {
+    const path = normalizePath(rawPath);
     if (!seen.has(path)) {
       problems.push({
         kind: "sitemap-route-missing",
