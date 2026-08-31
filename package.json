@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "check:noindex": "node scripts/check-noindex.mjs"
+    "check:noindex": "node scripts/check-noindex.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.47.0",
