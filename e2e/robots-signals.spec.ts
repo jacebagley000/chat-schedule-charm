@@ -125,6 +125,10 @@ test.describe("private routes are blocked from indexing", () => {
         expect(metas.join(" | ")).toMatch(/noindex/i);
       }
 
+      // Unmatched URLs get a bare 404 with no HTML document — the response
+      // header is the only (and sufficient) robots signal there.
+      if (res.status() === 404) return;
+
       await gotoWithRetry(page, path);
       const landed = new URL(page.url()).pathname;
       if (landed === normalizePath(path)) {
@@ -138,6 +142,7 @@ test.describe("private routes are blocked from indexing", () => {
         // Redirected to a public auth page — that page must itself be clean.
         expect(landed, `${path} redirected somewhere unexpected`).toMatch(/^\/(login|signup)$/);
       }
+
     });
   }
 });
