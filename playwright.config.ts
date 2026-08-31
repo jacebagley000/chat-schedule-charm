@@ -27,6 +27,10 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    // Escape hatch for environments that already ship a compatible browser.
+    launchOptions: process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+      ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+      : {},
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   ...(isLocal
