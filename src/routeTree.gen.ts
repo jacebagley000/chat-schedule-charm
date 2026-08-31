@@ -25,6 +25,7 @@ import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
+import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
 import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
@@ -115,6 +116,12 @@ const AuthenticatedAdminRobotsRoute =
     path: '/admin/robots',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSearchConsoleRoute =
+  AuthenticatedAdminSearchConsoleRouteImport.update({
+    id: '/admin/search-console',
+    path: '/admin/search-console',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminSitemapRoute =
   AuthenticatedAdminSitemapRouteImport.update({
     id: '/admin/sitemap',
@@ -173,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -197,6 +205,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -223,6 +232,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
+  '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/leads'
     | '/admin/robots'
+    | '/admin/search-console'
     | '/admin/sitemap'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/leads'
     | '/admin/robots'
+    | '/admin/search-console'
     | '/admin/sitemap'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/robots'
+    | '/_authenticated/admin/search-console'
     | '/_authenticated/admin/sitemap'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRobotsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/search-console': {
+      id: '/_authenticated/admin/search-console'
+      path: '/admin/search-console'
+      fullPath: '/admin/search-console'
+      preLoaderRoute: typeof AuthenticatedAdminSearchConsoleRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/sitemap': {
       id: '/_authenticated/admin/sitemap'
       path: '/admin/sitemap'
@@ -495,6 +515,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
+  AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -507,6 +528,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
+  AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
   AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
     AuthenticatedWorkspacesBusinessIdAuditRoute,
