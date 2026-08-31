@@ -10,6 +10,44 @@ import { join, relative } from "node:path";
 /** Non-page routes that never render HTML metadata. */
 export const NON_PAGE = [/^\/api\//, /^\/sitemap\.xml$/, /^\/robots\.txt$/];
 
+/**
+ * Normalize a real-world URL (or href) down to the route path the router and
+ * the allowlist compare against: drops origin, query string, hash and trailing
+ * slashes, and collapses duplicate slashes. `/login/?utm_source=x#top` -> `/login`.
+ */
+export function normalizePath(url) {
+  if (typeof url !== "string" || url === "") return "/";
+  let path = url.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/i, "");
+  path = path.split("#")[0].split("?")[0];
+  if (!path.startsWith("/")) path = `/${path}`;
+  path = path.replace(/\/{2,}/g, "/");
+  if (path.length > 1) path = path.replace(/\/+$/, "");
+  return path || "/";
+}
+
+/**
+ * Classify any real-world URL against the registry, after normalization.
+ * Returns "public" (allowlisted + in sitemap), "private" (matches an explicit
+ * PRIVATE_PREFIXES entry) or "unknown" (blocked by the catch-all Disallow).
+ */
+export function classifyUrl(url, { publicPaths = [], privatePrefixes = [] } = {}) {
+  const path = normalizePath(url);
+  if (publicPaths.some((p) => normalizePath(p) === path)) {
+    return { path, allowlist: "public", privatePrefix: null };
+  }
+  const privatePrefix =
+    privatePrefixes.find((p) => {
+      const prefix = normalizePath(p);
+      return path === prefix || path.startsWith(`${prefix}/`);
+    }) ?? null;
+  return {
+    path,
+    allowlist: privatePrefix ? "private" : "unknown",
+    privatePrefix,
+  };
+}
+
+
 /** Extract PUBLIC_ROUTES paths + PRIVATE_PREFIXES from the registry source. */
 export function parseRegistry(src, label = "public-routes registry") {
   const section = (name) => {
