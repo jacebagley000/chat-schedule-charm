@@ -1,0 +1,181 @@
+{
+  "check": "noindex-vs-robots-allowlist",
+  "generatedAt": "2026-08-31T00:40:53.614Z",
+  "status": "pass",
+  "dryRun": false,
+  "commit": null,
+  "ref": null,
+  "runId": null,
+  "summary": {
+    "routesChecked": 16,
+    "passed": 16,
+    "failed": 0,
+    "problemCount": 0,
+    "byKind": {}
+  },
+  "routesChecked": [
+    "/admin/leads",
+    "/dashboard",
+    "/schedule",
+    "/workspaces/$businessId/audit",
+    "/workspaces/$businessId/calendar",
+    "/workspaces/$businessId/members",
+    "/workspaces/$businessId/schedule",
+    "/",
+    "/checkout/start",
+    "/checkout/success",
+    "/comparison/ai-receptionist-vs-live-chat",
+    "/comparison/answering-service",
+    "/comparison/polyai",
+    "/invite/$token",
+    "/login",
+    "/signup"
+  ],
+  "results": [
+    {
+      "route": "/",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/leads",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/checkout/start",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/checkout/success",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/comparison/ai-receptionist-vs-live-chat",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/comparison/answering-service",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/comparison/polyai",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/dashboard",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/invite/$token",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/login",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/schedule",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/signup",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/workspaces/$businessId/audit",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/workspaces/$businessId/calendar",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/workspaces/$businessId/members",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/workspaces/$businessId/schedule",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    }
+  ],
+  "problems": []
+}

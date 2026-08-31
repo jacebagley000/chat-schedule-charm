@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
   checkNoindex,
+  classifyUrl,
+  normalizePath,
   evidenceLines,
   filePathToUrl,
   metadataAnchors,
@@ -201,5 +203,149 @@ describe("checkNoindex", () => {
     const { errors, routes } = checkNoindex({ routesDir, registrySource: registry(["/"]) });
     expect(errors).toEqual([]);
     expect(routes).toEqual(["/"]);
+  });
+});
+
+describe("normalizePath (real-world URL variants)", () => {
+  it.each([
+    ["/", "/"],
+    ["", "/"],
+    ["/login", "/login"],
+    ["/login/", "/login"],
+    ["/login//", "/login"],
+    ["//login", "/login"],
+    ["/login?utm_source=google&gclid=abc", "/login"],
+    ["/login/?utm_source=google", "/login"],
+    ["/login#top", "/login"],
+    ["/login/?ref=x#pricing", "/login"],
+    ["/comparison/polyai/", "/comparison/polyai"],
+    ["/comparison//polyai", "/comparison/polyai"],
+    ["https://example.com/comparison/polyai/?a=1", "/comparison/polyai"],
+    ["/?utm_campaign=launch", "/"],
+    ["/#hero", "/"],
+    ["login", "/login"],
+  ])("normalizes %s -> %s", (input, expected) => {
+    expect(normalizePath(input)).toBe(expected);
+  });
+});
+
+describe("classifyUrl (query params, trailing slashes, unknown routes)", () => {
+  const reg = { publicPaths: ["/", "/login", "/comparison/polyai"], privatePrefixes: ["/dashboard", "/admin/"] };
+
+  it.each([
+    "/login",
+    "/login/",
+    "/login?utm_source=newsletter",
+    "/login/?utm_source=newsletter#form",
+    "//login",
+  ])("treats public variant %s as public", (url) => {
+    expect(classifyUrl(url, reg)).toMatchObject({ path: "/login", allowlist: "public" });
+  });
+
+  it.each(["/dashboard", "/dashboard/", "/dashboard?tab=today", "/dashboard/settings/"])(
+    "treats private variant %s as private",
+    (url) => {
+      expect(classifyUrl(url, reg).allowlist).toBe("private");
+    },
+  );
+
+  it("matches trailing-slash private prefixes without swallowing siblings", () => {
+    expect(classifyUrl("/admin/leads?status=new", reg)).toMatchObject({
+      allowlist: "private",
+      privatePrefix: "/admin/",
+    });
+    // "/administration" must NOT match the "/admin/" prefix.
+    expect(classifyUrl("/administration", reg).allowlist).toBe("unknown");
+  });
+
+  it.each([
+    "/pricing",
+    "/login-extra",
+    "/comparison/polyai-vs-someone",
+    "/comparison/polyai/deep/unknown",
+  ])("treats unknown route %s as catch-all blocked", (url) => {
+    expect(classifyUrl(url, reg).allowlist).toBe("unknown");
+  });
+
+  it("ignores query values that look like paths", () => {
+    // the query string is not part of the route: this is still the public page
+    expect(classifyUrl("/comparison/polyai/?next=/admin/leads", reg).allowlist).toBe("public");
+  });
+
+  it("keeps the root path public across query/hash variants", () => {
+    for (const url of ["/", "/?utm=1", "/#hero", "//"]) {
+      expect(classifyUrl(url, reg)).toMatchObject({ path: "/", allowlist: "public" });
+    }
+  });
+});
+
+describe("checkNoindex with real-world registry variants", () => {
+  it("matches registry entries written with a trailing slash", () => {
+    const routesDir = writeRoutes({
+      "index.tsx": INDEXABLE,
+      "comparison/polyai.tsx": INDEXABLE,
+    });
+    const { errors } = checkNoindex({
+      routesDir,
+      registrySource: registry(["/", "/comparison/polyai/"]),
+    });
+    expect(errors).toEqual([]);
+  });
+
+  it("still flags a trailing-slash registry entry whose route emits noindex", () => {
+    const routesDir = writeRoutes({
+      "index.tsx": INDEXABLE,
+      "comparison/polyai.tsx": NOINDEX,
+    });
+    const { errors } = checkNoindex({
+      routesDir,
+      registrySource: registry(["/", "/comparison/polyai/"]),
+    });
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("route:      /comparison/polyai");
+    expect(errors[0]).toContain("allowlist:  PUBLIC");
+  });
+
+  it("flags a registry entry that only differs by a query string as unserved", () => {
+    const routesDir = writeRoutes({ "index.tsx": INDEXABLE, "login.tsx": INDEXABLE });
+    const { errors, problems } = checkNoindex({
+      routesDir,
+      registrySource: registry(["/", "/login", "/signup?plan=pro"]),
+    });
+    expect(errors).toHaveLength(1);
+    expect(problems[0]).toMatchObject({ kind: "sitemap-route-missing", route: "/signup" });
+  });
+
+  it("treats unknown sibling routes of a public path as private", () => {
+    const routesDir = writeRoutes({
+      "index.tsx": INDEXABLE,
+      "comparison/polyai.tsx": INDEXABLE,
+      "comparison/draft-competitor.tsx": INDEXABLE,
+    });
+    const { errors } = checkNoindex({
+      routesDir,
+      registrySource: registry(["/", "/comparison/polyai"]),
+    });
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("route:      /comparison/draft-competitor");
+    expect(errors[0]).toContain("catch-all Disallow");
+  });
+
+  it("matches private prefixes written with a trailing slash", () => {
+    const routesDir = writeRoutes({
+      "index.tsx": INDEXABLE,
+      "_authenticated/admin/leads.tsx": INDEXABLE,
+      "administration.tsx": INDEXABLE,
+    });
+    const { errors } = checkNoindex({
+      routesDir,
+      registrySource: registry(["/"], ["/admin/"]),
+    });
+    expect(errors).toHaveLength(2);
+    const leads = errors.find((e) => e.includes("route:      /admin/leads"));
+    expect(leads).toContain('matches PRIVATE_PREFIXES entry "/admin/"');
+    // sibling name must fall through to the catch-all, not the /admin/ prefix
+    const sibling = errors.find((e) => e.includes("route:      /administration"));
+    expect(sibling).toContain("catch-all Disallow");
   });
 });
