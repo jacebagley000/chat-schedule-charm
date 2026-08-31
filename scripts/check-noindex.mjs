@@ -62,6 +62,7 @@ const report = {
   generatedAt: new Date().toISOString(),
   status: errors.length ? "fail" : "pass",
   dryRun,
+  allowlistFile: allowlistPath,
   commit: process.env["GITHUB_SHA"] ?? null,
   ref: process.env["GITHUB_REF"] ?? null,
   runId: process.env["GITHUB_RUN_ID"] ?? null,

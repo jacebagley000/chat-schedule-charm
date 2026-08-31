@@ -10,6 +10,10 @@ on:
         description: "Deployed URL to crawl-test (defaults to the STAGING_URL / PREVIEW_URL repo variable)"
         required: false
         type: string
+      allowlist_file:
+        description: "Override the allowlist file path for the noindex check (e.g. policies/public-routes.experimental.ts). Defaults to src/lib/public-routes.ts."
+        required: false
+        type: string
 
 concurrency:
   group: crawlability-${{ github.ref }}
