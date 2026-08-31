@@ -11,7 +11,7 @@ on:
         required: false
         type: string
       allowlist_file:
-        description: "Override the allowlist file path for the noindex check (e.g. policies/public-routes.experimental.ts). Defaults to src/lib/public-routes.ts."
+        description: "Override the allowlist file path for the noindex check (e.g. policies/public-routes.experimental.ts). Defaults to src/config/robots-rules.json."
         required: false
         type: string
 

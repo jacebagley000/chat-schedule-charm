@@ -284,7 +284,7 @@ export function checkNoindex({ routesDir, registrySource }) {
       report(
         "indexable (no `noindex` anywhere in the page metadata)",
         "the route is allowlisted in robots.txt and advertised in sitemap.xml, but the rendered page tells crawlers not to index it",
-        "remove `noindex: true` from its pageMeta(), or drop the path from PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "remove `noindex: true` from its pageMeta(), or drop the path from the Allow rules in src/config/robots-rules.json (/admin/robots)",
         "public-route-noindexed",
       );
     }
@@ -294,7 +294,7 @@ export function checkNoindex({ routesDir, registrySource }) {
         isPrivatePrefix
           ? "the route falls under a private prefix, so robots.txt disallows it, yet the rendered page carries no noindex signal"
           : "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
-        "add `noindex: true` to its pageMeta(), or add the path to PUBLIC_ROUTES in src/lib/public-routes.ts",
+        "add `noindex: true` to its pageMeta(), or add the path to the Allow rules in src/config/robots-rules.json (/admin/robots)",
         "private-route-indexable",
       );
     }
@@ -318,7 +318,7 @@ export function checkNoindex({ routesDir, registrySource }) {
         evidence: ["(no route file — nothing to quote)"],
         expectedXRobotsTag: null,
         why: "sitemap.xml advertises a URL the router does not serve",
-        fix: `create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+        fix: `create the route, or remove "${path}" from the Allow rules in src/config/robots-rules.json (/admin/robots)`,
       });
       errors.push(
         [
@@ -327,7 +327,7 @@ export function checkNoindex({ routesDir, registrySource }) {
           `allowlist:  PUBLIC (in PUBLIC_ROUTES + sitemap.xml)`,
           `expected:   a page route file rendering indexable metadata`,
           `actual:     404 — sitemap.xml advertises a URL the router does not serve`,
-          `fix:        create the route, or remove "${path}" from PUBLIC_ROUTES in src/lib/public-routes.ts`,
+          `fix:        create the route, or remove "${path}" from the Allow rules in src/config/robots-rules.json (/admin/robots)`,
         ].join("\n    "),
       );
     }

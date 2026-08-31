@@ -33,7 +33,7 @@ const OUT_DIR = resolve(ROOT, flag("out", "artifacts/route-index"));
 const BASE_URL = (flag("base-url", "") || "").replace(/\/+$/, "");
 
 const routesDir = join(ROOT, "src/routes");
-const registrySource = readFileSync(join(ROOT, "src/lib/public-routes.ts"), "utf8");
+const registrySource = readFileSync(join(ROOT, "src/config/robots-rules.json"), "utf8");
 const { publicPaths, privatePrefixes } = parseRegistry(registrySource);
 const publicSet = new Set(publicPaths);
 

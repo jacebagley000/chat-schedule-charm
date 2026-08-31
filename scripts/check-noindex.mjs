@@ -17,7 +17,7 @@
  *   --json <path>      report location (default artifacts/noindex/noindex-report.json)
  *   --no-json          skip writing the report
  *   --dry-run          list every route as PASS/FAIL and always exit 0 (no CI failure)
- *   --allowlist <path> override the allowlist file (default src/lib/public-routes.ts)
+ *   --allowlist <path> override the allowlist file (default src/config/robots-rules.json)
  *                      Useful for testing alternate policies without changing repo code.
  */
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from "node:fs";
@@ -32,7 +32,7 @@ const flagValue = (name, fallback) => {
 
 const ROOT = process.cwd();
 const routesDir = join(ROOT, "src/routes");
-const allowlistPath = resolve(ROOT, flagValue("allowlist", "src/lib/public-routes.ts"));
+const allowlistPath = resolve(ROOT, flagValue("allowlist", "src/config/robots-rules.json"));
 const registrySource = readFileSync(allowlistPath, "utf8");
 console.log(`ℹ Allowlist file: ${allowlistPath}`);
 
@@ -147,7 +147,7 @@ if (errors.length) {
     );
   }
   for (const p of problems) {
-    console.error(`::error file=${p.file ?? "src/lib/public-routes.ts"},line=${p.signals?.[0]?.line ?? p.anchors?.[0]?.line ?? 1}::${p.route}: ${p.why} | source: ${(p.evidence ?? []).join(" ⏎ ")}`);
+    console.error(`::error file=${p.file ?? "src/config/robots-rules.json"},line=${p.signals?.[0]?.line ?? p.anchors?.[0]?.line ?? 1}::${p.route}: ${p.why} | source: ${(p.evidence ?? []).join(" ⏎ ")}`);
   }
   process.exit(1);
 }
