@@ -77,6 +77,44 @@ jobs:
             echo "Artifacts for this run: [run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Comment on PR with noindex results
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'artifacts/noindex/noindex-report.json';
+            let passed = '?', failed = '?', total = '?';
+            let failing = [];
+            try {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              passed = report.summary.passed;
+              failed = report.summary.failed;
+              total = report.summary.total ?? (report.results?.length ?? '?');
+              failing = (report.results ?? [])
+                .filter((r) => r.status === 'fail')
+                .map((r) => `- \`${r.route}\` — ${r.reason ?? 'see report'}`);
+            } catch (e) {
+              core.warning(`Could not read ${reportPath}: ${e.message}`);
+            }
+            const artifactUrl = '${{ steps.noindex_report.outputs.artifact-url }}';
+            const lines = [
+              '### ❌ noindex / robots allowlist check failed',
+              '',
+              `**${passed} passing · ${failed} failing** of ${total} route(s).`,
+              '',
+            ];
+            if (failing.length) lines.push(...failing.slice(0, 20), '');
+            lines.push(artifactUrl
+              ? `📄 Full report: [noindex-report](${artifactUrl}) (\`noindex-report.json\`)`
+              : '📄 See the `noindex-report` artifact on this workflow run.');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: lines.join('\n'),
+            });
+
 
 
 
