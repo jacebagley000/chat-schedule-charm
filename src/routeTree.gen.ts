@@ -37,6 +37,7 @@ import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './ro
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
 import { Route as AuthenticatedWorkspacesBusinessIdScheduleRouteImport } from './routes/_authenticated/workspaces/$businessId/schedule'
+import { Route as ApiPublicHooksDailySitemapSubmitRouteImport } from './routes/api/public/hooks/daily-sitemap-submit'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 
@@ -194,6 +195,12 @@ const AuthenticatedWorkspacesBusinessIdScheduleRoute =
     path: '/workspaces/$businessId/schedule',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicHooksDailySitemapSubmitRoute =
+  ApiPublicHooksDailySitemapSubmitRouteImport.update({
+    id: '/api/public/hooks/daily-sitemap-submit',
+    path: '/api/public/hooks/daily-sitemap-submit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/hooks/daily-sitemap-submit': typeof ApiPublicHooksDailySitemapSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/hooks/daily-sitemap-submit': typeof ApiPublicHooksDailySitemapSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -298,6 +307,7 @@ export interface FileRoutesById {
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
   '/_authenticated/workspaces/$businessId/schedule': typeof AuthenticatedWorkspacesBusinessIdScheduleRoute
+  '/api/public/hooks/daily-sitemap-submit': typeof ApiPublicHooksDailySitemapSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRoute
 }
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
+    | '/api/public/hooks/daily-sitemap-submit'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   fileRoutesByTo: FileRoutesByTo
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
     | '/workspaces/$businessId/schedule'
+    | '/api/public/hooks/daily-sitemap-submit'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   id:
@@ -394,6 +406,7 @@ export interface FileRouteTypes {
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
     | '/_authenticated/workspaces/$businessId/schedule'
+    | '/api/public/hooks/daily-sitemap-submit'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/meta'
   fileRoutesById: FileRoutesById
@@ -411,6 +424,7 @@ export interface RootRouteChildren {
   ComparisonAnsweringServiceRoute: typeof ComparisonAnsweringServiceRoute
   ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  ApiPublicHooksDailySitemapSubmitRoute: typeof ApiPublicHooksDailySitemapSubmitRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRoute
 }
@@ -613,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkspacesBusinessIdScheduleRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/hooks/daily-sitemap-submit': {
+      id: '/api/public/hooks/daily-sitemap-submit'
+      path: '/api/public/hooks/daily-sitemap-submit'
+      fullPath: '/api/public/hooks/daily-sitemap-submit'
+      preLoaderRoute: typeof ApiPublicHooksDailySitemapSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -690,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComparisonAnsweringServiceRoute: ComparisonAnsweringServiceRoute,
   ComparisonPolyaiRoute: ComparisonPolyaiRoute,
   InviteTokenRoute: InviteTokenRoute,
+  ApiPublicHooksDailySitemapSubmitRoute: ApiPublicHooksDailySitemapSubmitRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRoute,
 }

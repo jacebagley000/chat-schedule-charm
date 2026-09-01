@@ -493,3 +493,31 @@ export const getCoverageHistory = createServerFn({ method: "POST" })
 
     return { days, points };
   });
+
+/** Recent automatic (cron) and manual sitemap submission attempts. */
+export const getSitemapSubmissionRuns = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ limit: z.number().min(1).max(100).optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const limit = data.limit ?? 14;
+    const { data: rows, error } = await (context as never as { supabase: any }).supabase
+      .from("sitemap_submission_runs")
+      .select("id, created_at, source, site_url, sitemap_url, success, message")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(`Could not load submission runs: ${error.message}`);
+    return {
+      runs: (rows ?? []) as {
+        id: string;
+        created_at: string;
+        source: string;
+        site_url: string | null;
+        sitemap_url: string;
+        success: boolean;
+        message: string | null;
+      }[],
+    };
+  });

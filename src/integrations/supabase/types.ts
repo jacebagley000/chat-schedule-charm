@@ -334,6 +334,24 @@ export type Database = {
           },
         ]
       }
+      cron_secrets: {
+        Row: {
+          created_at: string
+          name: string
+          secret: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          secret: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          secret?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           business_id: string
@@ -678,6 +696,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sitemap_submission_runs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          site_url: string | null
+          sitemap_url: string
+          source: string
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          site_url?: string | null
+          sitemap_url: string
+          source?: string
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          site_url?: string | null
+          sitemap_url?: string
+          source?: string
+          success?: boolean
+        }
+        Relationships: []
       }
       staff: {
         Row: {
