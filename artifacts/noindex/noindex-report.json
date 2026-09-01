@@ -1,6 +1,6 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-09-01T15:15:14.122Z",
+  "generatedAt": "2026-09-01T16:01:04.272Z",
   "status": "pass",
   "dryRun": false,
   "allowlistFile": "/dev-server/src/config/robots-rules.json",
@@ -8,8 +8,8 @@
   "ref": null,
   "runId": null,
   "summary": {
-    "routesChecked": 23,
-    "passed": 23,
+    "routesChecked": 25,
+    "passed": 25,
     "failed": 0,
     "problemCount": 0,
     "byKind": {}
@@ -17,6 +17,8 @@
   "routesChecked": [
     "/admin/allowlist",
     "/admin/crawl-dashboard",
+    "/admin/crawl-report",
+    "/admin/crawl-tools",
     "/admin/index-coverage",
     "/admin/index-gap",
     "/admin/leads",
@@ -60,6 +62,24 @@
     },
     {
       "route": "/admin/crawl-dashboard",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/crawl-report",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/crawl-tools",
       "status": "pass",
       "file": null,
       "kind": null,
