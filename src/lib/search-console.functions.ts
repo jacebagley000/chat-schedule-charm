@@ -193,3 +193,115 @@ export const getLiveCrawlFiles = createServerFn({ method: "POST" })
       checkedAt: new Date().toISOString(),
     };
   });
+
+export type UrlIndexState = {
+  url: string;
+  verdict: string;
+  coverageState: string;
+  robotsTxtState: string;
+  pageFetchState: string;
+  lastCrawlTime: string | null;
+  inSitemap: boolean;
+  indexed: boolean;
+  error: string | null;
+};
+
+async function inspectUrl(siteUrl: string, inspectionUrl: string): Promise<UrlIndexState> {
+  const base: UrlIndexState = {
+    url: inspectionUrl,
+    verdict: "UNKNOWN",
+    coverageState: "Unknown",
+    robotsTxtState: "UNKNOWN",
+    pageFetchState: "UNKNOWN",
+    lastCrawlTime: null,
+    inSitemap: false,
+    indexed: false,
+    error: null,
+  };
+  try {
+    const response = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
+      method: "POST",
+      headers: { ...gatewayHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ inspectionUrl, siteUrl }),
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`URL inspection failed [${response.status}]: ${body}`);
+      return { ...base, error: `Inspection failed [${response.status}]` };
+    }
+    const json = (await response.json()) as {
+      inspectionResult?: {
+        indexStatusResult?: {
+          verdict?: string;
+          coverageState?: string;
+          robotsTxtState?: string;
+          pageFetchState?: string;
+          lastCrawlTime?: string;
+          sitemap?: string[];
+        };
+      };
+    };
+    const r = json.inspectionResult?.indexStatusResult ?? {};
+    return {
+      ...base,
+      verdict: r.verdict ?? "UNKNOWN",
+      coverageState: r.coverageState ?? "Unknown",
+      robotsTxtState: r.robotsTxtState ?? "UNKNOWN",
+      pageFetchState: r.pageFetchState ?? "UNKNOWN",
+      lastCrawlTime: r.lastCrawlTime ?? null,
+      inSitemap: (r.sitemap ?? []).includes(SITEMAP_URL),
+      indexed: r.verdict === "PASS",
+    };
+  } catch (error) {
+    return { ...base, error: (error as Error).message };
+  }
+}
+
+/** Per-URL index coverage for every allowlisted sitemap URL, plus sitemap totals. */
+export const getIndexCoverage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(selectionInput)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const allowlistUrls = sitemapUrls();
+    const resolution = await resolveSiteUrl(data.siteUrl);
+    if (resolution.status !== "selected") {
+      return {
+        resolution,
+        sitemapUrl: SITEMAP_URL,
+        allowlistUrls,
+        urls: [] as UrlIndexState[],
+        sitemapTotals: null,
+        checkedAt: new Date().toISOString(),
+      };
+    }
+
+    const siteUrl = resolution.siteUrl;
+    const urls: UrlIndexState[] = [];
+    // Small batches keep us well inside Search Console's inspection quota.
+    for (let i = 0; i < allowlistUrls.length; i += 3) {
+      const batch = allowlistUrls.slice(i, i + 3);
+      urls.push(...(await Promise.all(batch.map((u) => inspectUrl(siteUrl, u)))));
+    }
+
+    const status = await fetchSitemapStatus(siteUrl);
+    const web = status?.contents?.find((c) => c.type === "web") ?? status?.contents?.[0];
+
+    return {
+      resolution,
+      sitemapUrl: SITEMAP_URL,
+      allowlistUrls,
+      urls,
+      sitemapTotals: status
+        ? {
+            submitted: Number(web?.submitted ?? 0),
+            indexed: Number(web?.indexed ?? 0),
+            lastSubmitted: status.lastSubmitted ?? null,
+            lastDownloaded: status.lastDownloaded ?? null,
+            errors: Number(status.errors ?? 0),
+            warnings: Number(status.warnings ?? 0),
+          }
+        : null,
+      checkedAt: new Date().toISOString(),
+    };
+  });
