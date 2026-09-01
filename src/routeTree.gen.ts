@@ -23,6 +23,7 @@ import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes
 import { Route as ComparisonAnsweringServiceRouteImport } from './routes/comparison/answering-service'
 import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
 import { Route as AuthenticatedAdminCrawlDashboardRouteImport } from './routes/_authenticated/admin/crawl-dashboard'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
@@ -106,6 +107,12 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminAllowlistRoute =
+  AuthenticatedAdminAllowlistRouteImport.update({
+    id: '/admin/allowlist',
+    path: '/admin/allowlist',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminCrawlDashboardRoute =
   AuthenticatedAdminCrawlDashboardRouteImport.update({
     id: '/admin/crawl-dashboard',
@@ -185,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
@@ -211,6 +219,7 @@ export interface FileRoutesByTo {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
@@ -239,6 +248,7 @@ export interface FileRoutesById {
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/_authenticated/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/_authenticated/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/admin/allowlist'
     | '/admin/crawl-dashboard'
     | '/admin/leads'
     | '/admin/robots'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/admin/allowlist'
     | '/admin/crawl-dashboard'
     | '/admin/leads'
     | '/admin/robots'
@@ -320,6 +332,7 @@ export interface FileRouteTypes {
     | '/comparison/answering-service'
     | '/comparison/polyai'
     | '/invite/$token'
+    | '/_authenticated/admin/allowlist'
     | '/_authenticated/admin/crawl-dashboard'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/robots'
@@ -450,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/allowlist': {
+      id: '/_authenticated/admin/allowlist'
+      path: '/admin/allowlist'
+      fullPath: '/admin/allowlist'
+      preLoaderRoute: typeof AuthenticatedAdminAllowlistRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/crawl-dashboard': {
       id: '/_authenticated/admin/crawl-dashboard'
       path: '/admin/crawl-dashboard'
@@ -533,6 +553,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
+  AuthenticatedAdminAllowlistRoute: typeof AuthenticatedAdminAllowlistRoute
   AuthenticatedAdminCrawlDashboardRoute: typeof AuthenticatedAdminCrawlDashboardRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
@@ -547,6 +568,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
+  AuthenticatedAdminAllowlistRoute: AuthenticatedAdminAllowlistRoute,
   AuthenticatedAdminCrawlDashboardRoute: AuthenticatedAdminCrawlDashboardRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
