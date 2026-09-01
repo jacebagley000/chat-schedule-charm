@@ -375,6 +375,45 @@ export type Database = {
           },
         ]
       }
+      index_coverage_snapshots: {
+        Row: {
+          allowlisted_count: number
+          crawled_count: number
+          created_at: string
+          id: string
+          indexed_count: number
+          recorded_by: string | null
+          site_url: string | null
+          sitemap_indexed: number
+          sitemap_submitted: number
+          snapshot_date: string
+        }
+        Insert: {
+          allowlisted_count?: number
+          crawled_count?: number
+          created_at?: string
+          id?: string
+          indexed_count?: number
+          recorded_by?: string | null
+          site_url?: string | null
+          sitemap_indexed?: number
+          sitemap_submitted?: number
+          snapshot_date: string
+        }
+        Update: {
+          allowlisted_count?: number
+          crawled_count?: number
+          created_at?: string
+          id?: string
+          indexed_count?: number
+          recorded_by?: string | null
+          site_url?: string | null
+          sitemap_indexed?: number
+          sitemap_submitted?: number
+          snapshot_date?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           business_name: string | null
