@@ -60,7 +60,11 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
   if (!isAdmin) throw new Error("Forbidden");
 }
 
-async function fetchResource(origin: string, path: string): Promise<ResourceStatus> {
+async function fetchResource(
+  origin: string,
+  path: string,
+  check?: (body: string) => ResourceStatus["checks"],
+): Promise<ResourceStatus> {
   const url = `${origin}${path}`;
   try {
     const res = await fetch(url, { headers: { "User-Agent": "FrontDeskAI-AdminCheck" } });
@@ -72,6 +76,7 @@ async function fetchResource(origin: string, path: string): Promise<ResourceStat
       status: res.status,
       contentType: res.headers.get("content-type"),
       bytes: body.length,
+      checks: res.ok && check ? check(body) : [],
     };
   } catch (e) {
     return {
@@ -81,6 +86,7 @@ async function fetchResource(origin: string, path: string): Promise<ResourceStat
       status: null,
       contentType: null,
       bytes: null,
+      checks: [],
       error: e instanceof Error ? e.message : String(e),
     };
   }
