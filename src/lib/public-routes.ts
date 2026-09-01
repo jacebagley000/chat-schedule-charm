@@ -131,7 +131,7 @@ function allowDirective(path: string): string {
 export function sitemapUrls(config: RobotsRulesConfig = ROBOTS_RULES): string[] {
   return config.allow
     .filter(hasPublicRobots)
-    .map((e) => `${config.baseUrl}${e.path}`);
+    .map((e) => `${resolveBaseUrl(config)}${e.path}`);
 }
 
 /** Path form of every sitemap URL (`https://host/login` -> `/login`). */
@@ -170,7 +170,7 @@ export function renderRobotsTxt(config: RobotsRulesConfig = ROBOTS_RULES): strin
     "# Catch-all: disallow everything else not explicitly allowed above",
     "Disallow: /",
     "",
-    ...config.sitemaps.map((s) => `Sitemap: ${s}`),
+    ...sitemapDirectiveUrls(config).map((s) => `Sitemap: ${s}`),
     "",
   ];
   return lines.join("\n");
