@@ -8,7 +8,8 @@ import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getIndexCoverage } from "@/lib/search-console.functions";
+import { getIndexCoverage, getCoverageHistory } from "@/lib/search-console.functions";
+import { CoverageHistoryChart } from "@/components/admin/CoverageHistoryChart";
 
 export const Route = createFileRoute("/_authenticated/admin/index-coverage")({
   head: () => ({
@@ -59,10 +60,17 @@ function IndexCoveragePage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const fetchHistory = useServerFn(getCoverageHistory);
+  const history = useMutation({
+    mutationFn: () => fetchHistory({ data: { days: 30 } }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const { mutate } = coverage;
+  const { mutate: loadHistory } = history;
   useEffect(() => {
-    mutate();
-  }, [mutate]);
+    mutate(undefined, { onSuccess: () => loadHistory() });
+  }, [mutate, loadHistory]);
 
   const data = coverage.data;
   const rows = data?.urls ?? [];
@@ -82,7 +90,7 @@ function IndexCoveragePage() {
             sitemap. Last checked {formatTime(data?.checkedAt)}.
           </p>
         </div>
-        <Button onClick={() => coverage.mutate()} disabled={coverage.isPending}>
+        <Button onClick={() => coverage.mutate(undefined, { onSuccess: () => loadHistory() })} disabled={coverage.isPending}>
           <RefreshCw
             className={`mr-2 h-4 w-4 ${coverage.isPending ? "animate-spin" : ""}`}
             aria-hidden="true"
@@ -119,6 +127,8 @@ function IndexCoveragePage() {
           hint={`${data?.sitemapTotals?.warnings ?? 0} warnings`}
         />
       </section>
+
+      <CoverageHistoryChart points={history.data?.points ?? []} isLoading={history.isPending} />
 
       {missingFromSitemap > 0 ? (
         <p className="mb-4 text-sm text-destructive">

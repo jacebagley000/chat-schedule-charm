@@ -287,6 +287,17 @@ export const getIndexCoverage = createServerFn({ method: "POST" })
     const status = await fetchSitemapStatus(siteUrl);
     const web = status?.contents?.find((c) => c.type === "web") ?? status?.contents?.[0];
 
+    // Persist today's numbers so the admin page can chart growth over days.
+    await recordCoverageSnapshot(context as never, {
+      siteUrl,
+      allowlistedCount: allowlistUrls.length,
+      indexedCount: urls.filter((u) => u.indexed).length,
+      crawledCount: urls.filter((u) => u.lastCrawlTime !== null).length,
+      sitemapSubmitted: Number(web?.submitted ?? 0),
+      sitemapIndexed: Number(web?.indexed ?? 0),
+    });
+
+
     return {
       resolution,
       sitemapUrl: SITEMAP_URL,
@@ -412,4 +423,73 @@ export const getDailyCrawlReport = createServerFn({ method: "POST" })
       lastSubmitted: status?.lastSubmitted ?? null,
       lastDownloaded: status?.lastDownloaded ?? null,
     };
+  });
+
+type SnapshotCounts = {
+  siteUrl: string;
+  allowlistedCount: number;
+  indexedCount: number;
+  crawledCount: number;
+  sitemapSubmitted: number;
+  sitemapIndexed: number;
+};
+
+/** Upserts one history row per calendar day (UTC) for the coverage chart. */
+async function recordCoverageSnapshot(
+  context: { supabase: any; userId: string },
+  counts: SnapshotCounts,
+) {
+  const snapshotDate = new Date().toISOString().slice(0, 10);
+  const { error } = await context.supabase.from("index_coverage_snapshots").upsert(
+    {
+      snapshot_date: snapshotDate,
+      site_url: counts.siteUrl,
+      allowlisted_count: counts.allowlistedCount,
+      indexed_count: counts.indexedCount,
+      crawled_count: counts.crawledCount,
+      sitemap_submitted: counts.sitemapSubmitted,
+      sitemap_indexed: counts.sitemapIndexed,
+      recorded_by: context.userId,
+    },
+    { onConflict: "snapshot_date" },
+  );
+  // History is best-effort: never fail the live coverage read because of it.
+  if (error) console.error(`Coverage snapshot upsert failed: ${error.message}`);
+}
+
+export type CoverageHistoryPoint = {
+  date: string;
+  allowlisted: number;
+  indexed: number;
+  crawled: number;
+  sitemapIndexed: number;
+};
+
+/** Daily index-coverage history, oldest first. */
+export const getCoverageHistory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ days: z.number().min(2).max(365).optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const days = data.days ?? 30;
+    const since = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+
+    const { data: rows, error } = await (context as never as { supabase: any }).supabase
+      .from("index_coverage_snapshots")
+      .select(
+        "snapshot_date, allowlisted_count, indexed_count, crawled_count, sitemap_indexed",
+      )
+      .gte("snapshot_date", since)
+      .order("snapshot_date", { ascending: true });
+    if (error) throw new Error(`Could not load coverage history: ${error.message}`);
+
+    const points: CoverageHistoryPoint[] = (rows ?? []).map((r: any) => ({
+      date: r.snapshot_date as string,
+      allowlisted: r.allowlisted_count ?? 0,
+      indexed: r.indexed_count ?? 0,
+      crawled: r.crawled_count ?? 0,
+      sitemapIndexed: r.sitemap_indexed ?? 0,
+    }));
+
+    return { days, points };
   });
