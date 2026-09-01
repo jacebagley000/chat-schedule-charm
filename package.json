@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "node scripts/check-noindex.mjs && vite build",
-    "build:dev": "node scripts/check-noindex.mjs && vite build --mode development",
+    "build": "node scripts/verify-crawl-files.mjs && node scripts/check-noindex.mjs && vite build",
+    "build:dev": "node scripts/verify-crawl-files.mjs && node scripts/check-noindex.mjs && vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
     "check:noindex": "node scripts/check-noindex.mjs",
+    "check:crawl-files": "node scripts/verify-crawl-files.mjs",
     "build:robots": "bun scripts/build-robots.mjs --sitemap",
     "check:sitemap-urls": "node scripts/check-sitemap-urls.mjs",
     "test:e2e": "playwright test"
