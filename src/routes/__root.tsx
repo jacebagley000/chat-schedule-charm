@@ -92,6 +92,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "google-site-verification",
+        content: "MW12FzFXwjKriiKFI8ydP3VKsACCsX0oPAo3pPIgj0k",
+      },
+
       { title: "FrontDesk AI — The receptionist who never misses a call" },
       {
         name: "description",
