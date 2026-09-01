@@ -43,7 +43,61 @@ export interface RobotsRulesConfig {
 /** Parsed contents of src/config/robots-rules.json. */
 export const ROBOTS_RULES = rulesConfig as RobotsRulesConfig;
 
-export const BASE_URL = ROBOTS_RULES.baseUrl;
+/**
+ * Runtime override for the canonical origin. Set `SITE_BASE_URL` (server) and
+ * `VITE_SITE_BASE_URL` (client/build) to a custom domain — e.g.
+ * `https://www.example.com` — and sitemap.xml, robots.txt, canonicals and
+ * og:url all switch over to it without a code change. When unset, the
+ * `baseUrl` in src/config/robots-rules.json is used.
+ */
+function envBaseUrl(): string | undefined {
+  const candidates = [
+    typeof process !== "undefined" ? process.env?.SITE_BASE_URL : undefined,
+    typeof import.meta !== "undefined"
+      ? (import.meta as { env?: Record<string, string | undefined> }).env
+          ?.VITE_SITE_BASE_URL
+      : undefined,
+  ];
+  for (const candidate of candidates) {
+    const raw = (candidate ?? "").trim();
+    if (!raw) continue;
+    try {
+      return new URL(raw).origin;
+    } catch {
+      // Ignore malformed overrides and fall back to the config value.
+    }
+  }
+  return undefined;
+}
+
+/** The origin every crawl signal points at, override first, config second. */
+export function resolveBaseUrl(config: RobotsRulesConfig = ROBOTS_RULES): string {
+  return envBaseUrl() ?? config.baseUrl.replace(/\/+$/, "");
+}
+
+export const BASE_URL = resolveBaseUrl();
+
+/**
+ * Sitemap URLs declared in robots.txt, rebased onto the effective origin so a
+ * domain switch never leaves robots.txt pointing at the old host.
+ */
+export function sitemapDirectiveUrls(
+  config: RobotsRulesConfig = ROBOTS_RULES,
+): string[] {
+  const base = resolveBaseUrl(config);
+  return config.sitemaps.map((entry) => {
+    try {
+      const url = new URL(entry);
+      const configured = new URL(config.baseUrl);
+      return url.origin === configured.origin
+        ? `${base}${url.pathname}${url.search}`
+        : entry;
+    } catch {
+      return entry;
+    }
+  });
+}
+
 
 /** A route is public only when it opts in explicitly (default true). */
 export function hasPublicRobots(route: PublicRoute): boolean {
@@ -77,7 +131,7 @@ function allowDirective(path: string): string {
 export function sitemapUrls(config: RobotsRulesConfig = ROBOTS_RULES): string[] {
   return config.allow
     .filter(hasPublicRobots)
-    .map((e) => `${config.baseUrl}${e.path}`);
+    .map((e) => `${resolveBaseUrl(config)}${e.path}`);
 }
 
 /** Path form of every sitemap URL (`https://host/login` -> `/login`). */
@@ -116,7 +170,7 @@ export function renderRobotsTxt(config: RobotsRulesConfig = ROBOTS_RULES): strin
     "# Catch-all: disallow everything else not explicitly allowed above",
     "Disallow: /",
     "",
-    ...config.sitemaps.map((s) => `Sitemap: ${s}`),
+    ...sitemapDirectiveUrls(config).map((s) => `Sitemap: ${s}`),
     "",
   ];
   return lines.join("\n");
