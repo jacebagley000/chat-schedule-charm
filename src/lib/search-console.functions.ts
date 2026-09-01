@@ -287,6 +287,17 @@ export const getIndexCoverage = createServerFn({ method: "POST" })
     const status = await fetchSitemapStatus(siteUrl);
     const web = status?.contents?.find((c) => c.type === "web") ?? status?.contents?.[0];
 
+    // Persist today's numbers so the admin page can chart growth over days.
+    await recordCoverageSnapshot(context as never, {
+      siteUrl,
+      allowlistedCount: allowlistUrls.length,
+      indexedCount: urls.filter((u) => u.indexed).length,
+      crawledCount: urls.filter((u) => u.lastCrawlTime !== null).length,
+      sitemapSubmitted: Number(web?.submitted ?? 0),
+      sitemapIndexed: Number(web?.indexed ?? 0),
+    });
+
+
     return {
       resolution,
       sitemapUrl: SITEMAP_URL,
