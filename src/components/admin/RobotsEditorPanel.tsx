@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, HeadContent } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,20 +10,8 @@ import {
   saveRobotsRules,
 } from "@/lib/robots-config.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/robots")({
-  head: () => ({
-    meta: pageMeta({
-      title: "robots.txt editor — FrontDesk AI",
-      description: "Edit the Allow, Disallow and Sitemap rules that drive crawling.",
-      path: "/admin/robots",
-      noindex: true,
-    }),
-    links: [canonicalLink("/admin/robots")],
-  }),
-  component: RobotsEditorPage,
-});
 
-function RobotsEditorPage() {
+export function RobotsEditorPanel() {
   const load = useServerFn(getRobotsRules);
   const preview = useServerFn(previewRobotsRules);
   const save = useServerFn(saveRobotsRules);
@@ -75,10 +61,9 @@ function RobotsEditorPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl p-6">
-      <HeadContent />
+    <div className="space-y-2">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">robots.txt editor</h1>
+        <h2 className="text-xl font-semibold tracking-tight">robots.txt editor</h2>
         <p className="text-sm text-muted-foreground">
           Write <code>Allow:</code>, <code>Disallow:</code> and <code>Sitemap:</code>{" "}
           rules. These rules are the single source of truth for robots.txt,

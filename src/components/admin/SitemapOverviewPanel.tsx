@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, HeadContent } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import {
   BASE_URL,
@@ -10,21 +8,8 @@ import {
   normalizePath,
 } from "@/lib/public-routes";
 
-export const Route = createFileRoute("/_authenticated/admin/sitemap")({
-  head: () => ({
-    meta: pageMeta({
-      title: "Sitemap overview — FrontDesk AI",
-      description:
-        "Every allowlisted route with its canonical URL, for comparison against the sitemap Google has indexed.",
-      path: "/admin/sitemap",
-      noindex: true,
-    }),
-    links: [canonicalLink("/admin/sitemap")],
-  }),
-  component: SitemapOverviewPage,
-});
 
-function SitemapOverviewPage() {
+export function SitemapOverviewPanel() {
   const [copied, setCopied] = useState(false);
 
   const rows = useMemo(
@@ -56,11 +41,10 @@ function SitemapOverviewPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl p-6">
-      <HeadContent />
+    <div className="space-y-2">
 
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Sitemap overview</h1>
+        <h2 className="text-xl font-semibold tracking-tight">Sitemap overview</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Every allowlisted route and its canonical URL. Paste this list next to
           Google Search Console&rsquo;s indexed pages to spot missing or extra URLs.

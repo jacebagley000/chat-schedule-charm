@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { createFileRoute, HeadContent } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import {
   getSitemapSubmission,
@@ -11,19 +9,6 @@ import {
   getLiveCrawlFiles,
 } from "@/lib/search-console.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/search-console")({
-  head: () => ({
-    meta: pageMeta({
-      title: "Search Console sitemap — FrontDesk AI",
-      description:
-        "Submit the generated sitemap.xml to Google Search Console and review its submission status.",
-      path: "/admin/search-console",
-      noindex: true,
-    }),
-    links: [canonicalLink("/admin/search-console")],
-  }),
-  component: SearchConsolePage,
-});
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -42,7 +27,7 @@ function formatDate(value?: string) {
   return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
 }
 
-function SearchConsolePage() {
+export function SearchConsolePanel() {
   const [selected, setSelected] = useState<string | undefined>(undefined);
   const loadStatus = useServerFn(getSitemapSubmission);
   const submit = useServerFn(submitSitemap);
@@ -75,11 +60,10 @@ function SearchConsolePage() {
   const status = data?.status;
 
   return (
-    <div className="container mx-auto max-w-3xl p-6">
-      <HeadContent />
+    <div className="space-y-2">
 
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Search Console sitemap</h1>
+        <h2 className="text-xl font-semibold tracking-tight">Search Console sitemap</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Submit the generated sitemap to Google Search Console and check what Google
           reports back about it.
