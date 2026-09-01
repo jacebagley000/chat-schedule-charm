@@ -76,3 +76,68 @@ export const saveRobotsRules = createServerFn({ method: "POST" })
 
     return { saved: true, errors: [], ...previews(config) };
   });
+
+const routeSchema = z.object({
+  path: z.string().max(200),
+  changefreq: z
+    .enum(["always", "hourly", "daily", "weekly", "monthly", "yearly", "never"])
+    .optional(),
+  priority: z.string().max(8).optional(),
+  publicRobots: z.boolean().optional(),
+});
+
+const configSchema = z.object({
+  baseUrl: z.string().max(300),
+  allow: z.array(routeSchema).max(500),
+  disallow: z.array(z.string().max(200)).max(200),
+  sitemaps: z.array(z.string().max(300)).max(20),
+});
+
+async function writeConfig(config: RobotsRulesConfig) {
+  const { writeFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  await writeFile(
+    join(process.cwd(), CONFIG_PATH),
+    JSON.stringify(config, null, 2) + "\n",
+    "utf8",
+  );
+}
+
+export const previewRobotsConfig = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ config: configSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const { cleanRobotsConfig, validateRobotsConfig } = await import(
+      "@/lib/allowlist-editor"
+    );
+    const config = cleanRobotsConfig(data.config as RobotsRulesConfig);
+    return { errors: validateRobotsConfig(config), config, ...previews(config) };
+  });
+
+export const saveRobotsConfig = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ config: configSchema }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const { cleanRobotsConfig, validateRobotsConfig } = await import(
+      "@/lib/allowlist-editor"
+    );
+    const config = cleanRobotsConfig(data.config as RobotsRulesConfig);
+    const errors = validateRobotsConfig(config);
+    if (errors.length) return { saved: false, errors, config, ...previews(config) };
+
+    try {
+      await writeConfig(config);
+    } catch (e) {
+      return {
+        saved: false,
+        config,
+        errors: [
+          `Could not write ${CONFIG_PATH}: ${(e as Error).message}. Rules can only be saved in an environment with a writable project directory.`,
+        ],
+        ...previews(config),
+      };
+    }
+    return { saved: true, errors: [], config, ...previews(config) };
+  });
