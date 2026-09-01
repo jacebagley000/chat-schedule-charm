@@ -25,6 +25,7 @@ import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
 import { Route as AuthenticatedAdminCrawlDashboardRouteImport } from './routes/_authenticated/admin/crawl-dashboard'
+import { Route as AuthenticatedAdminCrawlReportRouteImport } from './routes/_authenticated/admin/crawl-report'
 import { Route as AuthenticatedAdminCrawlToolsRouteImport } from './routes/_authenticated/admin/crawl-tools'
 import { Route as AuthenticatedAdminIndexCoverageRouteImport } from './routes/_authenticated/admin/index-coverage'
 import { Route as AuthenticatedAdminIndexGapRouteImport } from './routes/_authenticated/admin/index-gap'
@@ -122,6 +123,12 @@ const AuthenticatedAdminCrawlDashboardRoute =
     path: '/admin/crawl-dashboard',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminCrawlReportRoute =
+  AuthenticatedAdminCrawlReportRouteImport.update({
+    id: '/admin/crawl-report',
+    path: '/admin/crawl-report',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminCrawlToolsRoute =
   AuthenticatedAdminCrawlToolsRouteImport.update({
     id: '/admin/crawl-tools',
@@ -215,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
+  '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
   '/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
@@ -245,6 +253,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
+  '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
   '/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
@@ -277,6 +286,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/_authenticated/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
+  '/_authenticated/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/_authenticated/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
   '/_authenticated/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/_authenticated/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/allowlist'
     | '/admin/crawl-dashboard'
+    | '/admin/crawl-report'
     | '/admin/crawl-tools'
     | '/admin/index-coverage'
     | '/admin/index-gap'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/admin/allowlist'
     | '/admin/crawl-dashboard'
+    | '/admin/crawl-report'
     | '/admin/crawl-tools'
     | '/admin/index-coverage'
     | '/admin/index-gap'
@@ -370,6 +382,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/_authenticated/admin/allowlist'
     | '/_authenticated/admin/crawl-dashboard'
+    | '/_authenticated/admin/crawl-report'
     | '/_authenticated/admin/crawl-tools'
     | '/_authenticated/admin/index-coverage'
     | '/_authenticated/admin/index-gap'
@@ -516,6 +529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCrawlDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/crawl-report': {
+      id: '/_authenticated/admin/crawl-report'
+      path: '/admin/crawl-report'
+      fullPath: '/admin/crawl-report'
+      preLoaderRoute: typeof AuthenticatedAdminCrawlReportRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/crawl-tools': {
       id: '/_authenticated/admin/crawl-tools'
       path: '/admin/crawl-tools'
@@ -615,6 +635,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedAdminAllowlistRoute: typeof AuthenticatedAdminAllowlistRoute
   AuthenticatedAdminCrawlDashboardRoute: typeof AuthenticatedAdminCrawlDashboardRoute
+  AuthenticatedAdminCrawlReportRoute: typeof AuthenticatedAdminCrawlReportRoute
   AuthenticatedAdminCrawlToolsRoute: typeof AuthenticatedAdminCrawlToolsRoute
   AuthenticatedAdminIndexCoverageRoute: typeof AuthenticatedAdminIndexCoverageRoute
   AuthenticatedAdminIndexGapRoute: typeof AuthenticatedAdminIndexGapRoute
@@ -633,6 +654,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedAdminAllowlistRoute: AuthenticatedAdminAllowlistRoute,
   AuthenticatedAdminCrawlDashboardRoute: AuthenticatedAdminCrawlDashboardRoute,
+  AuthenticatedAdminCrawlReportRoute: AuthenticatedAdminCrawlReportRoute,
   AuthenticatedAdminCrawlToolsRoute: AuthenticatedAdminCrawlToolsRoute,
   AuthenticatedAdminIndexCoverageRoute: AuthenticatedAdminIndexCoverageRoute,
   AuthenticatedAdminIndexGapRoute: AuthenticatedAdminIndexGapRoute,

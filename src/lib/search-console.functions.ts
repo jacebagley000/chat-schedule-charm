@@ -305,3 +305,111 @@ export const getIndexCoverage = createServerFn({ method: "POST" })
       checkedAt: new Date().toISOString(),
     };
   });
+
+export type DailyCrawlRow = UrlIndexState & {
+  /** HTTP status returned by fetching the live URL right now. */
+  httpStatus: number | null;
+  httpError: string | null;
+  /** True when Google reports a crawl within the report window. */
+  crawledToday: boolean;
+  /** Bucket used for grouping in the daily report UI. */
+  bucket: "indexed" | "crawled_not_indexed" | "not_crawled" | "missing" | "error";
+};
+
+async function probeUrl(url: string): Promise<{ status: number | null; error: string | null }> {
+  try {
+    const res = await fetch(url, { method: "GET", redirect: "manual" });
+    return { status: res.status, error: null };
+  } catch (error) {
+    return { status: null, error: (error as Error).message };
+  }
+}
+
+/**
+ * Daily crawl report: for every allowlisted sitemap URL, what Google crawled and
+ * indexed, and which URLs return 404 (or another non-200) on the live site.
+ */
+export const getDailyCrawlReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ siteUrl: z.string().max(300).optional(), windowHours: z.number().min(1).max(720).optional() })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const windowHours = data.windowHours ?? 24;
+    const allowlistUrls = sitemapUrls();
+    const generatedAt = new Date();
+    const cutoff = generatedAt.getTime() - windowHours * 3600_000;
+
+    const resolution = await resolveSiteUrl(data.siteUrl);
+    const siteUrl = resolution.status === "selected" ? resolution.siteUrl : null;
+
+    const rows: DailyCrawlRow[] = [];
+    for (let i = 0; i < allowlistUrls.length; i += 3) {
+      const batch = allowlistUrls.slice(i, i + 3);
+      const results = await Promise.all(
+        batch.map(async (url) => {
+          const [inspection, probe] = await Promise.all([
+            siteUrl
+              ? inspectUrl(siteUrl, url)
+              : Promise.resolve({
+                  url,
+                  verdict: "UNKNOWN",
+                  coverageState: "No verified property",
+                  robotsTxtState: "UNKNOWN",
+                  pageFetchState: "UNKNOWN",
+                  lastCrawlTime: null,
+                  inSitemap: false,
+                  indexed: false,
+                  error: null,
+                } as UrlIndexState),
+            probeUrl(url),
+          ]);
+
+          const crawledAt = inspection.lastCrawlTime
+            ? new Date(inspection.lastCrawlTime).getTime()
+            : null;
+          const crawledToday = crawledAt !== null && crawledAt >= cutoff;
+
+          let bucket: DailyCrawlRow["bucket"];
+          if (probe.status !== null && probe.status >= 400) bucket = "missing";
+          else if (inspection.error || probe.error) bucket = "error";
+          else if (inspection.indexed) bucket = "indexed";
+          else if (crawledAt !== null) bucket = "crawled_not_indexed";
+          else bucket = "not_crawled";
+
+          return {
+            ...inspection,
+            httpStatus: probe.status,
+            httpError: probe.error,
+            crawledToday,
+            bucket,
+          } satisfies DailyCrawlRow;
+        }),
+      );
+      rows.push(...results);
+    }
+
+    const status = siteUrl ? await fetchSitemapStatus(siteUrl) : null;
+
+    return {
+      resolution,
+      sitemapUrl: SITEMAP_URL,
+      generatedAt: generatedAt.toISOString(),
+      windowHours,
+      rows,
+      totals: {
+        total: rows.length,
+        indexed: rows.filter((r) => r.bucket === "indexed").length,
+        crawledNotIndexed: rows.filter((r) => r.bucket === "crawled_not_indexed").length,
+        notCrawled: rows.filter((r) => r.bucket === "not_crawled").length,
+        missing: rows.filter((r) => r.bucket === "missing").length,
+        errors: rows.filter((r) => r.bucket === "error").length,
+        crawledInWindow: rows.filter((r) => r.crawledToday).length,
+      },
+      lastSubmitted: status?.lastSubmitted ?? null,
+      lastDownloaded: status?.lastDownloaded ?? null,
+    };
+  });
