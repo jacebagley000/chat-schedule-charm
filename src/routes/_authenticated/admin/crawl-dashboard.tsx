@@ -157,7 +157,8 @@ function CrawlDashboardPage() {
               Only contradictions
             </label>
             <Link
-              to="/admin/search-console"
+              to="/admin/crawl-tools"
+              search={{ tab: "search-console" as const }}
               className="text-sm underline underline-offset-4"
             >
               Search Console submission

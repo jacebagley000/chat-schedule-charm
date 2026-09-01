@@ -144,7 +144,7 @@ function AllowlistEditorPage() {
           Edit allowlisted routes, their sitemap metadata and the{" "}
           <code>publicRobots</code> flag. robots.txt and sitemap.xml rebuild live as
           you type. Prefer raw directives?{" "}
-          <Link to="/admin/robots" className="underline">
+          <Link to="/admin/crawl-tools" search={{ tab: "robots" as const }} className="underline">
             Use the robots.txt editor
           </Link>
           .
