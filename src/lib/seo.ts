@@ -13,8 +13,11 @@
  *   canonical       <- absoluteUrl(path)
  */
 
+import { BASE_URL } from "./public-routes";
+
 export const SITE = {
-  url: "https://chat-schedule-charm.lovable.app",
+  /** Single source of truth: src/config/robots-rules.json -> baseUrl */
+  url: BASE_URL,
   name: "FrontDesk AI",
   title: "FrontDesk AI — The receptionist who never misses a call",
   description:
@@ -22,7 +25,7 @@ export const SITE = {
   socialTitle: "FrontDesk AI — AI receptionist for local businesses",
   socialDescription:
     "Answer every call and DM. Book every appointment. Lose nothing while you work.",
-  image: "https://chat-schedule-charm.lovable.app/og/default.jpg",
+  image: `${BASE_URL}/og/default.jpg`,
   imageWidth: "1200",
   imageHeight: "630",
 } as const;
