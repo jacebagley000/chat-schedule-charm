@@ -84,11 +84,15 @@ function CountCard({ label, value, tone }: {
 
 function CrawlDashboardPage() {
   const load = useServerFn(getCrawlStatus);
+  const [onlyProblems, setOnlyProblems] = useState(false);
   const { data, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["crawl-status"],
     queryFn: () => load(),
     retry: false,
   });
+  const visibleRoutes = (data?.routes ?? []).filter(
+    (r) => !onlyProblems || r.problems.length > 0,
+  );
 
   return (
     <div className="container mx-auto max-w-5xl p-6">
