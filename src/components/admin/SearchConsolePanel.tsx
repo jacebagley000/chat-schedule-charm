@@ -7,6 +7,8 @@ import {
   getSitemapSubmission,
   submitSitemap,
   getLiveCrawlFiles,
+  getSitemapSubmissionRuns,
+
 } from "@/lib/search-console.functions";
 
 
@@ -45,6 +47,19 @@ export function SearchConsolePanel() {
     retry: false,
   });
   const files = filesQuery.data;
+
+  const loadRuns = useServerFn(getSitemapSubmissionRuns);
+  const runsQuery = useQuery({
+    queryKey: ["gsc-submission-runs"],
+    queryFn: () => loadRuns({ data: { limit: 14 } }),
+    retry: false,
+  });
+  const runs = runsQuery.data?.runs ?? [];
+  const lastRun = runs[0];
+  const lastRunAge = lastRun
+    ? (Date.now() - new Date(lastRun.created_at).getTime()) / 3_600_000
+    : null;
+
 
   const mutation = useMutation({
     mutationFn: () => submit({ data: { siteUrl: selected } }),
@@ -157,7 +172,83 @@ export function SearchConsolePanel() {
       </section>
 
 
+      <section className="mb-6 rounded-lg border border-border p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-medium">Daily automatic submission</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => runsQuery.refetch()}
+            disabled={runsQuery.isFetching}
+          >
+            {runsQuery.isFetching ? "Loading…" : "Refresh"}
+          </Button>
+        </div>
+
+        <p className="mb-3 text-sm text-muted-foreground">
+          A scheduled job resubmits <span className="font-mono text-xs">sitemap.xml</span> to
+          Google every day at 06:00 UTC, so the sitemap stays fresh between deploys. Each
+          attempt is logged below.
+        </p>
+
+        <dl className="mb-3">
+          <Row
+            label="Last automatic run"
+            value={
+              lastRun ? (
+                <span className={lastRun.success ? "" : "text-destructive"}>
+                  {formatDate(lastRun.created_at)} · {lastRun.source} ·{" "}
+                  {lastRun.success ? "submitted" : `failed — ${lastRun.message ?? "unknown error"}`}
+                </span>
+              ) : (
+                "No run recorded yet — the first scheduled run will appear here."
+              )
+            }
+          />
+          <Row
+            label="Schedule health"
+            value={
+              lastRunAge === null ? (
+                "Waiting for the first run"
+              ) : lastRunAge > 36 ? (
+                <span className="text-destructive">
+                  Stale — no run in the last {Math.round(lastRunAge)} hours
+                </span>
+              ) : (
+                "Healthy — ran within the last 36 hours"
+              )
+            }
+          />
+        </dl>
+
+        {runsQuery.isError && (
+          <p className="text-sm text-destructive">{(runsQuery.error as Error).message}</p>
+        )}
+
+        {runs.length > 0 && (
+          <ul className="divide-y divide-border rounded-md border border-border">
+            {runs.map((run) => (
+              <li key={run.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2 text-sm">
+                <span className="font-mono text-xs text-muted-foreground">
+                  {formatDate(run.created_at)}
+                </span>
+                <span className={run.success ? "text-foreground" : "text-destructive"}>
+                  {run.success ? "Submitted" : "Failed"}
+                </span>
+                <span className="text-xs text-muted-foreground">{run.source}</span>
+                {run.message && !run.success && (
+                  <span className="w-full text-xs text-muted-foreground break-all">
+                    {run.message}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <div className="rounded-lg border border-border p-5">
+
         <dl className="mb-4">
           <Row
             label="Sitemap URL"
