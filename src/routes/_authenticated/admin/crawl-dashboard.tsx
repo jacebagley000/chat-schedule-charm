@@ -6,6 +6,7 @@ import { pageMeta, canonicalLink } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCrawlStatus, type ResourceStatus } from "@/lib/crawl-status.functions";
+import { SitemapSubmissionPanel } from "@/components/admin/SitemapSubmissionPanel";
 
 export const Route = createFileRoute("/_authenticated/admin/crawl-dashboard")({
   head: () => ({
@@ -122,6 +123,8 @@ function CrawlDashboardPage() {
 
       {data && (
         <>
+          <SitemapSubmissionPanel />
+
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
             <ResourceCard title="robots.txt" resource={data.robotsTxt} />
             <ResourceCard
