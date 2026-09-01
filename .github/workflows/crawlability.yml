@@ -47,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Verify robots.txt / sitemap.xml are generated from the allowlist
+        run: node scripts/verify-crawl-files.mjs
+
       - name: Check noindex vs robots/sitemap allowlist
         id: noindex_check
         env:
