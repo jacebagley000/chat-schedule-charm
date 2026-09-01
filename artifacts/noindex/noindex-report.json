@@ -1,6 +1,6 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-08-31T15:28:07.614Z",
+  "generatedAt": "2026-09-01T15:15:14.122Z",
   "status": "pass",
   "dryRun": false,
   "allowlistFile": "/dev-server/src/config/robots-rules.json",
@@ -8,15 +8,20 @@
   "ref": null,
   "runId": null,
   "summary": {
-    "routesChecked": 18,
-    "passed": 18,
+    "routesChecked": 23,
+    "passed": 23,
     "failed": 0,
     "problemCount": 0,
     "byKind": {}
   },
   "routesChecked": [
+    "/admin/allowlist",
+    "/admin/crawl-dashboard",
+    "/admin/index-coverage",
+    "/admin/index-gap",
     "/admin/leads",
     "/admin/robots",
+    "/admin/search-console",
     "/admin/sitemap",
     "/dashboard",
     "/schedule",
@@ -45,6 +50,42 @@
       "fix": null
     },
     {
+      "route": "/admin/allowlist",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/crawl-dashboard",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/index-coverage",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/index-gap",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
       "route": "/admin/leads",
       "status": "pass",
       "file": null,
@@ -55,6 +96,15 @@
     },
     {
       "route": "/admin/robots",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/search-console",
       "status": "pass",
       "file": null,
       "kind": null,
