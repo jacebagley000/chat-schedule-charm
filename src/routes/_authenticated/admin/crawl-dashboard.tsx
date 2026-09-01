@@ -126,12 +126,28 @@ function CrawlDashboardPage() {
             />
           </div>
 
+          <div className="mb-6 grid gap-4 sm:grid-cols-4">
+            <CountCard label="Passing" value={data.healthy} />
+            <CountCard label="Contradictions" value={data.failed} tone="bad" />
+            <CountCard label="Public failing" value={data.publicFailed} tone="bad" />
+            <CountCard label="Private failing" value={data.privateFailed} tone="bad" />
+          </div>
+
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
             <span className="text-muted-foreground">
-              {data.healthy} of {data.total} allowlisted routes healthy
+              {data.healthy} of {data.total} checked paths pass ({data.publicPassed} public,{" "}
+              {data.privatePassed} private)
             </span>
             <span className="text-muted-foreground">·</span>
             <span className="font-mono text-xs text-muted-foreground">{data.origin}</span>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={onlyProblems}
+                onChange={(e) => setOnlyProblems(e.target.checked)}
+              />
+              Only contradictions
+            </label>
             <Link
               to="/admin/search-console"
               className="text-sm underline underline-offset-4"
@@ -142,10 +158,11 @@ function CrawlDashboardPage() {
 
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-left text-sm">
-              <caption className="sr-only">Allowlisted route crawl status</caption>
+              <caption className="sr-only">Live crawl status per path</caption>
               <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-4 py-3">Route</th>
+                  <th scope="col" className="px-4 py-3">Kind</th>
                   <th scope="col" className="px-4 py-3">HTTP</th>
                   <th scope="col" className="px-4 py-3">In sitemap</th>
                   <th scope="col" className="px-4 py-3">robots.txt</th>
@@ -155,8 +172,8 @@ function CrawlDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.routes.map((r) => (
-                  <tr key={r.path} className="border-t border-border align-top">
+                {visibleRoutes.map((r) => (
+                  <tr key={`${r.kind}:${r.path}`} className="border-t border-border align-top">
                     <td className="px-4 py-3 font-mono text-xs">
                       <a
                         href={r.path}
@@ -167,6 +184,8 @@ function CrawlDashboardPage() {
                         {r.path}
                       </a>
                     </td>
+                    <td className="px-4 py-3 text-xs capitalize">{r.kind}</td>
+
                     <td className="px-4 py-3">{r.status ?? "—"}</td>
                     <td className="px-4 py-3">{r.inSitemap ? "Yes" : "No"}</td>
                     <td className="px-4 py-3">{r.robotsAllowed ? "Allowed" : "Disallowed"}</td>
