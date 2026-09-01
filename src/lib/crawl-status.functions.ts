@@ -2,9 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   PUBLIC_ROUTES,
+  PRIVATE_PREFIXES,
   hasPublicRobots,
   normalizePath,
   robotsPolicyFor,
+  renderRobotsTxt,
+  sitemapPaths,
 } from "@/lib/public-routes";
 
 export interface ResourceStatus {
@@ -14,11 +17,14 @@ export interface ResourceStatus {
   status: number | null;
   contentType: string | null;
   bytes: number | null;
+  /** Checks derived from the live body vs. the generated config. */
+  checks: { label: string; ok: boolean; detail?: string }[];
   error?: string;
 }
 
 export interface RouteStatus {
   path: string;
+  kind: "public" | "private";
   status: number | null;
   xRobotsTag: string | null;
   metaRobots: string | null;
@@ -36,8 +42,14 @@ export interface CrawlStatusReport {
   sitemapLocCount: number;
   routes: RouteStatus[];
   healthy: number;
+  failed: number;
   total: number;
+  publicPassed: number;
+  publicFailed: number;
+  privatePassed: number;
+  privateFailed: number;
 }
+
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
   const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
