@@ -25,12 +25,13 @@ function ResourceCard({ title, resource, extra }: {
   resource: ResourceStatus;
   extra?: string;
 }) {
+  const failing = resource.checks.filter((c) => !c.ok);
   return (
     <div className="rounded-lg border border-border p-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-medium">{title}</h2>
-        <Badge variant={resource.ok ? "secondary" : "destructive"}>
-          {resource.status ?? "error"}
+        <Badge variant={resource.ok && failing.length === 0 ? "secondary" : "destructive"}>
+          {resource.error ? "error" : `${resource.status ?? "—"}`}
         </Badge>
       </div>
       <a
@@ -47,6 +48,35 @@ function ResourceCard({ title, resource, extra }: {
           : `${resource.contentType ?? "unknown type"} · ${resource.bytes ?? 0} bytes${
               extra ? ` · ${extra}` : ""
             }`}
+      </p>
+      {resource.checks.length > 0 && (
+        <ul className="mt-3 space-y-1 text-xs">
+          {resource.checks.map((c) => (
+            <li key={c.label} className={c.ok ? "text-muted-foreground" : "text-destructive"}>
+              {c.ok ? "✓" : "✗"} {c.label}
+              {c.detail && !c.ok ? ` — ${c.detail}` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function CountCard({ label, value, tone }: {
+  label: string;
+  value: number;
+  tone?: "bad";
+}) {
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p
+        className={`mt-1 text-2xl font-semibold ${
+          tone === "bad" && value > 0 ? "text-destructive" : ""
+        }`}
+      >
+        {value}
       </p>
     </div>
   );
