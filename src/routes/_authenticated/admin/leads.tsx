@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, HeadContent } from "@tanstack/react-router";
+import { createFileRoute, HeadContent, Link } from "@tanstack/react-router";
 import { pageMeta, canonicalLink } from "@/lib/seo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -107,6 +107,9 @@ function LeadsPage() {
             onChange={(e) => setFilter(e.target.value)}
             className="h-9 w-full sm:w-64"
           />
+          <Button asChild variant="outline">
+            <Link to="/admin/lead-followup">Follow-up emails</Link>
+          </Button>
           <Button
             variant="outline"
             size="icon"
