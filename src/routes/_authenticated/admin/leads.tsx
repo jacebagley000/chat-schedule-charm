@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, HeadContent } from "@tanstack/react-router";
 import { pageMeta, canonicalLink } from "@/lib/seo";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { listLeads } from "@/lib/leads.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,20 +34,38 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
 
 function LeadsPage() {
   const fetchLeads = useServerFn(listLeads);
-  const { data, isLoading, error } = useQuery({
+  const queryClient = useQueryClient();
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["leads"],
     queryFn: () => fetchLeads({ data: undefined }),
   });
 
   const [filter, setFilter] = useState("");
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("leads")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "leads" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["leads"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const leads = data?.leads ?? [];
-  const filtered = filter
-    ? leads.filter(
-        (l) =>
-          l.name.toLowerCase().includes(filter.toLowerCase()) ||
-          l.email.toLowerCase().includes(filter.toLowerCase()) ||
-          (l.business_name?.toLowerCase().includes(filter.toLowerCase()) ?? false)
+  const normalizedFilter = filter.toLowerCase().trim();
+  const filtered = normalizedFilter
+    ? leads.filter((l) =>
+        [l.name, l.email, l.phone, l.business_name]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(normalizedFilter))
       )
     : leads;
 
@@ -58,13 +79,24 @@ function LeadsPage() {
             {leads.length} submission{leads.length === 1 ? "" : "s"} from comparison pages
           </p>
         </div>
-        <input
-          type="text"
-          placeholder="Search leads..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            type="text"
+            placeholder="Search leads..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="h-9 w-full sm:w-64"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            aria-label="Refresh leads"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       {isLoading && <p className="text-muted-foreground">Loading leads...</p>}
@@ -82,7 +114,7 @@ function LeadsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Business</TableHead>
+                <TableHead>Phone</TableHead>
                 <TableHead>Preferred call</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Status</TableHead>
@@ -94,7 +126,7 @@ function LeadsPage() {
                 <TableRow key={lead.id}>
                   <TableCell className="font-medium">{lead.name}</TableCell>
                   <TableCell>{lead.email}</TableCell>
-                  <TableCell>{lead.business_name || "—"}</TableCell>
+                  <TableCell>{lead.phone || "—"}</TableCell>
                   <TableCell>
                     {lead.preferred_call_time
                       ? format(new Date(lead.preferred_call_time), "MMM d, yyyy h:mm a")
@@ -111,7 +143,7 @@ function LeadsPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                     No leads found.
                   </TableCell>
                 </TableRow>
