@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
     links: [
       {
         rel: "canonical",
-        href: `https://chat-schedule-charm.lovable.app/workspaces/${params.businessId}/calendar`,
+        href: `https://www.frontdeskai.com/workspaces/${params.businessId}/calendar`,
       },
     ],
   }),

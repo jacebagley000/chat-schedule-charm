@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       path: "/schedule",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/schedule" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/schedule" }],
   }),
 });
 

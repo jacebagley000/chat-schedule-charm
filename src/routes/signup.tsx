@@ -31,7 +31,7 @@ export const Route = createFileRoute("/signup")({
         "Set up your AI receptionist in under a minute. 14-day trial, no card required.",
       path: "/signup",
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/signup" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/signup" }],
     scripts: [brandJsonLd()],
   }),
 

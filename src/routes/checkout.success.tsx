@@ -11,7 +11,7 @@ export const Route = createFileRoute("/checkout/success")({
       path: "/checkout/success",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/success" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/checkout/success" }],
   }),
 
   component: CheckoutSuccess,

@@ -5,7 +5,7 @@ import { TrackedLink } from "@/components/TrackedLink";
 import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
 const PAGE_PATH = "/comparison/polyai";
-const CANONICAL = `https://chat-schedule-charm.lovable.app${PAGE_PATH}`;
+const CANONICAL = `https://www.frontdeskai.com${PAGE_PATH}`;
 
 export const Route = createFileRoute("/comparison/polyai")({
   head: () => ({

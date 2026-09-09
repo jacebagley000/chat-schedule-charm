@@ -1,5 +1,5 @@
 {
-  "baseUrl": "https://chat-schedule-charm.lovable.app",
+  "baseUrl": "https://www.frontdeskai.com",
   "allow": [
     { "path": "/", "changefreq": "weekly", "priority": "1.0" },
     { "path": "/login", "changefreq": "yearly", "priority": "0.3" },
@@ -22,5 +22,5 @@
     "/api/",
     "/_authenticated/"
   ],
-  "sitemaps": ["https://chat-schedule-charm.lovable.app/sitemap.xml"]
+  "sitemaps": ["https://www.frontdeskai.com/sitemap.xml"]
 }
