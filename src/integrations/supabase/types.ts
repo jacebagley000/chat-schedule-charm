@@ -501,6 +501,50 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_followup_emails: {
+        Row: {
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string
+          ok: boolean
+          recipient_email: string
+          sent_by: string | null
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id: string
+          ok: boolean
+          recipient_email: string
+          sent_by?: string | null
+          subject: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string
+          ok?: boolean
+          recipient_email?: string
+          sent_by?: string | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_followup_emails_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           business_name: string | null
