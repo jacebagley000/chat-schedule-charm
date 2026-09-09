@@ -334,6 +334,75 @@ export type Database = {
           },
         ]
       }
+      crawl_alert_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          failure_count: number
+          failures: Json
+          id: string
+          kind: string
+          ok: boolean
+          recipient_email: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          failure_count?: number
+          failures?: Json
+          id?: string
+          kind?: string
+          ok?: boolean
+          recipient_email: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          failure_count?: number
+          failures?: Json
+          id?: string
+          kind?: string
+          ok?: boolean
+          recipient_email?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      crawl_alert_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          last_alert_at: string | null
+          last_signature: string | null
+          min_interval_minutes: number
+          recipient_email: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_alert_at?: string | null
+          last_signature?: string | null
+          min_interval_minutes?: number
+          recipient_email?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_alert_at?: string | null
+          last_signature?: string | null
+          min_interval_minutes?: number
+          recipient_email?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cron_secrets: {
         Row: {
           created_at: string

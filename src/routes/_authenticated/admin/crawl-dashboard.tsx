@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCrawlStatus, type ResourceStatus } from "@/lib/crawl-status.functions";
 import { SitemapSubmissionPanel } from "@/components/admin/SitemapSubmissionPanel";
+import { CrawlAlertPanel } from "@/components/admin/CrawlAlertPanel";
 
 export const Route = createFileRoute("/_authenticated/admin/crawl-dashboard")({
   head: () => ({
@@ -123,6 +124,17 @@ function CrawlDashboardPage() {
 
       {data && (
         <>
+          <CrawlAlertPanel
+            failuresPresent={
+              data.failed > 0 ||
+              !data.robotsTxt.ok ||
+              !data.sitemapXml.ok ||
+              data.robotsTxt.checks.some((c) => !c.ok) ||
+              data.sitemapXml.checks.some((c) => !c.ok)
+            }
+            checkedAt={data.checkedAt}
+          />
+
           <SitemapSubmissionPanel />
 
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
