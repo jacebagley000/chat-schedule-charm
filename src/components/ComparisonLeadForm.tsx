@@ -63,7 +63,9 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
           email: trimmedEmail,
           phone: phone.trim(),
           businessName: businessName.trim(),
-          preferredCallTime: preferredCallTime || undefined,
+          preferredCallTime: preferredCallTime
+            ? new Date(preferredCallTime).toISOString()
+            : undefined,
           sourcePage: page,
           notes: notes.trim(),
           utmSource: utm.source,
