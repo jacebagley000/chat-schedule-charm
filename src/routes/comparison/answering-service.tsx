@@ -7,7 +7,7 @@ import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
 const PAGE_PATH = "/comparison/answering-service";
 
-const CANONICAL = "https://chat-schedule-charm.lovable.app/comparison/answering-service";
+const CANONICAL = "https://www.frontdeskai.com/comparison/answering-service";
 
 const faqs = [
   {

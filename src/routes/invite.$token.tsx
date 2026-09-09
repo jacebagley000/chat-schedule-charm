@@ -20,7 +20,7 @@ export const Route = createFileRoute("/invite/$token")({
       noindex: true,
     }),
     links: [
-      { rel: "canonical", href: `https://chat-schedule-charm.lovable.app/invite/${params.token}` },
+      { rel: "canonical", href: `https://www.frontdeskai.com/invite/${params.token}` },
     ],
   }),
 });

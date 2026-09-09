@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       path: "/dashboard",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/dashboard" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/dashboard" }],
   }),
 });
 

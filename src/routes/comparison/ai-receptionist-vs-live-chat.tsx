@@ -5,7 +5,7 @@ import { TrackedLink } from "@/components/TrackedLink";
 import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
 const PAGE_PATH = "/comparison/ai-receptionist-vs-live-chat";
-const CANONICAL = `https://chat-schedule-charm.lovable.app${PAGE_PATH}`;
+const CANONICAL = `https://www.frontdeskai.com${PAGE_PATH}`;
 
 const faqs = [
   {
@@ -76,7 +76,7 @@ export const Route = createFileRoute("/comparison/ai-receptionist-vs-live-chat")
                   "@type": "ListItem",
                   position: 1,
                   name: "Home",
-                  item: "https://chat-schedule-charm.lovable.app/",
+                  item: "https://www.frontdeskai.com/",
                 },
                 {
                   "@type": "ListItem",

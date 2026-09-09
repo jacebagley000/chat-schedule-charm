@@ -31,7 +31,7 @@ export const Route = createFileRoute("/login")({
         "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings.",
       path: "/login",
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/login" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/login" }],
     scripts: [brandJsonLd()],
   }),
 

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/checkout/start")({
       path: "/checkout/start",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/checkout/start" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/checkout/start" }],
   }),
 
 });

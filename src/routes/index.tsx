@@ -20,11 +20,11 @@ export const Route = createFileRoute("/")({
         "Answer every call and DM. Book every appointment. Lose nothing while you work.",
       path: "/",
     }),
-    links: [{ rel: "canonical", href: "https://chat-schedule-charm.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/" }],
     scripts: [
       brandJsonLd({
         "@type": "FAQPage",
-        "@id": "https://chat-schedule-charm.lovable.app/#faq",
+        "@id": "https://www.frontdeskai.com/#faq",
         mainEntity: faqs.map((f) => ({
           "@type": "Question",
           name: f.q,
