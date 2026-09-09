@@ -30,6 +30,7 @@ import { Route as AuthenticatedAdminCrawlToolsRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminIndexCoverageRouteImport } from './routes/_authenticated/admin/index-coverage'
 import { Route as AuthenticatedAdminIndexGapRouteImport } from './routes/_authenticated/admin/index-gap'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
+import { Route as AuthenticatedAdminNoindexRouteImport } from './routes/_authenticated/admin/noindex'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
 import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
 import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
@@ -153,6 +154,12 @@ const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   path: '/admin/leads',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminNoindexRoute =
+  AuthenticatedAdminNoindexRouteImport.update({
+    id: '/admin/noindex',
+    path: '/admin/noindex',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminRobotsRoute =
   AuthenticatedAdminRobotsRouteImport.update({
     id: '/admin/robots',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -266,6 +274,7 @@ export interface FileRoutesByTo {
   '/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -300,6 +309,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/index-coverage': typeof AuthenticatedAdminIndexCoverageRoute
   '/_authenticated/admin/index-gap': typeof AuthenticatedAdminIndexGapRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/index-coverage'
     | '/admin/index-gap'
     | '/admin/leads'
+    | '/admin/noindex'
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/sitemap'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/index-coverage'
     | '/admin/index-gap'
     | '/admin/leads'
+    | '/admin/noindex'
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/sitemap'
@@ -399,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/index-coverage'
     | '/_authenticated/admin/index-gap'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/noindex'
     | '/_authenticated/admin/robots'
     | '/_authenticated/admin/search-console'
     | '/_authenticated/admin/sitemap'
@@ -578,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/noindex': {
+      id: '/_authenticated/admin/noindex'
+      path: '/admin/noindex'
+      fullPath: '/admin/noindex'
+      preLoaderRoute: typeof AuthenticatedAdminNoindexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/robots': {
       id: '/_authenticated/admin/robots'
       path: '/admin/robots'
@@ -661,6 +681,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminIndexCoverageRoute: typeof AuthenticatedAdminIndexCoverageRoute
   AuthenticatedAdminIndexGapRoute: typeof AuthenticatedAdminIndexGapRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminNoindexRoute: typeof AuthenticatedAdminNoindexRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
@@ -680,6 +701,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminIndexCoverageRoute: AuthenticatedAdminIndexCoverageRoute,
   AuthenticatedAdminIndexGapRoute: AuthenticatedAdminIndexGapRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminNoindexRoute: AuthenticatedAdminNoindexRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
   AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
