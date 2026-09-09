@@ -51,7 +51,7 @@ function CrawlToolsPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="robots">robots.txt</TabsTrigger>
           <TabsTrigger value="sitemap">Sitemap</TabsTrigger>
-          <TabsTrigger value="search-console">Search Console</TabsTrigger>
+          <TabsTrigger value="search-console">Daily submissions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="robots">
