@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, HeadContent } from "@tanstack/react-router";
 import { pageMeta, canonicalLink } from "@/lib/seo";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
-import { listLeads } from "@/lib/leads.functions";
+import { listLeads, updateLeadFollowUp } from "@/lib/leads.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -40,6 +48,18 @@ function LeadsPage() {
     queryFn: () => fetchLeads({ data: undefined }),
   });
 
+  const saveFollowUp = useServerFn(updateLeadFollowUp);
+  const followUpMutation = useMutation({
+    mutationFn: (vars: { id: string; followUpStatus: FollowUpStatus }) =>
+      saveFollowUp({ data: vars }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      toast.success("Follow-up updated");
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Could not update follow-up"),
+  });
+
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
@@ -47,7 +67,7 @@ function LeadsPage() {
       .channel("leads")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "leads" },
+        { event: "*", schema: "public", table: "leads" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["leads"] });
         },
@@ -118,6 +138,8 @@ function LeadsPage() {
                 <TableHead>Preferred call</TableHead>
                 <TableHead>Source</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Follow-up</TableHead>
+                <TableHead>Contacted</TableHead>
                 <TableHead>Submitted</TableHead>
               </TableRow>
             </TableHeader>
@@ -136,6 +158,34 @@ function LeadsPage() {
                   <TableCell>
                     <Badge variant={statusVariant(lead.status)}>{lead.status}</Badge>
                   </TableCell>
+                  <TableCell>
+                    <Select
+                      value={lead.follow_up_status ?? "not_contacted"}
+                      onValueChange={(value) =>
+                        followUpMutation.mutate({
+                          id: lead.id,
+                          followUpStatus: value as FollowUpStatus,
+                        })
+                      }
+                      disabled={followUpMutation.isPending}
+                    >
+                      <SelectTrigger className="h-8 w-[150px]" aria-label={`Follow-up status for ${lead.name}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FOLLOW_UP_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {lead.contacted_at
+                      ? format(new Date(lead.contacted_at), "MMM d, yyyy h:mm a")
+                      : "—"}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {format(new Date(lead.created_at), "MMM d, yyyy")}
                   </TableCell>
@@ -143,7 +193,7 @@ function LeadsPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                     No leads found.
                   </TableCell>
                 </TableRow>
@@ -155,6 +205,21 @@ function LeadsPage() {
     </div>
   );
 }
+
+type FollowUpStatus =
+  | "not_contacted"
+  | "attempted"
+  | "contacted"
+  | "no_response"
+  | "done";
+
+const FOLLOW_UP_OPTIONS: { value: FollowUpStatus; label: string }[] = [
+  { value: "not_contacted", label: "Not contacted" },
+  { value: "attempted", label: "Attempted" },
+  { value: "contacted", label: "Contacted" },
+  { value: "no_response", label: "No response" },
+  { value: "done", label: "Done" },
+];
 
 function statusVariant(status: string) {
   switch (status) {

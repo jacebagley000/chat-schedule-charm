@@ -88,3 +88,50 @@ export const listLeads = createServerFn({ method: "GET" })
 
     return { leads: data };
   });
+
+const followUpSchema = z.object({
+  id: z.string().uuid(),
+  followUpStatus: z.enum([
+    "not_contacted",
+    "attempted",
+    "contacted",
+    "no_response",
+    "done",
+  ]),
+});
+
+export const updateLeadFollowUp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => followUpSchema.parse(data))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+
+    if (roleError) {
+      throw new Error(`Role check failed: ${roleError.message}`);
+    }
+
+    if (!isAdmin) {
+      throw new Error("Forbidden");
+    }
+
+    const contactedAt =
+      data.followUpStatus === "not_contacted" ? null : new Date().toISOString();
+
+    const { data: updated, error } = await supabase
+      .from("leads")
+      .update({ follow_up_status: data.followUpStatus, contacted_at: contactedAt })
+      .eq("id", data.id)
+      .select("id, follow_up_status, contacted_at")
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update lead: ${error.message}`);
+    }
+
+    return { lead: updated };
+  });

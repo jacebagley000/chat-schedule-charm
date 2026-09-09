@@ -504,8 +504,10 @@ export type Database = {
       leads: {
         Row: {
           business_name: string | null
+          contacted_at: string | null
           created_at: string
           email: string
+          follow_up_status: Database["public"]["Enums"]["lead_follow_up_status"]
           id: string
           name: string
           notes: string | null
@@ -519,8 +521,10 @@ export type Database = {
         }
         Insert: {
           business_name?: string | null
+          contacted_at?: string | null
           created_at?: string
           email: string
+          follow_up_status?: Database["public"]["Enums"]["lead_follow_up_status"]
           id?: string
           name: string
           notes?: string | null
@@ -534,8 +538,10 @@ export type Database = {
         }
         Update: {
           business_name?: string | null
+          contacted_at?: string | null
           created_at?: string
           email?: string
+          follow_up_status?: Database["public"]["Enums"]["lead_follow_up_status"]
           id?: string
           name?: string
           notes?: string | null
@@ -1052,6 +1058,12 @@ export type Database = {
       business_role: "owner" | "admin" | "staff"
       conversation_channel: "phone" | "instagram" | "facebook" | "sms"
       conversation_status: "open" | "needs_human" | "closed"
+      lead_follow_up_status:
+        | "not_contacted"
+        | "attempted"
+        | "contacted"
+        | "no_response"
+        | "done"
       message_direction: "inbound" | "outbound"
       message_sender: "customer" | "agent" | "human"
       scheduling_request_status: "new" | "reviewed" | "scheduled" | "dismissed"
@@ -1209,6 +1221,13 @@ export const Constants = {
       business_role: ["owner", "admin", "staff"],
       conversation_channel: ["phone", "instagram", "facebook", "sms"],
       conversation_status: ["open", "needs_human", "closed"],
+      lead_follow_up_status: [
+        "not_contacted",
+        "attempted",
+        "contacted",
+        "no_response",
+        "done",
+      ],
       message_direction: ["inbound", "outbound"],
       message_sender: ["customer", "agent", "human"],
       scheduling_request_status: ["new", "reviewed", "scheduled", "dismissed"],
