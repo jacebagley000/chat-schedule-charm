@@ -7,6 +7,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { spawn } from "node:child_process";
 import type { Plugin } from "vite";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 /**
  * Runs the security-surface SQL regression suite once when the preview/dev
@@ -77,6 +78,6 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    plugins: [securitySurfaceGate()],
+    plugins: [securitySurfaceGate(), mcpPlugin()],
   },
 });
