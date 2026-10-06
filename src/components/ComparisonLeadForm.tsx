@@ -58,7 +58,7 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
     setErrorMessage("");
 
     try {
-      await submit({
+      const result = await submit({
         data: {
           name: trimmedName,
           email: trimmedEmail,
@@ -92,6 +92,7 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
           time: preferredCallTime
             ? new Date(preferredCallTime).toISOString()
             : undefined,
+          booking: result.booking,
         },
       });
     } catch (err) {
