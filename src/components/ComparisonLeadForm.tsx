@@ -1,6 +1,6 @@
 import { useState, useMemo, type FormEvent } from "react";
 
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ interface ComparisonLeadFormProps {
 
 export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFormProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const submit = useServerFn(submitLead);
 
   const utm = useMemo(() => {
@@ -82,6 +83,17 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
       });
 
       setStatus("success");
+      navigate({
+        to: "/booking-confirmed",
+        search: {
+          name: trimmedName,
+          email: trimmedEmail,
+          business: businessName.trim() || undefined,
+          time: preferredCallTime
+            ? new Date(preferredCallTime).toISOString()
+            : undefined,
+        },
+      });
     } catch (err) {
       setStatus("error");
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -93,26 +105,6 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
       });
     }
   };
-
-  if (status === "success") {
-    return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center" data-testid="lead-form-success">
-        <p className="font-medium text-foreground">Thanks — we'll be in touch within one business day.</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Prefer to pick a time now?{" "}
-          <a
-            href="https://calendly.com/frontdesk-ai/onboarding"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Schedule your onboarding call
-          </a>
-          .
-        </p>
-      </div>
-    );
-  }
 
   return (
     <form
