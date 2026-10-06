@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Mail, RefreshCw, Send } from "lucide-react";
+import { Mail, RefreshCw, Send, Sparkles } from "lucide-react";
+import { draftLeadFollowUp } from "@/lib/lead-draft.functions";
 import {
   listFollowUpLeads,
   listLeadEmails,
@@ -85,11 +86,37 @@ function LeadFollowUpPage() {
     if (!selectedId && leads.length > 0) setSelectedId(leads[0]!.id);
   }, [leads, selectedId]);
 
+  const [inquiry, setInquiry] = useState("");
+  const [aiCallTime, setAiCallTime] = useState("");
+  const draft = useServerFn(draftLeadFollowUp);
+
   useEffect(() => {
     if (!selected) return;
     setSubject(defaultSubject(selected));
     setBody(defaultBody(selected));
+    setInquiry("");
+    setAiCallTime(formatCallTime(selected.preferred_call_time) ?? "");
   }, [selected?.id]);
+
+  const draftMutation = useMutation({
+    mutationFn: () =>
+      draft({
+        data: {
+          name: selected!.name,
+          businessName: selected!.business_name ?? undefined,
+          inquiry,
+          preferredCallTime: aiCallTime || undefined,
+        },
+      }),
+    onSuccess: (r) => {
+      if (r.ok) {
+        setSubject(r.subject);
+        setBody(r.body);
+        toast.success("Draft ready — review before sending");
+      } else toast.error(r.error);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Could not draft the email"),
+  });
 
   const history = useQuery({
     queryKey: ["followup-emails", selectedId],
@@ -223,6 +250,36 @@ function LeadFollowUpPage() {
                       {formatCallTime(selected.preferred_call_time) ?? "not provided"}
                     </div>
                   </div>
+
+                  <div className="space-y-2 rounded-md border p-3">
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      <Sparkles className="h-4 w-4" /> Draft with AI
+                    </p>
+                    <Label htmlFor="ai-inquiry">Lead's inquiry</Label>
+                    <Textarea
+                      id="ai-inquiry"
+                      rows={3}
+                      placeholder="What did they ask about?"
+                      value={inquiry}
+                      onChange={(e) => setInquiry(e.target.value)}
+                    />
+                    <Label htmlFor="ai-calltime">Preferred call time</Label>
+                    <Input
+                      id="ai-calltime"
+                      placeholder="e.g. Tuesday 2pm CT"
+                      value={aiCallTime}
+                      onChange={(e) => setAiCallTime(e.target.value)}
+                    />
+                    <Button
+                      variant="secondary"
+                      onClick={() => draftMutation.mutate()}
+                      disabled={draftMutation.isPending || !inquiry.trim()}
+                    >
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      {draftMutation.isPending ? "Drafting..." : "Generate draft"}
+                    </Button>
+                  </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="followup-subject">Subject</Label>
