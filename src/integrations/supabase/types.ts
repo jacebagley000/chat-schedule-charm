@@ -144,6 +144,30 @@ export type Database = {
           },
         ]
       }
+      booking_funnel_events: {
+        Row: {
+          booking_status: string | null
+          created_at: string
+          event: string
+          id: string
+          visit_id: string
+        }
+        Insert: {
+          booking_status?: string | null
+          created_at?: string
+          event: string
+          id?: string
+          visit_id: string
+        }
+        Update: {
+          booking_status?: string | null
+          created_at?: string
+          event?: string
+          id?: string
+          visit_id?: string
+        }
+        Relationships: []
+      }
       business_invitations: {
         Row: {
           accepted_at: string | null

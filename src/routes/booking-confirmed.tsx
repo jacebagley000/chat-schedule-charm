@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { trackBookingStep } from "@/lib/booking-funnel";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, CalendarClock, Mail, PhoneCall } from "lucide-react";
 import { pageMeta } from "@/lib/seo";
@@ -32,6 +34,9 @@ export const Route = createFileRoute("/booking-confirmed")({
 function BookingConfirmedPage() {
   const { name, email, business, time, booking } = Route.useSearch();
   const booked = booking === "booked";
+  useEffect(() => {
+    trackBookingStep("view", booking ?? "none");
+  }, [booking]);
 
   const formattedTime = time
     ? new Date(time).toLocaleString(undefined, {
@@ -97,13 +102,14 @@ function BookingConfirmedPage() {
               href="https://calendly.com/frontdesk-ai/onboarding"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackBookingStep("click_calendly", booking ?? "none")}
             >
               <PhoneCall className="mr-2 h-4 w-4" aria-hidden />
               Pick an exact time now
             </a>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/">Back to homepage</Link>
+            <Link to="/" onClick={() => trackBookingStep("click_home", booking ?? "none")}>Back to homepage</Link>
           </Button>
         </div>
       </div>

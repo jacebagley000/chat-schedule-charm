@@ -30,6 +30,7 @@ import { Route as IndustriesSlugRouteImport } from './routes/industries.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
+import { Route as AuthenticatedAdminBookingFunnelRouteImport } from './routes/_authenticated/admin/booking-funnel'
 import { Route as AuthenticatedAdminCrawlDashboardRouteImport } from './routes/_authenticated/admin/crawl-dashboard'
 import { Route as AuthenticatedAdminCrawlReportRouteImport } from './routes/_authenticated/admin/crawl-report'
 import { Route as AuthenticatedAdminCrawlToolsRouteImport } from './routes/_authenticated/admin/crawl-tools'
@@ -154,6 +155,12 @@ const AuthenticatedAdminAllowlistRoute =
   AuthenticatedAdminAllowlistRouteImport.update({
     id: '/admin/allowlist',
     path: '/admin/allowlist',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminBookingFunnelRoute =
+  AuthenticatedAdminBookingFunnelRouteImport.update({
+    id: '/admin/booking-funnel',
+    path: '/admin/booking-funnel',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminCrawlDashboardRoute =
@@ -283,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/industries/': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
+  '/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
@@ -323,6 +331,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/industries': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
+  '/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
@@ -365,6 +374,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/industries/': typeof IndustriesIndexRoute
   '/_authenticated/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
+  '/_authenticated/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
   '/_authenticated/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/_authenticated/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
   '/_authenticated/admin/crawl-tools': typeof AuthenticatedAdminCrawlToolsRoute
@@ -407,6 +417,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/industries/'
     | '/admin/allowlist'
+    | '/admin/booking-funnel'
     | '/admin/crawl-dashboard'
     | '/admin/crawl-report'
     | '/admin/crawl-tools'
@@ -447,6 +458,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/industries'
     | '/admin/allowlist'
+    | '/admin/booking-funnel'
     | '/admin/crawl-dashboard'
     | '/admin/crawl-report'
     | '/admin/crawl-tools'
@@ -488,6 +500,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/industries/'
     | '/_authenticated/admin/allowlist'
+    | '/_authenticated/admin/booking-funnel'
     | '/_authenticated/admin/crawl-dashboard'
     | '/_authenticated/admin/crawl-report'
     | '/_authenticated/admin/crawl-tools'
@@ -681,6 +694,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAllowlistRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/booking-funnel': {
+      id: '/_authenticated/admin/booking-funnel'
+      path: '/admin/booking-funnel'
+      fullPath: '/admin/booking-funnel'
+      preLoaderRoute: typeof AuthenticatedAdminBookingFunnelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/crawl-dashboard': {
       id: '/_authenticated/admin/crawl-dashboard'
       path: '/admin/crawl-dashboard'
@@ -814,6 +834,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedAdminAllowlistRoute: typeof AuthenticatedAdminAllowlistRoute
+  AuthenticatedAdminBookingFunnelRoute: typeof AuthenticatedAdminBookingFunnelRoute
   AuthenticatedAdminCrawlDashboardRoute: typeof AuthenticatedAdminCrawlDashboardRoute
   AuthenticatedAdminCrawlReportRoute: typeof AuthenticatedAdminCrawlReportRoute
   AuthenticatedAdminCrawlToolsRoute: typeof AuthenticatedAdminCrawlToolsRoute
@@ -836,6 +857,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedAdminAllowlistRoute: AuthenticatedAdminAllowlistRoute,
+  AuthenticatedAdminBookingFunnelRoute: AuthenticatedAdminBookingFunnelRoute,
   AuthenticatedAdminCrawlDashboardRoute: AuthenticatedAdminCrawlDashboardRoute,
   AuthenticatedAdminCrawlReportRoute: AuthenticatedAdminCrawlReportRoute,
   AuthenticatedAdminCrawlToolsRoute: AuthenticatedAdminCrawlToolsRoute,
