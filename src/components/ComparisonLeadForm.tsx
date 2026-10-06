@@ -92,6 +92,7 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
           time: preferredCallTime
             ? new Date(preferredCallTime).toISOString()
             : undefined,
+          booking: result.booking,
         },
       });
     } catch (err) {

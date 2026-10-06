@@ -75,7 +75,18 @@ export const submitLead = createServerFn({ method: "POST" })
       throw new Error(`Failed to save lead: ${error.message}`);
     }
 
-    return { success: true };
+    if (!data.preferredCallTime) {
+      return { success: true, booking: "none" as const, emailSent: false };
+    }
+    const { bookDemoCall } = await import("./demo-booking.server");
+    const result = await bookDemoCall({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      businessName: data.businessName,
+      startsAt: data.preferredCallTime,
+    });
+    return { success: true, booking: result.status, emailSent: result.emailSent };
   });
 
 export const listLeads = createServerFn({ method: "GET" })
