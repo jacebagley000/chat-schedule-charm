@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/checkout")({
+export const Route = createFileRoute("/checkout/")({
   validateSearch: (search: Record<string, unknown>): { plan?: string } => ({
     ...(typeof search.plan === "string" ? { plan: search.plan } : {}),
   }),
