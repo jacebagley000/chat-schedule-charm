@@ -1,6 +1,7 @@
 export const PLANS = [
   {
     name: "The Soloist",
+    priceId: "soloist_monthly",
     price: "$49",
     blurb: "For one-chair shops and solo operators.",
     features: ["Up to 100 calls/month", "Phone answering", "Calendar sync", "SMS confirmations"],
@@ -8,6 +9,7 @@ export const PLANS = [
   },
   {
     name: "Professional Shop",
+    priceId: "professional_monthly",
     price: "$99",
     blurb: "For busy local businesses with a team.",
     features: [
@@ -21,6 +23,7 @@ export const PLANS = [
   },
   {
     name: "Multi-Location",
+    priceId: "multi_location_monthly",
     price: "$199",
     blurb: "For owners running more than one shop.",
     features: ["Multiple calendars", "Team routing", "Centralized dashboard", "Dedicated account rep"],

@@ -20,6 +20,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
+import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as CheckoutStartRouteImport } from './routes/checkout.start'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes/comparison/ai-receptionist-vs-live-chat'
@@ -103,6 +104,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
+  id: '/checkout/',
+  path: '/checkout/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutStartRoute = CheckoutStartRouteImport.update({
   id: '/checkout/start',
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/checkout/': typeof CheckoutIndexRoute
   '/industries/': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/checkout': typeof CheckoutIndexRoute
   '/industries': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
@@ -372,6 +380,7 @@ export interface FileRoutesById {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/checkout/': typeof CheckoutIndexRoute
   '/industries/': typeof IndustriesIndexRoute
   '/_authenticated/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/_authenticated/admin/booking-funnel': typeof AuthenticatedAdminBookingFunnelRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/checkout/'
     | '/industries/'
     | '/admin/allowlist'
     | '/admin/booking-funnel'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/checkout'
     | '/industries'
     | '/admin/allowlist'
     | '/admin/booking-funnel'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/checkout/'
     | '/industries/'
     | '/_authenticated/admin/allowlist'
     | '/_authenticated/admin/booking-funnel'
@@ -539,6 +551,7 @@ export interface RootRouteChildren {
   ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
   IndustriesSlugRoute: typeof IndustriesSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  CheckoutIndexRoute: typeof CheckoutIndexRoute
   IndustriesIndexRoute: typeof IndustriesIndexRoute
   ApiPublicHooksDailySitemapSubmitRoute: typeof ApiPublicHooksDailySitemapSubmitRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -623,6 +636,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/schedule'
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/checkout/': {
+      id: '/checkout/'
+      path: '/checkout'
+      fullPath: '/checkout/'
+      preLoaderRoute: typeof CheckoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/checkout/start': {
       id: '/checkout/start'
@@ -902,6 +922,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComparisonPolyaiRoute: ComparisonPolyaiRoute,
   IndustriesSlugRoute: IndustriesSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
+  CheckoutIndexRoute: CheckoutIndexRoute,
   IndustriesIndexRoute: IndustriesIndexRoute,
   ApiPublicHooksDailySitemapSubmitRoute: ApiPublicHooksDailySitemapSubmitRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
