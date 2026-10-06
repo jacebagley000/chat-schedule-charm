@@ -61,6 +61,7 @@ function LeadsPage() {
   });
 
   const [filter, setFilter] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   useEffect(() => {
     const channel = supabase
@@ -81,13 +82,13 @@ function LeadsPage() {
 
   const leads = data?.leads ?? [];
   const normalizedFilter = filter.toLowerCase().trim();
-  const filtered = normalizedFilter
-    ? leads.filter((l) =>
-        [l.name, l.email, l.phone, l.business_name]
-          .filter(Boolean)
-          .some((value) => value!.toLowerCase().includes(normalizedFilter))
-      )
-    : leads;
+  const filtered = leads.filter((l) => {
+    if (sourceFilter !== "all" && (l.source ?? "organic") !== sourceFilter) return false;
+    if (!normalizedFilter) return true;
+    return [l.name, l.email, l.phone, l.business_name]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(normalizedFilter));
+  });
 
   return (
     <div className="container mx-auto max-w-6xl p-6">
@@ -100,6 +101,19 @@ function LeadsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="h-9 w-full sm:w-36" aria-label="Filter by channel">
+              <SelectValue placeholder="All channels" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All channels</SelectItem>
+              {SOURCE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input
             type="text"
             placeholder="Search leads..."
@@ -139,7 +153,8 @@ function LeadsPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Preferred call</TableHead>
-                <TableHead>Source</TableHead>
+                <TableHead>Channel</TableHead>
+                <TableHead>Page</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Follow-up</TableHead>
                 <TableHead>Contacted</TableHead>
@@ -156,6 +171,11 @@ function LeadsPage() {
                     {lead.preferred_call_time
                       ? format(new Date(lead.preferred_call_time), "MMM d, yyyy h:mm a")
                       : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={sourceVariant(lead.source ?? "organic")}>
+                      {sourceLabel(lead.source ?? "organic")}
+                    </Badge>
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">{lead.source_page}</TableCell>
                   <TableCell>
@@ -196,7 +216,7 @@ function LeadsPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                     No leads found.
                   </TableCell>
                 </TableRow>
@@ -215,6 +235,31 @@ type FollowUpStatus =
   | "contacted"
   | "no_response"
   | "done";
+
+const SOURCE_OPTIONS = [
+  { value: "organic", label: "Organic" },
+  { value: "social", label: "Social" },
+  { value: "referral", label: "Referral" },
+  { value: "direct", label: "Direct" },
+  { value: "other", label: "Other" },
+] as const;
+
+function sourceLabel(source: string) {
+  return SOURCE_OPTIONS.find((o) => o.value === source)?.label ?? source;
+}
+
+function sourceVariant(source: string) {
+  switch (source) {
+    case "social":
+      return "default" as const;
+    case "referral":
+      return "secondary" as const;
+    case "organic":
+      return "outline" as const;
+    default:
+      return "outline" as const;
+  }
+}
 
 const FOLLOW_UP_OPTIONS: { value: FollowUpStatus; label: string }[] = [
   { value: "not_contacted", label: "Not contacted" },

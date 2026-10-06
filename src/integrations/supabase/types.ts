@@ -557,6 +557,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           preferred_call_time: string | null
+          source: string
           source_page: string
           status: string
           utm_campaign: string | null
@@ -574,6 +575,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           preferred_call_time?: string | null
+          source?: string
           source_page: string
           status?: string
           utm_campaign?: string | null
@@ -591,6 +593,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           preferred_call_time?: string | null
+          source?: string
           source_page?: string
           status?: string
           utm_campaign?: string | null

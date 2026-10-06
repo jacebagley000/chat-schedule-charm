@@ -35,6 +35,24 @@ function createAnonClient() {
   });
 }
 
+const SOCIAL_SOURCES = new Set([
+  "facebook", "instagram", "twitter", "x", "linkedin", "tiktok", "youtube", "meta", "fb", "ig",
+]);
+const SOCIAL_MEDIUMS = new Set(["social", "paid_social", "social-paid"]);
+const REFERRAL_HINTS = new Set(["referral", "affiliate", "partner"]);
+
+export type LeadSource = "organic" | "social" | "referral" | "direct" | "other";
+
+export function deriveLeadSource(utmSource?: string, utmMedium?: string): LeadSource {
+  const source = (utmSource ?? "").trim().toLowerCase();
+  const medium = (utmMedium ?? "").trim().toLowerCase();
+  if (SOCIAL_SOURCES.has(source) || SOCIAL_MEDIUMS.has(medium)) return "social";
+  if (REFERRAL_HINTS.has(source) || REFERRAL_HINTS.has(medium)) return "referral";
+  if (source === "direct") return "direct";
+  if (source || medium) return "other";
+  return "organic";
+}
+
 export const submitLead = createServerFn({ method: "POST" })
   .inputValidator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
@@ -50,6 +68,7 @@ export const submitLead = createServerFn({ method: "POST" })
       utm_source: data.utmSource,
       utm_medium: data.utmMedium,
       utm_campaign: data.utmCampaign,
+      source: deriveLeadSource(data.utmSource, data.utmMedium),
     });
 
     if (error) {
