@@ -302,7 +302,12 @@ export function checkNoindex({ routesDir, registrySource }) {
 
   for (const rawPath of publicPaths) {
     const path = normalizePath(rawPath);
-    if (!seen.has(path)) {
+    const dynamicMatch = [...seen].some((pattern) => {
+      if (!pattern.includes("$")) return false;
+      const a = pattern.split("/"), b = path.split("/");
+      return a.length === b.length && a.every((seg, i) => seg.startsWith("$") || seg === b[i]);
+    });
+    if (!seen.has(path) && !dynamicMatch) {
       problems.push({
         kind: "sitemap-route-missing",
         route: path,
