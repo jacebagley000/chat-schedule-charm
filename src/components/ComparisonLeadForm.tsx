@@ -15,6 +15,7 @@ interface ComparisonLeadFormProps {
 
 export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFormProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const submit = useServerFn(submitLead);
 
   const utm = useMemo(() => {
@@ -82,6 +83,17 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
       });
 
       setStatus("success");
+      navigate({
+        to: "/booking-confirmed",
+        search: {
+          name: trimmedName,
+          email: trimmedEmail,
+          business: businessName.trim() || undefined,
+          time: preferredCallTime
+            ? new Date(preferredCallTime).toISOString()
+            : undefined,
+        },
+      });
     } catch (err) {
       setStatus("error");
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong. Please try again.");
