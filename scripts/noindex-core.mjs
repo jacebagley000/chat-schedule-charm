@@ -14,7 +14,7 @@ export const NON_PAGE = [
   /^\/robots\.txt$/,
   // MCP server endpoint + OAuth discovery metadata (auto-generated, no HTML)
   /^\/mcp$/,
-  /^\/\.well-known\//,
+  /^\/\[\.well-known\]\//,
 ];
 
 /**
