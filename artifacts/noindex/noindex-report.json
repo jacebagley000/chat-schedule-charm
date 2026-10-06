@@ -1,6 +1,6 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-10-06T16:43:33.453Z",
+  "generatedAt": "2026-10-06T16:44:14.999Z",
   "status": "fail",
   "dryRun": false,
   "allowlistFile": "/dev-server/src/config/robots-rules.json",
@@ -18,7 +18,7 @@
   },
   "routesChecked": [
     "/lovable/oauth/consent",
-    "/[/well-known]/oauth-protected-resource",
+    "/.well-known/oauth-protected-resource",
     "/admin/allowlist",
     "/admin/booking-funnel",
     "/admin/crawl-dashboard",
@@ -69,7 +69,7 @@
       "fix": null
     },
     {
-      "route": "/[/well-known]/oauth-protected-resource",
+      "route": "/.well-known/oauth-protected-resource",
       "status": "fail",
       "file": "src/routes/[.well-known]/oauth-protected-resource.ts",
       "kind": "private-route-indexable",
@@ -425,7 +425,7 @@
   "problems": [
     {
       "kind": "private-route-indexable",
-      "route": "/[/well-known]/oauth-protected-resource",
+      "route": "/.well-known/oauth-protected-resource",
       "file": "src/routes/[.well-known]/oauth-protected-resource.ts",
       "allowlist": "private",
       "privatePrefix": null,
