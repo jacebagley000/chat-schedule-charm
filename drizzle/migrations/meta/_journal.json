@@ -22,6 +22,13 @@
       "when": 1791304422661,
       "tag": "0002_signup_creates_business",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791305154168,
+      "tag": "0003_signup_conversions",
+      "breakpoints": true
     }
   ]
 }
