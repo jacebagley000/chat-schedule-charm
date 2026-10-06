@@ -636,9 +636,8 @@ function Index() {
             <a href="#" className="hover:text-foreground">
               Terms
             </a>
-            <a href="#" className="hover:text-foreground">
-              Contact
-            </a>
+            <Link to="/about" className="hover:text-foreground">About</Link>
+            <Link to="/contact" className="hover:text-foreground">Contact</Link>
           </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} FrontDesk AI · Made for local shops.

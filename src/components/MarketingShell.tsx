@@ -12,16 +12,18 @@ export function MarketingShell({ children }: { children: ReactNode }) {
           <Link to="/features" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>Features</Link>
           <Link to="/industries" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>Industries</Link>
           <Link to="/pricing" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>Pricing</Link>
-          <Link to="/signup" className="rounded-full bg-foreground px-5 py-2 font-medium text-background hover:bg-accent">
-            Start free trial
+          <Link to="/about" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>About</Link>
+          <Link to="/contact" className="hover:text-foreground" activeProps={{ className: "text-foreground" }}>Contact</Link>
+          <Link to="/get-started" className="rounded-full bg-foreground px-5 py-2 font-medium text-background hover:bg-accent">
+            Get started
           </Link>
         </div>
       </nav>
       {children}
       <section className="border-t border-border bg-secondary py-20 text-center">
         <h2 className="mb-6 font-serif text-4xl">Ready to stop multitasking?</h2>
-        <Link to="/signup" className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background hover:bg-accent">
-          Start your 14-day free trial
+        <Link to="/get-started" className="inline-block rounded-full bg-foreground px-10 py-5 font-medium text-background hover:bg-accent">
+          Create your business account
         </Link>
       </section>
     </div>

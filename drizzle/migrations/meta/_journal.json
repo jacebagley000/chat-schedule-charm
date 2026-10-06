@@ -15,6 +15,13 @@
       "when": 1791304169501,
       "tag": "0001_booking_funnel_events",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791304422661,
+      "tag": "0002_signup_creates_business",
+      "breakpoints": true
     }
   ]
 }
