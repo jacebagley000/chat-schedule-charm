@@ -33,8 +33,8 @@ function PricingPage() {
               <ul className="mb-8 flex-1 space-y-3 text-sm">
                 {p.features.map((f) => <li key={f}>✓ {f}</li>)}
               </ul>
-              <Link to="/signup" className="rounded-full bg-foreground px-6 py-3 text-center font-medium text-background hover:bg-accent">
-                Start free trial
+              <Link to="/checkout" search={{ plan: p.priceId }} className="rounded-full bg-foreground px-6 py-3 text-center font-medium text-background hover:bg-accent">
+                Choose {p.name}
               </Link>
             </div>
           ))}
