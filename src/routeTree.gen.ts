@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as BookingConfirmedRouteImport } from './routes/booking-confirmed'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -23,6 +25,8 @@ import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes/comparison/ai-receptionist-vs-live-chat'
 import { Route as ComparisonAnsweringServiceRouteImport } from './routes/comparison/answering-service'
 import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
+import { Route as IndustriesIndexRouteImport } from './routes/industries.index'
+import { Route as IndustriesSlugRouteImport } from './routes/industries.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
@@ -59,9 +63,19 @@ const BookingConfirmedRoute = BookingConfirmedRouteImport.update({
   path: '/booking-confirmed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -114,6 +128,16 @@ const ComparisonAnsweringServiceRoute =
 const ComparisonPolyaiRoute = ComparisonPolyaiRouteImport.update({
   id: '/comparison/polyai',
   path: '/comparison/polyai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesIndexRoute = IndustriesIndexRouteImport.update({
+  id: '/industries/',
+  path: '/industries/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndustriesSlugRoute = IndustriesSlugRouteImport.update({
+  id: '/industries/$slug',
+  path: '/industries/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -242,7 +266,9 @@ const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking-confirmed': typeof BookingConfirmedRoute
+  '/features': typeof FeaturesRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -253,7 +279,9 @@ export interface FileRoutesByFullPath {
   '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
+  '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/industries/': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
@@ -278,7 +306,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking-confirmed': typeof BookingConfirmedRoute
+  '/features': typeof FeaturesRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -289,7 +319,9 @@ export interface FileRoutesByTo {
   '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
+  '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/industries': typeof IndustriesIndexRoute
   '/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
@@ -316,7 +348,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/booking-confirmed': typeof BookingConfirmedRoute
+  '/features': typeof FeaturesRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -327,7 +361,9 @@ export interface FileRoutesById {
   '/comparison/ai-receptionist-vs-live-chat': typeof ComparisonAiReceptionistVsLiveChatRoute
   '/comparison/answering-service': typeof ComparisonAnsweringServiceRoute
   '/comparison/polyai': typeof ComparisonPolyaiRoute
+  '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/industries/': typeof IndustriesIndexRoute
   '/_authenticated/admin/allowlist': typeof AuthenticatedAdminAllowlistRoute
   '/_authenticated/admin/crawl-dashboard': typeof AuthenticatedAdminCrawlDashboardRoute
   '/_authenticated/admin/crawl-report': typeof AuthenticatedAdminCrawlReportRoute
@@ -354,7 +390,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/booking-confirmed'
+    | '/features'
     | '/login'
+    | '/pricing'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
@@ -365,7 +403,9 @@ export interface FileRouteTypes {
     | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
+    | '/industries/$slug'
     | '/invite/$token'
+    | '/industries/'
     | '/admin/allowlist'
     | '/admin/crawl-dashboard'
     | '/admin/crawl-report'
@@ -390,7 +430,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/booking-confirmed'
+    | '/features'
     | '/login'
+    | '/pricing'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
@@ -401,7 +443,9 @@ export interface FileRouteTypes {
     | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
+    | '/industries/$slug'
     | '/invite/$token'
+    | '/industries'
     | '/admin/allowlist'
     | '/admin/crawl-dashboard'
     | '/admin/crawl-report'
@@ -427,7 +471,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/booking-confirmed'
+    | '/features'
     | '/login'
+    | '/pricing'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
@@ -438,7 +484,9 @@ export interface FileRouteTypes {
     | '/comparison/ai-receptionist-vs-live-chat'
     | '/comparison/answering-service'
     | '/comparison/polyai'
+    | '/industries/$slug'
     | '/invite/$token'
+    | '/industries/'
     | '/_authenticated/admin/allowlist'
     | '/_authenticated/admin/crawl-dashboard'
     | '/_authenticated/admin/crawl-report'
@@ -465,7 +513,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   BookingConfirmedRoute: typeof BookingConfirmedRoute
+  FeaturesRoute: typeof FeaturesRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -474,7 +524,9 @@ export interface RootRouteChildren {
   ComparisonAiReceptionistVsLiveChatRoute: typeof ComparisonAiReceptionistVsLiveChatRoute
   ComparisonAnsweringServiceRoute: typeof ComparisonAnsweringServiceRoute
   ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
+  IndustriesSlugRoute: typeof IndustriesSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  IndustriesIndexRoute: typeof IndustriesIndexRoute
   ApiPublicHooksDailySitemapSubmitRoute: typeof ApiPublicHooksDailySitemapSubmitRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRoute
@@ -503,11 +555,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingConfirmedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -578,6 +644,20 @@ declare module '@tanstack/react-router' {
       path: '/comparison/polyai'
       fullPath: '/comparison/polyai'
       preLoaderRoute: typeof ComparisonPolyaiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/': {
+      id: '/industries/'
+      path: '/industries'
+      fullPath: '/industries/'
+      preLoaderRoute: typeof IndustriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/industries/$slug': {
+      id: '/industries/$slug'
+      path: '/industries/$slug'
+      fullPath: '/industries/$slug'
+      preLoaderRoute: typeof IndustriesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -786,7 +866,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   BookingConfirmedRoute: BookingConfirmedRoute,
+  FeaturesRoute: FeaturesRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -796,7 +878,9 @@ const rootRouteChildren: RootRouteChildren = {
     ComparisonAiReceptionistVsLiveChatRoute,
   ComparisonAnsweringServiceRoute: ComparisonAnsweringServiceRoute,
   ComparisonPolyaiRoute: ComparisonPolyaiRoute,
+  IndustriesSlugRoute: IndustriesSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
+  IndustriesIndexRoute: IndustriesIndexRoute,
   ApiPublicHooksDailySitemapSubmitRoute: ApiPublicHooksDailySitemapSubmitRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRoute,
