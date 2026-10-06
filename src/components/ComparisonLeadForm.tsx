@@ -106,26 +106,6 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
     }
   };
 
-  if (status === "success") {
-    return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center" data-testid="lead-form-success">
-        <p className="font-medium text-foreground">Thanks — we'll be in touch within one business day.</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Prefer to pick a time now?{" "}
-          <a
-            href="https://calendly.com/frontdesk-ai/onboarding"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Schedule your onboarding call
-          </a>
-          .
-        </p>
-      </div>
-    );
-  }
-
   return (
     <form
       onSubmit={handleSubmit}
