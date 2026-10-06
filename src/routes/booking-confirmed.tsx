@@ -8,6 +8,7 @@ interface BookingConfirmedSearch {
   email?: string;
   business?: string;
   time?: string;
+  booking?: string;
 }
 
 export const Route = createFileRoute("/booking-confirmed")({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/booking-confirmed")({
     email: typeof search.email === "string" ? search.email : undefined,
     business: typeof search.business === "string" ? search.business : undefined,
     time: typeof search.time === "string" ? search.time : undefined,
+    booking: typeof search.booking === "string" ? search.booking : undefined,
   }),
   head: () => ({
     meta: pageMeta({
@@ -28,7 +30,8 @@ export const Route = createFileRoute("/booking-confirmed")({
 });
 
 function BookingConfirmedPage() {
-  const { name, email, business, time } = Route.useSearch();
+  const { name, email, business, time, booking } = Route.useSearch();
+  const booked = booking === "booked";
 
   const formattedTime = time
     ? new Date(time).toLocaleString(undefined, {
