@@ -101,6 +101,19 @@ function LeadsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="h-9 w-full sm:w-36" aria-label="Filter by channel">
+              <SelectValue placeholder="All channels" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All channels</SelectItem>
+              {SOURCE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input
             type="text"
             placeholder="Search leads..."
@@ -140,7 +153,8 @@ function LeadsPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Preferred call</TableHead>
-                <TableHead>Source</TableHead>
+                <TableHead>Channel</TableHead>
+                <TableHead>Page</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Follow-up</TableHead>
                 <TableHead>Contacted</TableHead>
@@ -157,6 +171,11 @@ function LeadsPage() {
                     {lead.preferred_call_time
                       ? format(new Date(lead.preferred_call_time), "MMM d, yyyy h:mm a")
                       : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={sourceVariant(lead.source ?? "organic")}>
+                      {sourceLabel(lead.source ?? "organic")}
+                    </Badge>
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">{lead.source_page}</TableCell>
                   <TableCell>
@@ -197,7 +216,7 @@ function LeadsPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                     No leads found.
                   </TableCell>
                 </TableRow>
