@@ -61,6 +61,7 @@ function LeadsPage() {
   });
 
   const [filter, setFilter] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   useEffect(() => {
     const channel = supabase
@@ -81,13 +82,13 @@ function LeadsPage() {
 
   const leads = data?.leads ?? [];
   const normalizedFilter = filter.toLowerCase().trim();
-  const filtered = normalizedFilter
-    ? leads.filter((l) =>
-        [l.name, l.email, l.phone, l.business_name]
-          .filter(Boolean)
-          .some((value) => value!.toLowerCase().includes(normalizedFilter))
-      )
-    : leads;
+  const filtered = leads.filter((l) => {
+    if (sourceFilter !== "all" && (l.source ?? "organic") !== sourceFilter) return false;
+    if (!normalizedFilter) return true;
+    return [l.name, l.email, l.phone, l.business_name]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(normalizedFilter));
+  });
 
   return (
     <div className="container mx-auto max-w-6xl p-6">
