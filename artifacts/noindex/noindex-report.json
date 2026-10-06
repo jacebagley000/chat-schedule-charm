@@ -1,24 +1,21 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-10-06T16:44:14.999Z",
-  "status": "fail",
+  "generatedAt": "2026-10-06T16:44:39.657Z",
+  "status": "pass",
   "dryRun": false,
   "allowlistFile": "/dev-server/src/config/robots-rules.json",
   "commit": null,
   "ref": null,
   "runId": null,
   "summary": {
-    "routesChecked": 40,
+    "routesChecked": 39,
     "passed": 39,
-    "failed": 1,
-    "problemCount": 1,
-    "byKind": {
-      "private-route-indexable": 1
-    }
+    "failed": 0,
+    "problemCount": 0,
+    "byKind": {}
   },
   "routesChecked": [
     "/lovable/oauth/consent",
-    "/.well-known/oauth-protected-resource",
     "/admin/allowlist",
     "/admin/booking-funnel",
     "/admin/crawl-dashboard",
@@ -67,17 +64,6 @@
       "reason": null,
       "evidence": [],
       "fix": null
-    },
-    {
-      "route": "/.well-known/oauth-protected-resource",
-      "status": "fail",
-      "file": "src/routes/[.well-known]/oauth-protected-resource.ts",
-      "kind": "private-route-indexable",
-      "reason": "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
-      "evidence": [
-        "src/routes/[.well-known]/oauth-protected-resource.ts  (no pageMeta()/head() metadata block found)"
-      ],
-      "fix": "add `noindex: true` to its pageMeta(), or add the path to the Allow rules in src/config/robots-rules.json (/admin/robots)"
     },
     {
       "route": "/about",
@@ -422,25 +408,5 @@
       "fix": null
     }
   ],
-  "problems": [
-    {
-      "kind": "private-route-indexable",
-      "route": "/.well-known/oauth-protected-resource",
-      "file": "src/routes/[.well-known]/oauth-protected-resource.ts",
-      "allowlist": "private",
-      "privatePrefix": null,
-      "robotsRule": "Disallow (catch-all or explicit prefix)",
-      "inSitemap": false,
-      "expected": "noindex (pageMeta({ noindex: true }) -> <meta name=\"robots\" content=\"noindex, nofollow\">)",
-      "actual": "none (no robots meta and no `noindex` flag)",
-      "signals": [],
-      "anchors": [],
-      "evidence": [
-        "src/routes/[.well-known]/oauth-protected-resource.ts  (no pageMeta()/head() metadata block found)"
-      ],
-      "expectedXRobotsTag": "noindex, nofollow, noarchive",
-      "why": "the route is not allowlisted, so robots.txt blocks it via the catch-all Disallow, yet the rendered page carries no noindex signal",
-      "fix": "add `noindex: true` to its pageMeta(), or add the path to the Allow rules in src/config/robots-rules.json (/admin/robots)"
-    }
-  ]
+  "problems": []
 }
