@@ -236,6 +236,31 @@ type FollowUpStatus =
   | "no_response"
   | "done";
 
+const SOURCE_OPTIONS = [
+  { value: "organic", label: "Organic" },
+  { value: "social", label: "Social" },
+  { value: "referral", label: "Referral" },
+  { value: "direct", label: "Direct" },
+  { value: "other", label: "Other" },
+] as const;
+
+function sourceLabel(source: string) {
+  return SOURCE_OPTIONS.find((o) => o.value === source)?.label ?? source;
+}
+
+function sourceVariant(source: string) {
+  switch (source) {
+    case "social":
+      return "default" as const;
+    case "referral":
+      return "secondary" as const;
+    case "organic":
+      return "outline" as const;
+    default:
+      return "outline" as const;
+  }
+}
+
 const FOLLOW_UP_OPTIONS: { value: FollowUpStatus; label: string }[] = [
   { value: "not_contacted", label: "Not contacted" },
   { value: "attempted", label: "Attempted" },
