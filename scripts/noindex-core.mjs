@@ -94,7 +94,12 @@ export function parseRegistry(src, label = "robots rules") {
 
 /** src/routes/foo/bar.tsx -> /foo/bar (mirrors TanStack file-based routing). */
 export function filePathToUrl(file) {
-  const stripped = file.replace(/\.tsx?$/, "").replace(/\[\.\]/g, ".");
+  const stripped = file
+    .replace(/\.tsx?$/, "")
+    .replace(/\[\.\]/g, ".")
+    // TanStack escapes a literal leading dot as [.segment] -> .segment
+    .replace(/\[\./g, ".")
+    .replace(/\]/g, "");
   const path =
     "/" +
     stripped
