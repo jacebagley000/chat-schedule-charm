@@ -1016,6 +1016,18 @@ export type Database = {
         }
         Returns: string
       }
+      admin_signup_conversions: {
+        Args: { _since: string }
+        Returns: {
+          business_name: string
+          confirmed: boolean
+          industry: string
+          product_id: string
+          signed_up_at: string
+          sub_status: string
+          user_id: string
+        }[]
+      }
       create_business_invitation: {
         Args: {
           _business_id: string
