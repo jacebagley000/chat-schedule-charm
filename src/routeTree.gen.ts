@@ -23,6 +23,7 @@ import { Route as ComparisonAiReceptionistVsLiveChatRouteImport } from './routes
 import { Route as ComparisonAnsweringServiceRouteImport } from './routes/comparison/answering-service'
 import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
 import { Route as AuthenticatedAdminCrawlDashboardRouteImport } from './routes/_authenticated/admin/crawl-dashboard'
 import { Route as AuthenticatedAdminCrawlReportRouteImport } from './routes/_authenticated/admin/crawl-report'
@@ -113,6 +114,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminAllowlistRoute =
   AuthenticatedAdminAllowlistRouteImport.update({
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   '/_authenticated/workspaces/$businessId/members': typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/sitemap'
+    | '/admin/'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/sitemap'
+    | '/admin'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
     | '/workspaces/$businessId/members'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/robots'
     | '/_authenticated/admin/search-console'
     | '/_authenticated/admin/sitemap'
+    | '/_authenticated/admin/'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
     | '/_authenticated/workspaces/$businessId/members'
@@ -554,6 +566,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/allowlist': {
       id: '/_authenticated/admin/allowlist'
@@ -706,6 +725,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
   AuthenticatedWorkspacesBusinessIdMembersRoute: typeof AuthenticatedWorkspacesBusinessIdMembersRoute
@@ -727,6 +747,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
   AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
     AuthenticatedWorkspacesBusinessIdAuditRoute,
   AuthenticatedWorkspacesBusinessIdCalendarRoute:
