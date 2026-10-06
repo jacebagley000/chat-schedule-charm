@@ -46,7 +46,7 @@ function AboutPage() {
           ))}
         </div>
         <div className="mt-12 flex flex-wrap gap-4">
-          <Link to="/signup/business" className="rounded-full bg-foreground px-6 py-3 font-medium text-background hover:bg-accent">Create a business account</Link>
+          <Link to="/get-started" className="rounded-full bg-foreground px-6 py-3 font-medium text-background hover:bg-accent">Create a business account</Link>
           <Link to="/contact" className="rounded-full border border-border px-6 py-3 font-medium hover:border-foreground">Contact us</Link>
         </div>
       </main>

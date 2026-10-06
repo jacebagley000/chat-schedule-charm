@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 const INDUSTRIES = ["Salon", "Barbershop", "Clinic / wellness", "Home services", "Other"];
 
-export const Route = createFileRoute("/signup/business")({
+export const Route = createFileRoute("/get-started")({
   ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
@@ -20,9 +20,9 @@ export const Route = createFileRoute("/signup/business")({
     meta: pageMeta({
       title: "Create a business account — FrontDesk AI",
       description: "Sign up your business for FrontDesk AI and get a workspace with your calendar, staff and services ready to go.",
-      path: "/signup/business",
+      path: "/get-started",
     }),
-    links: [{ rel: "canonical", href: absoluteUrl("/signup/business") }],
+    links: [{ rel: "canonical", href: absoluteUrl("/get-started") }],
   }),
   component: BusinessSignupPage,
 });

@@ -31,7 +31,7 @@ function ContactPage() {
             <li>✓ No pressure, no contracts</li>
           </ul>
           <p className="mt-8 text-sm text-muted-foreground">
-            Ready to start? <Link to="/signup/business" className="text-foreground underline">Create a business account</Link>
+            Ready to start? <Link to="/get-started" className="text-foreground underline">Create a business account</Link>
           </p>
         </section>
         <section>
