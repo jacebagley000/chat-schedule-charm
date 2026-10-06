@@ -8,6 +8,13 @@
       "when": 1791303397746,
       "tag": "0000_add_lead_source",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791304169501,
+      "tag": "0001_booking_funnel_events",
+      "breakpoints": true
     }
   ]
 }
