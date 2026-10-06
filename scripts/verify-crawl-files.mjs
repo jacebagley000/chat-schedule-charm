@@ -97,6 +97,7 @@ function routeFileCandidates(path) {
     `src/routes/${clean}.ts`,
     `src/routes/${clean}/index.tsx`,
     `src/routes/${clean.split("/").join(".")}.tsx`,
+    `src/routes/${clean.split("/").join(".")}.index.tsx`,
   ];
 }
 
@@ -104,6 +105,9 @@ function routeFileCandidates(path) {
 function hasDynamicMatch(path) {
   const segments = path.replace(/^\//, "").split("/").filter(Boolean);
   if (segments.length === 0) return false;
+  // Flat-file convention: parent.$param.tsx
+  const flatPrefix = segments.slice(0, -1).join(".") + (segments.length > 1 ? ".$" : "$");
+  if (readdirSync(join(ROOT, "src/routes")).some((e) => e.startsWith(flatPrefix) && !e.slice(flatPrefix.length).includes("."+"$"))) return true;
   const dir = join(ROOT, "src/routes", ...segments.slice(0, -1));
   if (!existsSync(dir) || !statSync(dir).isDirectory()) return false;
   return readdirSync(dir).some((entry) => entry.startsWith("$"));
