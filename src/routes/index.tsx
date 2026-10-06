@@ -617,6 +617,9 @@ function Index() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 border-t border-border px-6 pt-12 md:flex-row">
           <span className="font-serif text-xl font-bold italic">FrontDesk AI</span>
           <div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
+            <Link to="/features" className="hover:text-foreground">Features</Link>
+            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            <Link to="/industries" className="hover:text-foreground">Industries</Link>
             <Link to="/comparison/answering-service" className="hover:text-foreground">
               vs Answering service
             </Link>

@@ -1,13 +1,68 @@
 {
   "baseUrl": "https://www.frontdeskai.com",
   "allow": [
-    { "path": "/", "changefreq": "weekly", "priority": "1.0" },
-    { "path": "/login", "changefreq": "yearly", "priority": "0.3" },
-    { "path": "/signup", "changefreq": "yearly", "priority": "0.6" },
-    { "path": "/comparison/polyai", "changefreq": "monthly", "priority": "0.7" },
-    { "path": "/comparison/answering-service", "changefreq": "monthly", "priority": "0.7" },
+    {
+      "path": "/",
+      "changefreq": "weekly",
+      "priority": "1.0"
+    },
+    {
+      "path": "/login",
+      "changefreq": "yearly",
+      "priority": "0.3"
+    },
+    {
+      "path": "/signup",
+      "changefreq": "yearly",
+      "priority": "0.6"
+    },
+    {
+      "path": "/comparison/polyai",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/comparison/answering-service",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
     {
       "path": "/comparison/ai-receptionist-vs-live-chat",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/pricing",
+      "changefreq": "monthly",
+      "priority": "0.8"
+    },
+    {
+      "path": "/features",
+      "changefreq": "monthly",
+      "priority": "0.8"
+    },
+    {
+      "path": "/industries",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/industries/salons",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/industries/barbershops",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/industries/clinics",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/industries/home-services",
       "changefreq": "monthly",
       "priority": "0.7"
     }
@@ -22,5 +77,7 @@
     "/api/",
     "/_authenticated/"
   ],
-  "sitemaps": ["https://www.frontdeskai.com/sitemap.xml"]
+  "sitemaps": [
+    "https://www.frontdeskai.com/sitemap.xml"
+  ]
 }
