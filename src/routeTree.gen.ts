@@ -48,6 +48,7 @@ import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminNoindexRouteImport } from './routes/_authenticated/admin/noindex'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
 import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
+import { Route as AuthenticatedAdminSignupFunnelRouteImport } from './routes/_authenticated/admin/signup-funnel'
 import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
@@ -265,6 +266,12 @@ const AuthenticatedAdminSearchConsoleRoute =
     path: '/admin/search-console',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSignupFunnelRoute =
+  AuthenticatedAdminSignupFunnelRouteImport.update({
+    id: '/admin/signup-funnel',
+    path: '/admin/signup-funnel',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminSitemapRoute =
   AuthenticatedAdminSitemapRouteImport.update({
     id: '/admin/sitemap',
@@ -351,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
@@ -399,6 +407,7 @@ export interface FileRoutesByTo {
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
@@ -449,6 +458,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/noindex': typeof AuthenticatedAdminNoindexRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/_authenticated/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/admin/noindex'
     | '/admin/robots'
     | '/admin/search-console'
+    | '/admin/signup-funnel'
     | '/admin/sitemap'
     | '/admin/'
     | '/workspaces/$businessId/audit'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/admin/noindex'
     | '/admin/robots'
     | '/admin/search-console'
+    | '/admin/signup-funnel'
     | '/admin/sitemap'
     | '/admin'
     | '/workspaces/$businessId/audit'
@@ -596,6 +608,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/noindex'
     | '/_authenticated/admin/robots'
     | '/_authenticated/admin/search-console'
+    | '/_authenticated/admin/signup-funnel'
     | '/_authenticated/admin/sitemap'
     | '/_authenticated/admin/'
     | '/_authenticated/workspaces/$businessId/audit'
@@ -912,6 +925,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSearchConsoleRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/signup-funnel': {
+      id: '/_authenticated/admin/signup-funnel'
+      path: '/admin/signup-funnel'
+      fullPath: '/admin/signup-funnel'
+      preLoaderRoute: typeof AuthenticatedAdminSignupFunnelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/sitemap': {
       id: '/_authenticated/admin/sitemap'
       path: '/admin/sitemap'
@@ -986,6 +1006,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminNoindexRoute: typeof AuthenticatedAdminNoindexRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
+  AuthenticatedAdminSignupFunnelRoute: typeof AuthenticatedAdminSignupFunnelRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
@@ -1009,6 +1030,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminNoindexRoute: AuthenticatedAdminNoindexRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
+  AuthenticatedAdminSignupFunnelRoute: AuthenticatedAdminSignupFunnelRoute,
   AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
