@@ -8,7 +8,14 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 /** Non-page routes that never render HTML metadata. */
-export const NON_PAGE = [/^\/api\//, /^\/sitemap\.xml$/, /^\/robots\.txt$/];
+export const NON_PAGE = [
+  /^\/api\//,
+  /^\/sitemap\.xml$/,
+  /^\/robots\.txt$/,
+  // MCP server endpoint + OAuth discovery metadata (auto-generated, no HTML)
+  /^\/mcp$/,
+  /^\/\.well-known\//,
+];
 
 /**
  * Normalize a real-world URL (or href) down to the route path the router and
