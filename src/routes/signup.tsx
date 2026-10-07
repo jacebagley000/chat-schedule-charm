@@ -28,7 +28,7 @@ export const Route = createFileRoute("/signup")({
       description: "Create your FrontDesk AI workspace in under a minute.",
       ogTitle: "Start your FrontDesk AI workspace",
       ogDescription:
-        "Set up your AI receptionist in under a minute. 14-day trial, no card required.",
+        "Set up your AI receptionist in under a minute. 14-day free trial on every plan; cancel anytime.",
       path: "/signup",
     }),
     links: [{ rel: "canonical", href: "https://www.frontdeskai.com/signup" }],
@@ -94,7 +94,7 @@ function SignupPage() {
         </Link>
         <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
           <h1 className="font-serif text-2xl mb-1">Create your workspace</h1>
-          <p className="text-sm text-muted-foreground mb-6">14-day trial. No card required.</p>
+          <p className="text-sm text-muted-foreground mb-6">14-day free trial on every plan. Cancel before day 14 and you pay nothing.</p>
 
           <Button onClick={handleGoogle} variant="outline" className="w-full mb-4">
             Continue with Google

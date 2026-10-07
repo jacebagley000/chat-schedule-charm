@@ -52,7 +52,7 @@ function CheckoutPage() {
       <main className="mx-auto grid max-w-5xl gap-10 px-6 py-16 md:grid-cols-[1fr_380px]">
         <section>
           <h1 className="mb-2 font-serif text-5xl">Checkout</h1>
-          <p className="mb-8 text-muted-foreground">Pick a plan, then pay securely by card or PayPal.</p>
+          <p className="mb-8 text-muted-foreground">Pick a plan and start your 14-day free trial. Your card is charged only after the trial ends.</p>
           <div className="space-y-3">
             {PLANS.map((p) => (
               <Link
@@ -78,10 +78,10 @@ function CheckoutPage() {
             {plan.features.map((f) => <li key={f}>✓ {f}</li>)}
           </ul>
           <div className="flex items-baseline justify-between border-t border-border pt-4">
-            <span className="text-muted-foreground">Billed monthly</span>
-            <span className="font-serif text-3xl">{plan.price}</span>
+            <span className="text-muted-foreground">Due today</span>
+            <span className="font-serif text-3xl">$0</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Taxes calculated at payment. Cancel or change plans any time — changes are prorated.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Then {plan.price}/mo after 14 days, plus tax. Cancel or change plans any time — changes are prorated.</p>
 
           {user ? (
             <button
@@ -89,7 +89,7 @@ function CheckoutPage() {
               disabled={opening}
               className="mt-6 w-full rounded-full bg-foreground px-6 py-4 font-medium text-background hover:bg-accent disabled:opacity-60"
             >
-              {opening ? "Opening secure checkout…" : `Pay ${plan.price}/mo`}
+              {opening ? "Opening secure checkout…" : "Start 14-day free trial"}
             </button>
           ) : (
             <div className="mt-6 space-y-3">
@@ -98,7 +98,7 @@ function CheckoutPage() {
                 search={{ redirect: `/checkout/start?plan=${plan.priceId}` }}
                 className="block w-full rounded-full bg-foreground px-6 py-4 text-center font-medium text-background hover:bg-accent"
               >
-                Create account &amp; pay
+                Create account &amp; start trial
               </Link>
               <Link
                 to="/login"

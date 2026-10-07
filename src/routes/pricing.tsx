@@ -21,7 +21,7 @@ function PricingPage() {
       <main className="mx-auto max-w-7xl px-6 py-16">
         <h1 className="mb-4 text-center font-serif text-5xl md:text-6xl">Simple, honest pricing</h1>
         <p className="mx-auto mb-16 max-w-2xl text-center text-lg text-muted-foreground">
-          Creating your account is free — you pay when you choose a plan. Upgrade, downgrade or cancel any time; changes are prorated.
+          Every plan starts with a 14-day free trial — you are not charged until it ends. Upgrade, downgrade or cancel any time; changes are prorated.
         </p>
         <div className="grid gap-8 md:grid-cols-3">
           {PLANS.map((p) => (
@@ -42,7 +42,7 @@ function PricingPage() {
         <div className="mx-auto mt-20 max-w-3xl space-y-6">
           <h2 className="font-serif text-3xl">Questions</h2>
           {[
-            ["Is there a free trial?", "Not at the moment. Setting up your account is free, and billing starts when you choose a plan. You can cancel any time."],
+            ["Is there a free trial?", "Yes — every plan includes 14 days free. You add a card at checkout, but nothing is charged until day 15. Cancel before then and you pay nothing."],
             ["What if I need more than 100 calls a month?", "The Soloist is sized for up to 100 calls a month. If you regularly need more, Professional Shop includes unlimited calls and DMs, and upgrades are prorated."],
             ["Can I cancel any time?", "Yes. There are no contracts or setup fees."],
           ].map(([q, a]) => (
