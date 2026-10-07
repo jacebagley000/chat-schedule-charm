@@ -11,6 +11,7 @@ interface BookingConfirmedSearch {
   business?: string;
   time?: string;
   booking?: string;
+  emailSent?: string;
 }
 
 export const Route = createFileRoute("/booking-confirmed")({
