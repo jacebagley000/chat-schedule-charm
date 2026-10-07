@@ -137,6 +137,9 @@ function BusinessDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/portal">Customer portal</Link>
+          </Button>
           {(businesses.data?.length ?? 0) > 1 && (
             <Select value={businessId ?? undefined} onValueChange={setBusinessId}>
               <SelectTrigger className="w-56">
