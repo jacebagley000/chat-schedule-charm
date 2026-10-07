@@ -677,6 +677,42 @@ export type Database = {
           },
         ]
       }
+      plan_change_events: {
+        Row: {
+          created_at: string
+          environment: string
+          from_price_id: string | null
+          from_product_id: string | null
+          id: string
+          paddle_subscription_id: string
+          to_price_id: string
+          to_product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          environment: string
+          from_price_id?: string | null
+          from_product_id?: string | null
+          id?: string
+          paddle_subscription_id: string
+          to_price_id: string
+          to_product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          from_price_id?: string | null
+          from_product_id?: string | null
+          id?: string
+          paddle_subscription_id?: string
+          to_price_id?: string
+          to_product_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1016,6 +1052,17 @@ export type Database = {
         }
         Returns: string
       }
+      admin_plan_upgrades: {
+        Args: { _env: string; _since: string }
+        Returns: {
+          business_name: string
+          changed_at: string
+          email: string
+          from_product_id: string
+          to_product_id: string
+          user_id: string
+        }[]
+      }
       admin_signup_conversions: {
         Args: { _since: string }
         Returns: {
@@ -1025,6 +1072,7 @@ export type Database = {
           product_id: string
           signed_up_at: string
           sub_status: string
+          trial_started_at: string
           user_id: string
         }[]
       }

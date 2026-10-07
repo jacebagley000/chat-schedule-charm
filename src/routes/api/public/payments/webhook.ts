@@ -70,6 +70,25 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   if (priceId && productId) {
     update.price_id = priceId;
     update.product_id = productId;
+
+    // Record the plan change so the upgrade report can count it.
+    const { data: existing } = await getSupabase()
+      .from("subscriptions")
+      .select("user_id, price_id, product_id")
+      .eq("paddle_subscription_id", id)
+      .eq("environment", env)
+      .maybeSingle();
+    if (existing && existing.price_id !== priceId) {
+      await getSupabase().from("plan_change_events").insert({
+        user_id: existing.user_id,
+        paddle_subscription_id: id,
+        from_product_id: existing.product_id,
+        from_price_id: existing.price_id,
+        to_product_id: productId,
+        to_price_id: priceId,
+        environment: env,
+      });
+    }
   }
 
   await getSupabase()
