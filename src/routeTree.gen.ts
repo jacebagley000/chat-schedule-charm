@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminIndexGapRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminLeadFollowupRouteImport } from './routes/_authenticated/admin/lead-followup'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminNoindexRouteImport } from './routes/_authenticated/admin/noindex'
+import { Route as AuthenticatedAdminPlanUpgradesRouteImport } from './routes/_authenticated/admin/plan-upgrades'
 import { Route as AuthenticatedAdminPortalRouteImport } from './routes/_authenticated/admin/portal'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
 import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
@@ -262,6 +263,12 @@ const AuthenticatedAdminNoindexRoute =
     path: '/admin/noindex',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminPlanUpgradesRoute =
+  AuthenticatedAdminPlanUpgradesRouteImport.update({
+    id: '/admin/plan-upgrades',
+    path: '/admin/plan-upgrades',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminPortalRoute =
   AuthenticatedAdminPortalRouteImport.update({
     id: '/admin/portal',
@@ -377,6 +384,7 @@ export interface FileRoutesByFullPath {
   '/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/admin/plan-upgrades': typeof AuthenticatedAdminPlanUpgradesRoute
   '/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
@@ -429,6 +437,7 @@ export interface FileRoutesByTo {
   '/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/admin/plan-upgrades': typeof AuthenticatedAdminPlanUpgradesRoute
   '/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
@@ -483,6 +492,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/_authenticated/admin/plan-upgrades': typeof AuthenticatedAdminPlanUpgradesRoute
   '/_authenticated/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/admin/lead-followup'
     | '/admin/leads'
     | '/admin/noindex'
+    | '/admin/plan-upgrades'
     | '/admin/portal'
     | '/admin/robots'
     | '/admin/search-console'
@@ -589,6 +600,7 @@ export interface FileRouteTypes {
     | '/admin/lead-followup'
     | '/admin/leads'
     | '/admin/noindex'
+    | '/admin/plan-upgrades'
     | '/admin/portal'
     | '/admin/robots'
     | '/admin/search-console'
@@ -642,6 +654,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/lead-followup'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/noindex'
+    | '/_authenticated/admin/plan-upgrades'
     | '/_authenticated/admin/portal'
     | '/_authenticated/admin/robots'
     | '/_authenticated/admin/search-console'
@@ -957,6 +970,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNoindexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/plan-upgrades': {
+      id: '/_authenticated/admin/plan-upgrades'
+      path: '/admin/plan-upgrades'
+      fullPath: '/admin/plan-upgrades'
+      preLoaderRoute: typeof AuthenticatedAdminPlanUpgradesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/portal': {
       id: '/_authenticated/admin/portal'
       path: '/admin/portal'
@@ -1064,6 +1084,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminLeadFollowupRoute: typeof AuthenticatedAdminLeadFollowupRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminNoindexRoute: typeof AuthenticatedAdminNoindexRoute
+  AuthenticatedAdminPlanUpgradesRoute: typeof AuthenticatedAdminPlanUpgradesRoute
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
@@ -1090,6 +1111,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminLeadFollowupRoute: AuthenticatedAdminLeadFollowupRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminNoindexRoute: AuthenticatedAdminNoindexRoute,
+  AuthenticatedAdminPlanUpgradesRoute: AuthenticatedAdminPlanUpgradesRoute,
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
