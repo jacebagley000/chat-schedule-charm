@@ -36,7 +36,16 @@ function SignupFunnelPage() {
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
       const { data, error } = await supabase.rpc("admin_signup_conversions", { _since: since });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as Array<{
+        user_id: string;
+        signed_up_at: string;
+        business_name: string;
+        industry: string | null;
+        confirmed: boolean;
+        product_id: string | null;
+        sub_status: string | null;
+        trial_started_at: string | null;
+      }>;
     },
   });
 
