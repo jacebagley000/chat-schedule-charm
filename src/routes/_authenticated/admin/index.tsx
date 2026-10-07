@@ -188,6 +188,8 @@ function BusinessDashboard() {
             <Stat label="Active services" value={stats.services} />
           </div>
 
+          <PlanCard />
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
