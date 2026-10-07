@@ -21,6 +21,7 @@ export const Route = createFileRoute("/booking-confirmed")({
     business: typeof search.business === "string" ? search.business : undefined,
     time: typeof search.time === "string" ? search.time : undefined,
     booking: typeof search.booking === "string" ? search.booking : undefined,
+    emailSent: typeof search.emailSent === "string" ? search.emailSent : undefined,
   }),
   head: () => ({
     meta: pageMeta({
@@ -33,8 +34,9 @@ export const Route = createFileRoute("/booking-confirmed")({
 });
 
 function BookingConfirmedPage() {
-  const { name, email, business, time, booking } = Route.useSearch();
+  const { name, email, business, time, booking, emailSent } = Route.useSearch();
   const booked = booking === "booked";
+  const emailWasSent = booked && emailSent === "1";
   useEffect(() => {
     trackBookingStep("view", booking ?? "none");
   }, [booking]);
