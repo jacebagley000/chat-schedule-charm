@@ -36,7 +36,16 @@ function SignupFunnelPage() {
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
       const { data, error } = await supabase.rpc("admin_signup_conversions", { _since: since });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as Array<{
+        user_id: string;
+        signed_up_at: string;
+        business_name: string;
+        industry: string | null;
+        confirmed: boolean;
+        product_id: string | null;
+        sub_status: string | null;
+        trial_started_at: string | null;
+      }>;
     },
   });
 
@@ -93,7 +102,7 @@ function SignupFunnelPage() {
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted text-left">
-                <tr><th className="p-3">Date</th><th className="p-3">Business</th><th className="p-3">Industry</th><th className="p-3">Email confirmed</th><th className="p-3">Plan</th></tr>
+                <tr><th className="p-3">Date</th><th className="p-3">Business</th><th className="p-3">Industry</th><th className="p-3">Email confirmed</th><th className="p-3">Plan</th><th className="p-3">Trial started</th></tr>
               </thead>
               <tbody>
                 {rows.map((r) => (
@@ -103,6 +112,7 @@ function SignupFunnelPage() {
                     <td className="p-3">{r.industry || "—"}</td>
                     <td className="p-3">{r.confirmed ? "Yes" : "No"}</td>
                     <td className="p-3">{r.product_id ? `${planName(r.product_id)} · ${r.sub_status}` : "No plan yet"}</td>
+                    <td className="p-3">{r.trial_started_at ? new Date(r.trial_started_at).toLocaleDateString() : "—"}</td>
                   </tr>
                 ))}
               </tbody>
