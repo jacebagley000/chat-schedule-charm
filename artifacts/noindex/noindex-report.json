@@ -1,6 +1,6 @@
 {
   "check": "noindex-vs-robots-allowlist",
-  "generatedAt": "2026-10-06T16:44:39.657Z",
+  "generatedAt": "2026-10-07T16:40:38.131Z",
   "status": "pass",
   "dryRun": false,
   "allowlistFile": "/dev-server/src/config/robots-rules.json",
@@ -8,8 +8,8 @@
   "ref": null,
   "runId": null,
   "summary": {
-    "routesChecked": 39,
-    "passed": 39,
+    "routesChecked": 45,
+    "passed": 45,
     "failed": 0,
     "problemCount": 0,
     "byKind": {}
@@ -27,9 +27,13 @@
     "/admin/lead-followup",
     "/admin/leads",
     "/admin/noindex",
+    "/admin/plan-upgrades",
+    "/admin/portal",
     "/admin/robots",
     "/admin/search-console",
+    "/admin/signup-funnel",
     "/admin/sitemap",
+    "/admin/trial-conversions",
     "/dashboard",
     "/schedule",
     "/workspaces/$businessId/audit",
@@ -52,8 +56,10 @@
     "/industries",
     "/invite/$token",
     "/login",
+    "/plans/$planSlug",
     "/pricing",
-    "/signup"
+    "/signup",
+    "/trial"
   ],
   "results": [
     {
@@ -174,6 +180,24 @@
       "fix": null
     },
     {
+      "route": "/admin/plan-upgrades",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/portal",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
       "route": "/admin/robots",
       "status": "pass",
       "file": null,
@@ -192,7 +216,25 @@
       "fix": null
     },
     {
+      "route": "/admin/signup-funnel",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
       "route": "/admin/sitemap",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/admin/trial-conversions",
       "status": "pass",
       "file": null,
       "kind": null,
@@ -345,6 +387,15 @@
       "fix": null
     },
     {
+      "route": "/plans/$planSlug",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
       "route": "/pricing",
       "status": "pass",
       "file": null,
@@ -364,6 +415,15 @@
     },
     {
       "route": "/signup",
+      "status": "pass",
+      "file": null,
+      "kind": null,
+      "reason": null,
+      "evidence": [],
+      "fix": null
+    },
+    {
+      "route": "/trial",
       "status": "pass",
       "file": null,
       "kind": null,
