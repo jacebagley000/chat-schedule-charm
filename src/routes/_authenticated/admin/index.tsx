@@ -308,3 +308,106 @@ function Stat({ label, value }: { label: string; value: number }) {
     </Card>
   );
 }
+
+const UPGRADE_REASONS: Record<string, string[]> = {
+  professional_monthly: [
+    "Unlimited calls and DMs — no monthly cap to watch",
+    "Answers Instagram and Facebook messages, not just phone calls",
+    "Outbound reminders cut down no-shows",
+  ],
+  multi_location_monthly: [
+    "Run every shop from one dashboard with its own calendar",
+    "Route customers to the right team and location automatically",
+    "A dedicated account rep when you need help",
+  ],
+};
+
+function PlanCard() {
+  const { subscription, isActive, loading } = useSubscription();
+
+  const currentIndex = PLANS.findIndex((p) => p.priceId === subscription?.price_id);
+  const current = currentIndex >= 0 ? PLANS[currentIndex] : null;
+  const upgrades = PLANS.filter((_, i) => i > (currentIndex >= 0 ? currentIndex : -1));
+
+  const statusLabel = !subscription
+    ? null
+    : subscription.status === "trialing"
+      ? "Free trial"
+      : subscription.status === "active"
+        ? "Active"
+        : subscription.status === "past_due"
+          ? "Payment issue"
+          : subscription.cancel_at_period_end
+            ? "Cancels at period end"
+            : subscription.status;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <CreditCard className="h-4 w-4" /> Your plan
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading your plan...</p>
+        ) : !isActive ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              You're not on a plan yet. Every plan starts with a 14-day free trial.
+            </p>
+            <Button asChild size="sm">
+              <Link to="/trial">Choose a plan</Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-lg font-semibold">{current?.name ?? "Your plan"}</span>
+              {current && <span className="text-muted-foreground">{current.price}/mo</span>}
+              {statusLabel && <Badge variant="secondary">{statusLabel}</Badge>}
+              {subscription?.status === "trialing" && subscription.current_period_end && (
+                <span className="text-sm text-muted-foreground">
+                  Trial ends {format(new Date(subscription.current_period_end), "MMM d, yyyy")}
+                </span>
+              )}
+              {subscription?.status === "active" && subscription.current_period_end && (
+                <span className="text-sm text-muted-foreground">
+                  Renews {format(new Date(subscription.current_period_end), "MMM d, yyyy")}
+                </span>
+              )}
+            </div>
+
+            {upgrades.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {upgrades.map((plan) => (
+                  <div key={plan.priceId} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium">
+                        {plan.name} <span className="text-muted-foreground">· {plan.price}/mo</span>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link to="/checkout" search={{ plan: plan.priceId }}>
+                          Upgrade <ArrowUpRight className="ml-1 h-3 w-3" />
+                        </Link>
+                      </Button>
+                    </div>
+                    <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                      {(UPGRADE_REASONS[plan.priceId] ?? [...plan.features]).map((r) => (
+                        <li key={r}>{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                You're on the top plan — everything FrontDesk AI offers is included.
+              </p>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
