@@ -35,6 +35,7 @@ import { Route as ComparisonPolyaiRouteImport } from './routes/comparison/polyai
 import { Route as IndustriesIndexRouteImport } from './routes/industries.index'
 import { Route as IndustriesSlugRouteImport } from './routes/industries.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as PlansPlanSlugRouteImport } from './routes/plans.$planSlug'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAllowlistRouteImport } from './routes/_authenticated/admin/allowlist'
@@ -192,6 +193,11 @@ const IndustriesSlugRoute = IndustriesSlugRouteImport.update({
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansPlanSlugRoute = PlansPlanSlugRouteImport.update({
+  id: '/plans/$planSlug',
+  path: '/plans/$planSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
@@ -371,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/plans/$planSlug': typeof PlansPlanSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/industries/': typeof IndustriesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -424,6 +431,7 @@ export interface FileRoutesByTo {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/plans/$planSlug': typeof PlansPlanSlugRoute
   '/checkout': typeof CheckoutIndexRoute
   '/industries': typeof IndustriesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -479,6 +487,7 @@ export interface FileRoutesById {
   '/comparison/polyai': typeof ComparisonPolyaiRoute
   '/industries/$slug': typeof IndustriesSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/plans/$planSlug': typeof PlansPlanSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/industries/': typeof IndustriesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -534,6 +543,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/plans/$planSlug'
     | '/checkout/'
     | '/industries/'
     | '/.lovable/oauth/consent'
@@ -587,6 +597,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/plans/$planSlug'
     | '/checkout'
     | '/industries'
     | '/.lovable/oauth/consent'
@@ -641,6 +652,7 @@ export interface FileRouteTypes {
     | '/comparison/polyai'
     | '/industries/$slug'
     | '/invite/$token'
+    | '/plans/$planSlug'
     | '/checkout/'
     | '/industries/'
     | '/.lovable/oauth/consent'
@@ -694,6 +706,7 @@ export interface RootRouteChildren {
   ComparisonPolyaiRoute: typeof ComparisonPolyaiRoute
   IndustriesSlugRoute: typeof IndustriesSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  PlansPlanSlugRoute: typeof PlansPlanSlugRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   IndustriesIndexRoute: typeof IndustriesIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -884,6 +897,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans/$planSlug': {
+      id: '/plans/$planSlug'
+      path: '/plans/$planSlug'
+      fullPath: '/plans/$planSlug'
+      preLoaderRoute: typeof PlansPlanSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -1159,6 +1179,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComparisonPolyaiRoute: ComparisonPolyaiRoute,
   IndustriesSlugRoute: IndustriesSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
+  PlansPlanSlugRoute: PlansPlanSlugRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
   IndustriesIndexRoute: IndustriesIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,

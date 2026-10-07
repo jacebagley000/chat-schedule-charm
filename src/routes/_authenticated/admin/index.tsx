@@ -325,6 +325,12 @@ const UPGRADE_REASONS: Record<string, string[]> = {
   ],
 };
 
+const PLAN_SLUG_BY_PRICE: Record<string, string> = {
+  soloist_monthly: "soloist",
+  professional_monthly: "professional",
+  multi_location_monthly: "multi-location",
+};
+
 function PlanCard() {
   const { subscription, isActive, loading } = useSubscription();
 
@@ -390,7 +396,7 @@ function PlanCard() {
                         {plan.name} <span className="text-muted-foreground">· {plan.price}/mo</span>
                       </div>
                       <Button asChild variant="outline" size="sm">
-                        <Link to="/checkout" search={{ plan: plan.priceId }}>
+                        <Link to="/plans/$planSlug" params={{ planSlug: PLAN_SLUG_BY_PRICE[plan.priceId] }}>
                           Upgrade <ArrowUpRight className="ml-1 h-3 w-3" />
                         </Link>
                       </Button>
