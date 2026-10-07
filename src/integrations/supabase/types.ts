@@ -1025,6 +1025,7 @@ export type Database = {
           product_id: string
           signed_up_at: string
           sub_status: string
+          trial_started_at: string
           user_id: string
         }[]
       }
