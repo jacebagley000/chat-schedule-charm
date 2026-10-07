@@ -246,7 +246,7 @@ function Index() {
             </a>
           </div>
           <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {user ? "Your workspace is waiting" : "14-day free trial · No credit card · Cancel anytime"}
+            {user ? "Your workspace is waiting" : "14-day free trial · Cancel anytime"}
           </p>
         </div>
 

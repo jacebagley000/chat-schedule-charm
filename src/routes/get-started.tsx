@@ -70,7 +70,7 @@ function BusinessSignupPage() {
         ) : (
           <div className="rounded-3xl border border-border bg-card p-8">
             <h1 className="mb-1 font-serif text-4xl">Create your business account</h1>
-            <p className="mb-6 text-muted-foreground">Free to set up. You only pay when you choose a plan.</p>
+            <p className="mb-6 text-muted-foreground">Free to set up. Every plan starts with a 14-day free trial.</p>
             <form onSubmit={submit} className="space-y-4">
               <fieldset className="space-y-4">
                 <legend className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">Your business</legend>
