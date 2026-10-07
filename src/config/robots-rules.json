@@ -37,6 +37,11 @@
       "priority": "0.8"
     },
     {
+      "path": "/trial",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
       "path": "/features",
       "changefreq": "monthly",
       "priority": "0.8"
