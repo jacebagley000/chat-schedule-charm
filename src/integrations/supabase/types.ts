@@ -1028,6 +1028,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_trial_conversions: {
+        Args: { _env: string; _since: string }
+        Returns: {
+          business_name: string
+          cancel_at_period_end: boolean
+          current_period_end: string
+          email: string
+          product_id: string
+          started_at: string
+          status: string
+          user_id: string
+        }[]
+      }
       create_business_invitation: {
         Args: {
           _business_id: string
