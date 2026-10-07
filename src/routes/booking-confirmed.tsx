@@ -96,7 +96,9 @@ function BookingConfirmedPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             <li>
               {booked
-                ? "Your call is on our calendar and a confirmation email is on its way."
+                ? emailWasSent
+                  ? "Your call is on our calendar and a confirmation email is on its way."
+                  : "Your call is on our calendar. We'll email you shortly with the details."
                 : booking === "slot_taken"
                   ? "That time was just taken — we'll email you within one business day with the closest open time."
                   : "We'll email you within one business day to confirm your call time."}
