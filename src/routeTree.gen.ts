@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminIndexGapRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminLeadFollowupRouteImport } from './routes/_authenticated/admin/lead-followup'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminNoindexRouteImport } from './routes/_authenticated/admin/noindex'
+import { Route as AuthenticatedAdminPortalRouteImport } from './routes/_authenticated/admin/portal'
 import { Route as AuthenticatedAdminRobotsRouteImport } from './routes/_authenticated/admin/robots'
 import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
 import { Route as AuthenticatedAdminSignupFunnelRouteImport } from './routes/_authenticated/admin/signup-funnel'
@@ -261,6 +262,12 @@ const AuthenticatedAdminNoindexRoute =
     path: '/admin/noindex',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminPortalRoute =
+  AuthenticatedAdminPortalRouteImport.update({
+    id: '/admin/portal',
+    path: '/admin/portal',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminRobotsRoute =
   AuthenticatedAdminRobotsRouteImport.update({
     id: '/admin/robots',
@@ -370,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
@@ -421,6 +429,7 @@ export interface FileRoutesByTo {
   '/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
@@ -474,6 +483,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/lead-followup': typeof AuthenticatedAdminLeadFollowupRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/noindex': typeof AuthenticatedAdminNoindexRoute
+  '/_authenticated/admin/portal': typeof AuthenticatedAdminPortalRoute
   '/_authenticated/admin/robots': typeof AuthenticatedAdminRobotsRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
   '/_authenticated/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
@@ -527,6 +537,7 @@ export interface FileRouteTypes {
     | '/admin/lead-followup'
     | '/admin/leads'
     | '/admin/noindex'
+    | '/admin/portal'
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/signup-funnel'
@@ -578,6 +589,7 @@ export interface FileRouteTypes {
     | '/admin/lead-followup'
     | '/admin/leads'
     | '/admin/noindex'
+    | '/admin/portal'
     | '/admin/robots'
     | '/admin/search-console'
     | '/admin/signup-funnel'
@@ -630,6 +642,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/lead-followup'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/noindex'
+    | '/_authenticated/admin/portal'
     | '/_authenticated/admin/robots'
     | '/_authenticated/admin/search-console'
     | '/_authenticated/admin/signup-funnel'
@@ -944,6 +957,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNoindexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/portal': {
+      id: '/_authenticated/admin/portal'
+      path: '/admin/portal'
+      fullPath: '/admin/portal'
+      preLoaderRoute: typeof AuthenticatedAdminPortalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/robots': {
       id: '/_authenticated/admin/robots'
       path: '/admin/robots'
@@ -1044,6 +1064,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminLeadFollowupRoute: typeof AuthenticatedAdminLeadFollowupRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminNoindexRoute: typeof AuthenticatedAdminNoindexRoute
+  AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute
   AuthenticatedAdminRobotsRoute: typeof AuthenticatedAdminRobotsRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
   AuthenticatedAdminSignupFunnelRoute: typeof AuthenticatedAdminSignupFunnelRoute
@@ -1069,6 +1090,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminLeadFollowupRoute: AuthenticatedAdminLeadFollowupRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminNoindexRoute: AuthenticatedAdminNoindexRoute,
+  AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
   AuthenticatedAdminRobotsRoute: AuthenticatedAdminRobotsRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
   AuthenticatedAdminSignupFunnelRoute: AuthenticatedAdminSignupFunnelRoute,
