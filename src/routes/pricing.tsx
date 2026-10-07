@@ -39,6 +39,9 @@ function PricingPage() {
               <Link to="/checkout" search={{ plan: p.priceId }} className="mt-3 text-center text-sm text-muted-foreground underline">
                 Skip to checkout
               </Link>
+              <Link to="/plans/$planSlug" params={{ planSlug: ({ soloist_monthly: "soloist", professional_monthly: "professional", multi_location_monthly: "multi-location" } as Record<string, string>)[p.priceId] }} className="mt-2 text-center text-sm text-muted-foreground underline">
+                See full plan details
+              </Link>
             </div>
           ))}
         </div>

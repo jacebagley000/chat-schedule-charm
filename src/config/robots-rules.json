@@ -85,6 +85,21 @@
       "path": "/get-started",
       "changefreq": "monthly",
       "priority": "0.6"
+    },
+    {
+      "path": "/plans/soloist",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/plans/professional",
+      "changefreq": "monthly",
+      "priority": "0.7"
+    },
+    {
+      "path": "/plans/multi-location",
+      "changefreq": "monthly",
+      "priority": "0.7"
     }
   ],
   "disallow": [
