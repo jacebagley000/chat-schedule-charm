@@ -11,6 +11,7 @@ interface BookingConfirmedSearch {
   business?: string;
   time?: string;
   booking?: string;
+  emailSent?: string;
 }
 
 export const Route = createFileRoute("/booking-confirmed")({
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/booking-confirmed")({
     business: typeof search.business === "string" ? search.business : undefined,
     time: typeof search.time === "string" ? search.time : undefined,
     booking: typeof search.booking === "string" ? search.booking : undefined,
+    emailSent: typeof search.emailSent === "string" ? search.emailSent : undefined,
   }),
   head: () => ({
     meta: pageMeta({
@@ -32,8 +34,9 @@ export const Route = createFileRoute("/booking-confirmed")({
 });
 
 function BookingConfirmedPage() {
-  const { name, email, business, time, booking } = Route.useSearch();
+  const { name, email, business, time, booking, emailSent } = Route.useSearch();
   const booked = booking === "booked";
+  const emailWasSent = booked && emailSent === "1";
   useEffect(() => {
     trackBookingStep("view", booking ?? "none");
   }, [booking]);
@@ -53,11 +56,16 @@ function BookingConfirmedPage() {
       <div className="rounded-2xl border border-border bg-card p-8 text-center">
         <CheckCircle2 className="mx-auto h-12 w-12 text-primary" aria-hidden />
         <h1 className="mt-4 text-3xl font-bold text-foreground">
-          You're booked{name ? `, ${name}` : ""}!
+          {booked
+            ? `You're booked${name ? `, ${name}` : ""}!`
+            : booking === "slot_taken"
+              ? `That time was just taken${name ? `, ${name}` : ""}`
+              : `Thanks${name ? `, ${name}` : ""} — request received!`}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          We've received your request for an onboarding call
-          {business ? ` for ${business}` : ""}. Here's a summary of what you shared:
+          {booked
+            ? `Your onboarding call${business ? ` for ${business}` : ""} is on our calendar. Here's a summary:`
+            : `We've received your request for an onboarding call${business ? ` for ${business}` : ""}. Here's a summary of what you shared:`}
         </p>
 
         <dl className="mx-auto mt-6 grid max-w-md gap-3 text-left">
@@ -65,7 +73,9 @@ function BookingConfirmedPage() {
             <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
               <Mail className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
               <div>
-                <dt className="text-xs text-muted-foreground">Confirmation sent to</dt>
+                <dt className="text-xs text-muted-foreground">
+                  {emailWasSent ? "Confirmation sent to" : "We'll email you at"}
+                </dt>
                 <dd className="font-medium text-foreground">{email}</dd>
               </div>
             </div>
@@ -86,7 +96,9 @@ function BookingConfirmedPage() {
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             <li>
               {booked
-                ? "Your call is on our calendar and a confirmation email is on its way."
+                ? emailWasSent
+                  ? "Your call is on our calendar and a confirmation email is on its way."
+                  : "Your call is on our calendar. We'll email you shortly with the details."
                 : booking === "slot_taken"
                   ? "That time was just taken — we'll email you within one business day with the closest open time."
                   : "We'll email you within one business day to confirm your call time."}

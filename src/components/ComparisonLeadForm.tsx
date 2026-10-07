@@ -93,6 +93,7 @@ export function ComparisonLeadForm({ page, cta = "get_demo" }: ComparisonLeadFor
             ? new Date(preferredCallTime).toISOString()
             : undefined,
           booking: result.booking,
+          emailSent: result.emailSent ? "1" : undefined,
         },
       });
     } catch (err) {
