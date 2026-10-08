@@ -2,11 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, HeadContent, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowUpRight, CalendarDays, CreditCard, RefreshCw, Scissors, Users } from "lucide-react";
+import {
+  ArrowUpRight,
+  Building2,
+  CalendarDays,
+  CreditCard,
+  MapPin,
+  RefreshCw,
+  Scissors,
+  Users,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { PLANS } from "@/content/marketing";
 import { pageMeta, canonicalLink } from "@/lib/seo";
+import { formatZonedDateTime, resolveTimeZone, tzAbbreviation } from "@/lib/timezone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +68,7 @@ function useWorkspaceData(businessId: string | null) {
     queryKey: ["dash-workspace", businessId],
     enabled: Boolean(businessId),
     queryFn: async () => {
+      if (!businessId) throw new Error("Choose a business to load its dashboard.");
       const since = new Date();
       since.setHours(0, 0, 0, 0);
       const [appts, staff, services] = await Promise.all([
@@ -66,19 +77,19 @@ function useWorkspaceData(businessId: string | null) {
           .select(
             "id, starts_at, ends_at, status, source, staff:staff_id(name), service:service_id(name), customer:customer_id(name, phone)",
           )
-          .eq("business_id", businessId!)
+          .eq("business_id", businessId)
           .gte("starts_at", since.toISOString())
           .order("starts_at")
           .limit(50),
         supabase
           .from("staff")
           .select("id, name, role, location, email, phone, active")
-          .eq("business_id", businessId!)
+          .eq("business_id", businessId)
           .order("name"),
         supabase
           .from("services")
           .select("id, name, duration_minutes, price_cents, active")
-          .eq("business_id", businessId!)
+          .eq("business_id", businessId)
           .order("name"),
       ]);
       for (const r of [appts, staff, services]) if (r.error) throw new Error(r.error.message);
@@ -99,6 +110,8 @@ function BusinessDashboard() {
   }, [businesses.data, businessId]);
 
   const ws = useWorkspaceData(businessId);
+  const selectedBusiness = businesses.data?.find((business) => business.id === businessId) ?? null;
+  const timeZone = resolveTimeZone(selectedBusiness?.timezone);
 
   // Live updates from the workspace tables.
   useEffect(() => {
@@ -109,37 +122,43 @@ function BusinessDashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter }, () =>
         ws.refetch(),
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "staff", filter }, () =>
+        ws.refetch(),
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "services", filter }, () =>
+        ws.refetch(),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [businessId]);
+  }, [businessId, ws.refetch]);
 
   const stats = useMemo(() => {
     const a = ws.data?.appointments ?? [];
-    const today = new Date().toDateString();
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date());
     return {
-      today: a.filter((x) => new Date(x.starts_at).toDateString() === today).length,
+      today: a.filter(
+        (appointment) =>
+          new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(appointment.starts_at)) === today,
+      ).length,
       upcoming: a.length,
       staff: (ws.data?.staff ?? []).filter((s) => s.active).length,
       services: (ws.data?.services ?? []).filter((s) => s.active).length,
     };
-  }, [ws.data]);
+  }, [timeZone, ws.data]);
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
       <HeadContent />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Business dashboard</h1>
+          <h1 className="text-2xl font-semibold">Your businesses</h1>
           <p className="text-sm text-muted-foreground">
-            Appointments, staff and services for your workspace.
+            Appointments, staff and business details in one place.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/admin/portal">Customer portal</Link>
-          </Button>
           {(businesses.data?.length ?? 0) > 1 && (
             <Select value={businessId ?? undefined} onValueChange={setBusinessId}>
               <SelectTrigger className="w-56">
@@ -184,6 +203,72 @@ function BusinessDashboard() {
 
       {businessId && (
         <>
+          <section aria-labelledby="businesses-heading" className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 id="businesses-heading" className="text-base font-semibold">Businesses</h2>
+              <Badge variant="outline">
+                {businesses.data?.length ?? 0} {(businesses.data?.length ?? 0) === 1 ? "business" : "businesses"}
+              </Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(businesses.data ?? []).map((business) => {
+                const selected = business.id === businessId;
+                return (
+                  <Card
+                    key={business.id}
+                    className={selected ? "border-primary shadow-sm" : "shadow-none"}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                            <Building2 className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{business.name}</div>
+                            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="h-3 w-3" /> {business.timezone}
+                            </div>
+                          </div>
+                        </div>
+                        {selected && <Badge variant="secondary">Viewing</Badge>}
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {!selected && (
+                          <Button variant="outline" size="sm" onClick={() => setBusinessId(business.id)}>
+                            View
+                          </Button>
+                        )}
+                        <Button asChild variant="ghost" size="sm">
+                          <Link to="/workspaces/$businessId/calendar" params={{ businessId: business.id }}>
+                            Calendar
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" size="sm">
+                          <Link to="/workspaces/$businessId/members" params={{ businessId: business.id }}>
+                            Team
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+            <div>
+              <h2 className="text-xl font-semibold">{selectedBusiness?.name}</h2>
+              <p className="text-xs text-muted-foreground">
+                Times shown in {timeZone} ({tzAbbreviation(new Date(), timeZone)})
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin/portal">Plan and billing</Link>
+            </Button>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-4">
             <Stat label="Today" value={stats.today} />
             <Stat label="Upcoming" value={stats.upcoming} />
@@ -219,7 +304,7 @@ function BusinessDashboard() {
                   {(ws.data?.appointments ?? []).map((a) => (
                     <TableRow key={a.id}>
                       <TableCell className="text-sm">
-                        {format(new Date(a.starts_at), "EEE, MMM d · h:mm a")}
+                        {formatZonedDateTime(new Date(a.starts_at), timeZone)}
                       </TableCell>
                       <TableCell>{a.customer?.name ?? "—"}</TableCell>
                       <TableCell>{a.service?.name ?? "—"}</TableCell>
@@ -243,10 +328,15 @@ function BusinessDashboard() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Users className="h-4 w-4" /> Staff
                 </CardTitle>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/workspaces/$businessId/members" params={{ businessId }}>
+                    Manage team
+                  </Link>
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2">
                 {(ws.data?.staff ?? []).map((s) => (
