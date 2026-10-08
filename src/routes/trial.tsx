@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { trackTrialStep } from "@/lib/trial-funnel";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { pageMeta, absoluteUrl } from "@/lib/seo";
 import { MarketingShell } from "@/components/MarketingShell";
@@ -21,6 +23,7 @@ export const Route = createFileRoute("/trial")({
 function TrialPage() {
   const { plan: planId } = Route.useSearch();
   const selected = PLANS.find((p) => p.priceId === planId) ?? PLANS[1];
+  useEffect(() => trackTrialStep("view", selected.priceId), [selected.priceId]);
   const endDate = new Date(Date.now() + 14 * 86400000).toLocaleDateString(undefined, { month: "long", day: "numeric" });
 
   const steps = [
@@ -70,7 +73,7 @@ function TrialPage() {
         </ol>
 
         <div className="flex flex-wrap items-center gap-4">
-          <Link to="/checkout" search={{ plan: selected.priceId }} className="rounded-full bg-foreground px-8 py-4 font-medium text-background hover:bg-accent">
+          <Link to="/checkout" search={{ plan: selected.priceId }} onClick={() => trackTrialStep("click_start", selected.priceId)} className="rounded-full bg-foreground px-8 py-4 font-medium text-background hover:bg-accent">
             Start free trial of {selected.name}
           </Link>
           <Link to="/pricing" className="text-sm text-muted-foreground underline">Compare plans</Link>

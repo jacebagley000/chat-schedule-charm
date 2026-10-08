@@ -49,6 +49,17 @@ function TrialConversionsPage() {
     },
   });
 
+  const funnelQ = useQuery({
+    queryKey: ["trial-signup-funnel", days, env],
+    queryFn: async () => {
+      const since = new Date(Date.now() - days * 86_400_000).toISOString();
+      const { data, error } = await supabase.rpc("admin_trial_signup_funnel", { _since: since, _env: env });
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+  });
+  const f = funnelQ.data;
+
   const rows = data ?? [];
   const started = rows.length;
   const count = (o: Outcome) => rows.filter((r) => outcome(r.status) === o).length;
@@ -78,7 +89,7 @@ function TrialConversionsPage() {
           {RANGES.map((r) => (
             <Button key={r} size="sm" variant={r === days ? "default" : "outline"} onClick={() => setDays(r)}>{r} days</Button>
           ))}
-          <Button size="sm" variant="outline" onClick={() => refetch()} aria-label="Refresh">
+          <Button size="sm" variant="outline" onClick={() => { refetch(); funnelQ.refetch(); }} aria-label="Refresh">
             <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
           </Button>
         </div>
@@ -100,6 +111,27 @@ function TrialConversionsPage() {
                 {p && <p className="text-sm text-muted-foreground">{p}</p>}
               </div>
             ))}
+          </div>
+
+          <h2 className="mb-3 text-xl font-semibold">From trial page to payment</h2>
+          <div className="mb-8 rounded-xl border border-border bg-card p-5">
+            {!f ? <p className="text-muted-foreground">Loading…</p> : (
+              <ol className="space-y-2">
+                {([
+                  ["Visited the trial page", Number(f.visitors), null],
+                  ["Pressed Start free trial", Number(f.clicked), Number(f.visitors)],
+                  ["Created an account", Number(f.signed_up), Number(f.clicked)],
+                  ["Confirmed their email", Number(f.confirmed), Number(f.signed_up)],
+                  ["Started a trial", Number(f.trial_started), Number(f.confirmed)],
+                  ["Paying after trial", Number(f.paying), Number(f.trial_started)],
+                ] as const).map(([label, n, prev]) => (
+                  <li key={label} className="flex justify-between">
+                    <span>{label}</span>
+                    <span>{n}{prev !== null && <span className="text-muted-foreground"> · {pct(n, prev)} of previous step</span>}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
 
           <h2 className="mb-3 text-xl font-semibold">By plan</h2>
