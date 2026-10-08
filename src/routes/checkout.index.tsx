@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { pageMeta, absoluteUrl } from "@/lib/seo";
 import { MarketingShell } from "@/components/MarketingShell";
@@ -6,6 +6,7 @@ import { PLANS } from "@/content/marketing";
 import { useAuth } from "@/hooks/use-auth";
 import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/")({
   validateSearch: (search: Record<string, unknown>): { plan?: string } => ({
@@ -30,6 +31,17 @@ function CheckoutPage() {
   const { openCheckout } = usePaddleCheckout();
   const [opening, setOpening] = useState(false);
 
+  useEffect(() => {
+    trackEvent({
+      name: "begin_checkout",
+      page: "/checkout",
+      plan: plan.priceId,
+      plan_name: plan.name,
+      currency: "USD",
+      value: Number(plan.price.replace(/[^0-9.]/g, "")),
+    });
+  }, [plan.name, plan.price, plan.priceId]);
+
   const pay = async () => {
     if (!user) return;
     setOpening(true);
@@ -38,7 +50,7 @@ function CheckoutPage() {
         priceId: plan.priceId,
         customerEmail: user.email ?? undefined,
         customData: { userId: user.id },
-        successUrl: `${window.location.origin}/checkout/success`,
+        successUrl: `${window.location.origin}/checkout/success?plan=${encodeURIComponent(plan.priceId)}`,
       });
     } catch {
       toast.error("Couldn't open secure checkout. Please try again.");

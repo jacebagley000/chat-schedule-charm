@@ -23,7 +23,17 @@ export interface ComparisonLeadEvent {
   reason?: string;
 }
 
-export type AnalyticsEvent = ComparisonCtaEvent | ComparisonLeadEvent;
+export interface SignupFunnelEvent {
+  name: "trial_page_view" | "trial_start" | "sign_up" | "begin_checkout" | "trial_conversion";
+  page: string;
+  plan?: string;
+  plan_name?: string;
+  method?: "email" | "google";
+  currency?: "USD";
+  value?: number;
+}
+
+export type AnalyticsEvent = ComparisonCtaEvent | ComparisonLeadEvent | SignupFunnelEvent;
 
 type GtagCommand = "event" | "config" | "js" | "set" | "consent";
 
@@ -56,6 +66,40 @@ function sanitizeEventParams(params: Record<string, unknown>): Record<string, un
   return cleaned;
 }
 
+let googleAnalyticsInitialized = false;
+
+export function initializeGoogleAnalytics(): void {
+  if (typeof window === "undefined" || googleAnalyticsInitialized) return;
+  const measurementId = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY;
+  if (!measurementId) return;
+
+  const w = window as WindowWithGtag;
+  w.dataLayer = w.dataLayer ?? [];
+  w.gtag = (command: GtagCommand, ...args: unknown[]) => {
+    w.dataLayer?.push([command, ...args]);
+  };
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+  document.head.appendChild(script);
+
+  w.gtag("set", "developer_id.dZjgwMW", true);
+  w.gtag("js", new Date());
+  w.gtag("config", measurementId, { send_page_view: false });
+  googleAnalyticsInitialized = true;
+}
+
+export function trackPageView(path: string): void {
+  if (typeof window === "undefined") return;
+  const w = window as WindowWithGtag;
+  w.gtag?.("event", "page_view", {
+    page_path: path,
+    page_title: document.title,
+    page_location: window.location.href,
+  });
+}
+
 export function trackEvent(event: AnalyticsEvent): void {
   if (typeof window === "undefined") return;
 
@@ -65,6 +109,15 @@ export function trackEvent(event: AnalyticsEvent): void {
     ...(event.name === "comparison_cta_click" ? { cta: event.cta, location: event.location } : {}),
     ...(event.name === "comparison_lead_submit" || event.name === "comparison_lead_error"
       ? { cta: event.cta, email_domain: event.email_domain, reason: event.reason }
+      : {}),
+    ...("plan" in event
+      ? {
+          plan: event.plan,
+          plan_name: event.plan_name,
+          method: event.method,
+          currency: event.currency,
+          value: event.value,
+        }
       : {}),
   });
 

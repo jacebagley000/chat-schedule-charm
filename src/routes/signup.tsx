@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { getTrialVisitId } from "@/lib/trial-funnel";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; plan?: string } => ({
@@ -70,6 +71,7 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
+    trackEvent({ name: "sign_up", page: "/signup", plan, method: "email" });
     if (data.session) {
       goNext();
     } else {
@@ -78,11 +80,17 @@ function SignupPage() {
   };
 
   const handleGoogle = async () => {
+    sessionStorage.setItem("fd_google_signup_pending", JSON.stringify({ plan: plan ?? null }));
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + target,
     });
-    if (result.error) return toast.error("Google sign-in failed");
+    if (result.error) {
+      sessionStorage.removeItem("fd_google_signup_pending");
+      return toast.error("Google sign-in failed");
+    }
     if (result.redirected) return;
+    sessionStorage.removeItem("fd_google_signup_pending");
+    trackEvent({ name: "sign_up", page: "/signup", plan, method: "google" });
     goNext();
   };
 
