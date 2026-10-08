@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 
 const KEY = "fd_trial_visit";
 
@@ -21,6 +22,11 @@ export function trackTrialStep(event: "view" | "click_start", plan?: string): vo
     if (sessionStorage.getItem(seen)) return;
     sessionStorage.setItem(seen, "1");
   }
+  trackEvent({
+    name: event === "view" ? "trial_page_view" : "trial_start",
+    page: "/trial",
+    plan,
+  });
   void supabase
     .from("trial_funnel_events")
     .insert({ event, visit_id: id, plan: plan?.slice(0, 64) ?? null })

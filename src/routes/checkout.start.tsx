@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
+import { PLANS } from "@/content/marketing";
 
 export const Route = createFileRoute("/checkout/start")({
   validateSearch: (search: Record<string, unknown>): { plan?: string } => ({
@@ -54,12 +56,26 @@ function CheckoutStartPage() {
         navigate({ to: "/login", search: { redirect: `/checkout/start?plan=${plan}` } as never });
         return;
       }
+      const pendingGoogleSignup = sessionStorage.getItem("fd_google_signup_pending");
+      if (pendingGoogleSignup) {
+        sessionStorage.removeItem("fd_google_signup_pending");
+        trackEvent({ name: "sign_up", page: "/checkout/start", plan, method: "google" });
+      }
+      const selectedPlan = PLANS.find((candidate) => candidate.priceId === plan);
+      trackEvent({
+        name: "begin_checkout",
+        page: "/checkout/start",
+        plan,
+        plan_name: selectedPlan?.name,
+        currency: "USD",
+        value: selectedPlan ? Number(selectedPlan.price.replace(/[^0-9.]/g, "")) : undefined,
+      });
       try {
         await openCheckout({
           priceId: plan,
           customerEmail: user.email ?? undefined,
           customData: { userId: user.id },
-          successUrl: `${window.location.origin}/checkout/success`,
+          successUrl: `${window.location.origin}/checkout/success?plan=${encodeURIComponent(plan)}`,
         });
       } catch (e) {
         toast.error("Couldn't open checkout. Please try again from the pricing page.");

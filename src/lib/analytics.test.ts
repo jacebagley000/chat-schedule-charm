@@ -73,6 +73,26 @@ describe("analytics", () => {
     });
   });
 
+  it("sends trial funnel events with plan details", () => {
+    const gtag = vi.fn();
+    vi.stubGlobal("window", { gtag } as unknown as Window & typeof globalThis);
+    trackEvent({
+      name: "begin_checkout",
+      page: "/checkout",
+      plan: "professional",
+      plan_name: "Professional Shop",
+      currency: "USD",
+      value: 99,
+    });
+    expect(gtag).toHaveBeenCalledWith("event", "begin_checkout", {
+      page: "/checkout",
+      plan: "professional",
+      plan_name: "Professional Shop",
+      currency: "USD",
+      value: 99,
+    });
+  });
+
   it("is a no-op when window is undefined", () => {
     vi.stubGlobal("window", undefined);
     expect(() =>

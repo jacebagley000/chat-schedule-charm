@@ -4,6 +4,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  useLocation,
   useRouter,
   HeadContent,
   Scripts,
@@ -16,6 +17,7 @@ import "@/i18n";
 import { LanguagePicker } from "@/components/language-picker";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { NOINDEX_HEADER } from "@/lib/public-routes";
+import { initializeGoogleAnalytics, trackPageView } from "@/lib/analytics";
 
 function NotFoundComponent() {
   // 404s already carry `X-Robots-Tag: noindex` from the request middleware;
@@ -149,6 +151,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+
+  useEffect(() => {
+    initializeGoogleAnalytics();
+    trackPageView(`${location.pathname}${location.searchStr ? `?${location.searchStr}` : ""}`);
+  }, [location.pathname, location.searchStr]);
 
   return (
     <QueryClientProvider client={queryClient}>
