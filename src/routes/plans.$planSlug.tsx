@@ -8,6 +8,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { previewPlanChange, changePlan } from "@/lib/plan-change.functions";
 import { toast } from "sonner";
+import { PLAN_FAQS } from "@/content/plan-faqs";
+import { brandJsonLd } from "@/lib/structured-data";
 
 export const PLAN_SLUGS: Record<string, string> = {
   soloist: "soloist_monthly",
@@ -65,6 +67,16 @@ export const Route = createFileRoute("/plans/$planSlug")({
         path,
       }),
       links: [{ rel: "canonical", href: absoluteUrl(path) }],
+      scripts: [
+        brandJsonLd({
+          "@type": "FAQPage",
+          mainEntity: (PLAN_FAQS[plan.priceId] ?? []).map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      ],
     };
   },
   notFoundComponent: () => (
@@ -140,6 +152,15 @@ function PlanPage() {
                   <div className="font-medium">{h.title}</div>
                   <p className="mt-1 text-sm text-muted-foreground">{h.body}</p>
                 </div>
+              ))}
+            </div>
+            <h2 id="faq" className="mt-10 text-xl font-semibold">Questions about {plan.name}</h2>
+            <div className="mt-4 divide-y rounded-lg border bg-card">
+              {(PLAN_FAQS[priceId] ?? []).map((f) => (
+                <details key={f.q} className="group p-4">
+                  <summary className="cursor-pointer list-none font-medium">{f.q}</summary>
+                  <p className="mt-2 text-sm text-muted-foreground">{f.a}</p>
+                </details>
               ))}
             </div>
             <h2 className="mt-10 text-xl font-semibold">Compare plans</h2>
