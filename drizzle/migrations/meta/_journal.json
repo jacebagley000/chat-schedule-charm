@@ -43,6 +43,13 @@
       "when": 1791391020519,
       "tag": "0005_plan_change_events",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791469911543,
+      "tag": "0006_trial_signup_funnel",
+      "breakpoints": true
     }
   ]
 }

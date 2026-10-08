@@ -1013,6 +1013,30 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_funnel_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          plan: string | null
+          visit_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          plan?: string | null
+          visit_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          plan?: string | null
+          visit_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1087,6 +1111,17 @@ export type Database = {
           started_at: string
           status: string
           user_id: string
+        }[]
+      }
+      admin_trial_signup_funnel: {
+        Args: { _env: string; _since: string }
+        Returns: {
+          clicked: number
+          confirmed: number
+          paying: number
+          signed_up: number
+          trial_started: number
+          visitors: number
         }[]
       }
       create_business_invitation: {
