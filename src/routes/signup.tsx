@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getTrialVisitId } from "@/lib/trial-funnel";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; plan?: string } => ({
@@ -64,7 +65,7 @@ function SignupPage() {
       password,
       options: {
         emailRedirectTo: window.location.origin + target,
-        data: { full_name: fullName },
+        data: { full_name: fullName, ...(getTrialVisitId() ? { trial_visit_id: getTrialVisitId() } : {}) },
       },
     });
     setLoading(false);
