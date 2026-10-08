@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { pageMeta, canonicalLink } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/trial-conversions")({
   head: () => ({
@@ -86,6 +86,9 @@ function TrialConversionsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button asChild size="sm" variant="outline">
+            <Link to="/admin/trial-funnel">Full funnel <ArrowRight /></Link>
+          </Button>
           {RANGES.map((r) => (
             <Button key={r} size="sm" variant={r === days ? "default" : "outline"} onClick={() => setDays(r)}>{r} days</Button>
           ))}
