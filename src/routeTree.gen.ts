@@ -55,6 +55,7 @@ import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminSignupFunnelRouteImport } from './routes/_authenticated/admin/signup-funnel'
 import { Route as AuthenticatedAdminSitemapRouteImport } from './routes/_authenticated/admin/sitemap'
 import { Route as AuthenticatedAdminTrialConversionsRouteImport } from './routes/_authenticated/admin/trial-conversions'
+import { Route as AuthenticatedAdminTrialFunnelRouteImport } from './routes/_authenticated/admin/trial-funnel'
 import { Route as AuthenticatedWorkspacesBusinessIdAuditRouteImport } from './routes/_authenticated/workspaces/$businessId/audit'
 import { Route as AuthenticatedWorkspacesBusinessIdCalendarRouteImport } from './routes/_authenticated/workspaces/$businessId/calendar'
 import { Route as AuthenticatedWorkspacesBusinessIdMembersRouteImport } from './routes/_authenticated/workspaces/$businessId/members'
@@ -311,6 +312,12 @@ const AuthenticatedAdminTrialConversionsRoute =
     path: '/admin/trial-conversions',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminTrialFunnelRoute =
+  AuthenticatedAdminTrialFunnelRouteImport.update({
+    id: '/admin/trial-funnel',
+    path: '/admin/trial-funnel',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedWorkspacesBusinessIdAuditRoute =
   AuthenticatedWorkspacesBusinessIdAuditRouteImport.update({
     id: '/workspaces/$businessId/audit',
@@ -398,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin/trial-conversions': typeof AuthenticatedAdminTrialConversionsRoute
+  '/admin/trial-funnel': typeof AuthenticatedAdminTrialFunnelRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -452,6 +460,7 @@ export interface FileRoutesByTo {
   '/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/admin/trial-conversions': typeof AuthenticatedAdminTrialConversionsRoute
+  '/admin/trial-funnel': typeof AuthenticatedAdminTrialFunnelRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -508,6 +517,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/signup-funnel': typeof AuthenticatedAdminSignupFunnelRoute
   '/_authenticated/admin/sitemap': typeof AuthenticatedAdminSitemapRoute
   '/_authenticated/admin/trial-conversions': typeof AuthenticatedAdminTrialConversionsRoute
+  '/_authenticated/admin/trial-funnel': typeof AuthenticatedAdminTrialFunnelRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/workspaces/$businessId/audit': typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   '/_authenticated/workspaces/$businessId/calendar': typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -564,6 +574,7 @@ export interface FileRouteTypes {
     | '/admin/signup-funnel'
     | '/admin/sitemap'
     | '/admin/trial-conversions'
+    | '/admin/trial-funnel'
     | '/admin/'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/admin/signup-funnel'
     | '/admin/sitemap'
     | '/admin/trial-conversions'
+    | '/admin/trial-funnel'
     | '/admin'
     | '/workspaces/$businessId/audit'
     | '/workspaces/$businessId/calendar'
@@ -673,6 +685,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/signup-funnel'
     | '/_authenticated/admin/sitemap'
     | '/_authenticated/admin/trial-conversions'
+    | '/_authenticated/admin/trial-funnel'
     | '/_authenticated/admin/'
     | '/_authenticated/workspaces/$businessId/audit'
     | '/_authenticated/workspaces/$businessId/calendar'
@@ -1039,6 +1052,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTrialConversionsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/trial-funnel': {
+      id: '/_authenticated/admin/trial-funnel'
+      path: '/admin/trial-funnel'
+      fullPath: '/admin/trial-funnel'
+      preLoaderRoute: typeof AuthenticatedAdminTrialFunnelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/workspaces/$businessId/audit': {
       id: '/_authenticated/workspaces/$businessId/audit'
       path: '/workspaces/$businessId/audit'
@@ -1111,6 +1131,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminSignupFunnelRoute: typeof AuthenticatedAdminSignupFunnelRoute
   AuthenticatedAdminSitemapRoute: typeof AuthenticatedAdminSitemapRoute
   AuthenticatedAdminTrialConversionsRoute: typeof AuthenticatedAdminTrialConversionsRoute
+  AuthenticatedAdminTrialFunnelRoute: typeof AuthenticatedAdminTrialFunnelRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedWorkspacesBusinessIdAuditRoute: typeof AuthenticatedWorkspacesBusinessIdAuditRoute
   AuthenticatedWorkspacesBusinessIdCalendarRoute: typeof AuthenticatedWorkspacesBusinessIdCalendarRoute
@@ -1139,6 +1160,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminSitemapRoute: AuthenticatedAdminSitemapRoute,
   AuthenticatedAdminTrialConversionsRoute:
     AuthenticatedAdminTrialConversionsRoute,
+  AuthenticatedAdminTrialFunnelRoute: AuthenticatedAdminTrialFunnelRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedWorkspacesBusinessIdAuditRoute:
     AuthenticatedWorkspacesBusinessIdAuditRoute,
