@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, CreditCard, RefreshCw, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { canonicalLink, pageMeta } from "@/lib/seo";
@@ -38,6 +39,7 @@ function TrialFunnelPage() {
   const env = getPaddleEnvironment();
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["trial-funnel", days, env],
+    retry: false,
     queryFn: async () => {
       const since = new Date(Date.now() - days * 86_400_000).toISOString();
       const { data, error } = await supabase.rpc("admin_trial_signup_funnel", { _since: since, _env: env });
@@ -132,9 +134,7 @@ function TrialFunnelPage() {
                         <span>{conversion}% from previous</span>
                         <span>{percent(step.value, visitors)}% of all visitors</span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-muted" aria-label={`${step.label}: ${percent(step.value, visitors)}% of visitors`}>
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(percent(step.value, visitors), 100)}%` }} />
-                      </div>
+                      <Progress value={Math.min(percent(step.value, visitors), 100)} aria-label={`${step.label}: ${percent(step.value, visitors)}% of visitors`} />
                     </div>
                     <div className="sm:text-right">
                       <p className="text-2xl font-bold">{step.value}</p>
