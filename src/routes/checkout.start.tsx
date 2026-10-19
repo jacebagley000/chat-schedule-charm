@@ -62,6 +62,9 @@ function CheckoutStartPage() {
         sessionStorage.removeItem("fd_google_signup_pending");
         trackEvent({ name: "sign_up", page: "/checkout/start", plan, method: "google" });
       }
+      // Google OAuth can't carry the trial visit id at sign-up; attach it now
+      // so the trial funnel counts Google sign-ups past "Started free trial".
+      await backfillTrialVisitId();
       const selectedPlan = PLANS.find((candidate) => candidate.priceId === plan);
       trackEvent({
         name: "begin_checkout",
