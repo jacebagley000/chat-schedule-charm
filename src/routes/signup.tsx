@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { getTrialVisitId } from "@/lib/trial-funnel";
+import { backfillTrialVisitId, getTrialVisitId } from "@/lib/trial-funnel";
 import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/signup")({
@@ -91,6 +91,7 @@ function SignupPage() {
     if (result.redirected) return;
     sessionStorage.removeItem("fd_google_signup_pending");
     trackEvent({ name: "sign_up", page: "/signup", plan, method: "google" });
+    await backfillTrialVisitId();
     goNext();
   };
 
