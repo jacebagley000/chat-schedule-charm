@@ -14,6 +14,21 @@ export function getTrialVisitId(create = false): string | null {
   return id;
 }
 
+/**
+ * Google OAuth sign-ups can't pass user metadata at sign-up time, so the
+ * trial visit id is attached to the account afterwards. Without this the
+ * trial funnel never counts Google sign-ups past "Started free trial".
+ */
+export async function backfillTrialVisitId(): Promise<void> {
+  const visitId = getTrialVisitId();
+  if (!visitId) return;
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  if (!user || user.user_metadata?.trial_visit_id) return;
+  const { error } = await supabase.auth.updateUser({ data: { trial_visit_id: visitId } });
+  if (error) console.warn("trial visit backfill", error.message);
+}
+
 export function trackTrialStep(event: "view" | "click_start", plan?: string): void {
   const id = getTrialVisitId(true);
   if (!id) return;
