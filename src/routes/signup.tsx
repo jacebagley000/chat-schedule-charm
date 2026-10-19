@@ -91,6 +91,7 @@ function SignupPage() {
     if (result.redirected) return;
     sessionStorage.removeItem("fd_google_signup_pending");
     trackEvent({ name: "sign_up", page: "/signup", plan, method: "google" });
+    await backfillTrialVisitId();
     goNext();
   };
 

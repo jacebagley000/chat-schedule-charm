@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePaddleCheckout } from "@/hooks/use-paddle-checkout";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
+import { getTrialVisitId } from "@/lib/trial-funnel";
 import { PLANS } from "@/content/marketing";
 
 export const Route = createFileRoute("/checkout/start")({
