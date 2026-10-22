@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { absoluteUrl, pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { format, addDays, startOfDay, addMinutes, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/cal
     links: [
       {
         rel: "canonical",
-        href: `https://www.frontdeskai.com/workspaces/${params.businessId}/calendar`,
+        href: absoluteUrl(`/workspaces/${params.businessId}/calendar`),
       },
     ],
   }),

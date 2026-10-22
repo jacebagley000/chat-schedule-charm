@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, LogOut, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       path: "/schedule",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/schedule" }],
+    links: [canonicalLink("/schedule")],
   }),
 });
 

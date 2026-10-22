@@ -1,4 +1,4 @@
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/login")({
         "Access your FrontDesk AI workspace to see calls, DMs, and today's bookings.",
       path: "/login",
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/login" }],
+    links: [canonicalLink("/login")],
     scripts: [brandJsonLd()],
   }),
 

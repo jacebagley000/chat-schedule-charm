@@ -1,4 +1,4 @@
 # Task Roadmap
 
-1. **Connect custom domain** — Connect `www.frontdeskai.com` to the project, flip `baseUrl`, and confirm `robots.txt` / `sitemap.xml` serve from the live domain.
-2. **Live crawl/index event stream** — Add a real-time stream of Google's crawl and index events on `/admin/crawl-tools`, supplementing the daily refresh.
+1. **Public search links and icon** — Completed and verified: all 20 sitemap URLs use `https://businessbuddyconnect.app`; canonical/social links and existing favicon checked in preview; 21 regression tests passed. Live changes await user-requested publication.
+2. **First ad campaign** — Demo requests from home-service owners in USA or Canada; Facebook/Instagram selected. Brief saved. Blocked on Meta connection, which was declined; do not reopen without request.

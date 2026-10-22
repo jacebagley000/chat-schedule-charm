@@ -1,11 +1,11 @@
-import { pageMeta } from "@/lib/seo";
+import { absoluteUrl, pageMeta } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { brandGraph, ORGANIZATION_ID } from "@/lib/structured-data";
 import { TrackedLink } from "@/components/TrackedLink";
 import { ComparisonLeadForm } from "@/components/ComparisonLeadForm";
 
 const PAGE_PATH = "/comparison/polyai";
-const CANONICAL = `https://www.frontdeskai.com${PAGE_PATH}`;
+const CANONICAL = absoluteUrl(PAGE_PATH);
 
 export const Route = createFileRoute("/comparison/polyai")({
   head: () => ({

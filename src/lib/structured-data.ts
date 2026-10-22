@@ -6,7 +6,9 @@
  * business in local results.
  */
 
-export const SITE_URL = "https://www.frontdeskai.com";
+import { BASE_URL } from "./public-routes";
+
+export const SITE_URL = BASE_URL;
 
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 export const LOCAL_BUSINESS_ID = `${SITE_URL}/#localbusiness`;

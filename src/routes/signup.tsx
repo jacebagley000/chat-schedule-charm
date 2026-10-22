@@ -1,4 +1,4 @@
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/signup")({
         "Set up your AI receptionist in under a minute. 14-day free trial on every plan; cancel anytime.",
       path: "/signup",
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/signup" }],
+    links: [canonicalLink("/signup")],
     scripts: [brandJsonLd()],
   }),
 
