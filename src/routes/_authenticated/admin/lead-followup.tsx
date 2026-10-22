@@ -5,8 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Mail, RefreshCw, Send, Sparkles } from "lucide-react";
-import { draftLeadFollowUp } from "@/lib/lead-draft.functions";
+import { Mail, RefreshCw, Send } from "lucide-react";
+import { buildLeadFollowUp } from "@/lib/lead-followup-template";
 import {
   listFollowUpLeads,
   listLeadEmails,
@@ -46,24 +46,6 @@ function formatCallTime(value: string | null): string | null {
   return format(new Date(value), "EEEE, MMM d 'at' h:mm a");
 }
 
-function defaultSubject(lead: FollowUpLead): string {
-  return lead.preferred_call_time
-    ? `Your FrontDesk AI call — ${format(new Date(lead.preferred_call_time), "MMM d 'at' h:mm a")}`
-    : "Following up on your FrontDesk AI demo request";
-}
-
-function defaultBody(lead: FollowUpLead): string {
-  const when = formatCallTime(lead.preferred_call_time);
-  const greeting = `Hi ${lead.name.split(" ")[0] || lead.name},`;
-  const middle = when
-    ? `Thanks for requesting a demo of FrontDesk AI. You told us ${when} works best for a call — I've held that slot for you. Just reply to confirm and I'll send an invite.`
-    : `Thanks for requesting a demo of FrontDesk AI. I'd love to show you how it answers calls and books appointments for ${
-        lead.business_name || "your business"
-      }. What time works best for a quick call this week?`;
-
-  return `${greeting}\n\n${middle}\n\nTalk soon,\nThe FrontDesk AI team`;
-}
-
 function LeadFollowUpPage() {
   const fetchLeads = useServerFn(listFollowUpLeads);
   const fetchLeadEmails = useServerFn(listLeadEmails);
@@ -77,8 +59,6 @@ function LeadFollowUpPage() {
 
   const leads = useMemo(() => data?.leads ?? [], [data]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
 
   const selected = leads.find((l) => l.id === selectedId) ?? null;
 
@@ -86,37 +66,7 @@ function LeadFollowUpPage() {
     if (!selectedId && leads.length > 0) setSelectedId(leads[0]!.id);
   }, [leads, selectedId]);
 
-  const [inquiry, setInquiry] = useState("");
-  const [aiCallTime, setAiCallTime] = useState("");
-  const draft = useServerFn(draftLeadFollowUp);
-
-  useEffect(() => {
-    if (!selected) return;
-    setSubject(defaultSubject(selected));
-    setBody(defaultBody(selected));
-    setInquiry("");
-    setAiCallTime(formatCallTime(selected.preferred_call_time) ?? "");
-  }, [selected?.id]);
-
-  const draftMutation = useMutation({
-    mutationFn: () =>
-      draft({
-        data: {
-          name: selected!.name,
-          businessName: selected!.business_name ?? undefined,
-          inquiry,
-          preferredCallTime: aiCallTime || undefined,
-        },
-      }),
-    onSuccess: (r) => {
-      if (r.ok) {
-        setSubject(r.subject);
-        setBody(r.body);
-        toast.success("Draft ready — review before sending");
-      } else toast.error(r.error);
-    },
-    onError: (err) => toast.error(err instanceof Error ? err.message : "Could not draft the email"),
-  });
+  const message = selected ? buildLeadFollowUp(selected) : null;
 
   const history = useQuery({
     queryKey: ["followup-emails", selectedId],
@@ -125,7 +75,7 @@ function LeadFollowUpPage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => sendEmail({ data: { leadId: selectedId!, subject, body } }),
+    mutationFn: () => sendEmail({ data: { leadId: selectedId!, templateId: "demo-request-followup" } }),
     onSuccess: (result) => {
       if (result.ok) {
         toast.success(`Email sent to ${selected?.email}`);
@@ -235,7 +185,7 @@ function LeadFollowUpPage() {
             <CardContent className="space-y-4">
               {!selected && (
                 <p className="text-sm text-muted-foreground">
-                  Pick a lead on the left to write their follow-up.
+                  Pick a lead on the left to preview their approved follow-up.
                 </p>
               )}
               {selected && (
@@ -251,42 +201,17 @@ function LeadFollowUpPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2 rounded-md border p-3">
-                    <p className="flex items-center gap-2 text-sm font-medium">
-                      <Sparkles className="h-4 w-4" /> Draft with AI
-                    </p>
-                    <Label htmlFor="ai-inquiry">Lead's inquiry</Label>
-                    <Textarea
-                      id="ai-inquiry"
-                      rows={3}
-                      placeholder="What did they ask about?"
-                      value={inquiry}
-                      onChange={(e) => setInquiry(e.target.value)}
-                    />
-                    <Label htmlFor="ai-calltime">Preferred call time</Label>
-                    <Input
-                      id="ai-calltime"
-                      placeholder="e.g. Tuesday 2pm CT"
-                      value={aiCallTime}
-                      onChange={(e) => setAiCallTime(e.target.value)}
-                    />
-                    <Button
-                      variant="secondary"
-                      onClick={() => draftMutation.mutate()}
-                      disabled={draftMutation.isPending || !inquiry.trim()}
-                    >
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      {draftMutation.isPending ? "Drafting..." : "Generate draft"}
-                    </Button>
-                  </div>
-
+                  <p className="text-sm text-muted-foreground">
+                    Approved demo-request follow-up. Only stored lead details are personalized;
+                    custom messages and AI drafts cannot be sent.
+                  </p>
 
                   <div className="space-y-2">
                     <Label htmlFor="followup-subject">Subject</Label>
                     <Input
                       id="followup-subject"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
+                      value={message?.subject ?? ""}
+                      readOnly
                     />
                   </div>
 
@@ -295,8 +220,8 @@ function LeadFollowUpPage() {
                     <Textarea
                       id="followup-body"
                       rows={10}
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
+                      value={message?.body ?? ""}
+                      readOnly
                     />
                   </div>
 
@@ -304,20 +229,11 @@ function LeadFollowUpPage() {
                     <Button
                       onClick={() => sendMutation.mutate()}
                       disabled={
-                        sendMutation.isPending || !subject.trim() || !body.trim()
+                        sendMutation.isPending || !message
                       }
                     >
                       <Send className="mr-2 h-4 w-4" />
                       {sendMutation.isPending ? "Sending..." : "Send email"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setSubject(defaultSubject(selected));
-                        setBody(defaultBody(selected));
-                      }}
-                    >
-                      Reset draft
                     </Button>
                   </div>
 
