@@ -630,12 +630,13 @@ function Index() {
               vs PolyAI
             </Link>
 
-            <a href="#" className="hover:text-foreground">
+            <Link to="/privacy" className="hover:text-foreground">
               Privacy
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/terms" className="hover:text-foreground">
               Terms
-            </a>
+            </Link>
+            <Link to="/refund" className="hover:text-foreground">Refunds</Link>
             <Link to="/about" className="hover:text-foreground">About</Link>
             <Link to="/contact" className="hover:text-foreground">Contact</Link>
           </div>
