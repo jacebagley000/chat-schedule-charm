@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildLeadFollowUp, followUpSendSchema } from "./lead-followup-template";
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
   const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
@@ -65,39 +66,34 @@ export const listFollowUpLeads = createServerFn({ method: "GET" })
     };
   });
 
-const sendSchema = z.object({
-  leadId: z.string().uuid(),
-  subject: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(5000),
-});
-
 export const sendLeadFollowUpEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => sendSchema.parse(data))
+  .inputValidator((data) => followUpSendSchema.parse(data))
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabase, userId } = context;
 
     const { data: lead, error } = await supabase
       .from("leads")
-      .select("id, email, name")
+      .select("id, email, name, business_name, preferred_call_time")
       .eq("id", data.leadId)
       .single();
     if (error || !lead) throw new Error("Lead not found");
+    const message = buildLeadFollowUp(lead);
 
     const { renderLeadEmailHtml, sendLeadEmail } = await import("@/lib/lead-email.server");
 
     const result = await sendLeadEmail({
       to: lead.email,
-      subject: data.subject,
-      html: renderLeadEmailHtml(data.body),
+      subject: message.subject,
+      html: renderLeadEmailHtml(message.body),
     });
 
     const { error: logError } = await supabase.from("lead_followup_emails").insert({
       lead_id: lead.id,
       recipient_email: lead.email,
-      subject: data.subject,
-      body: data.body,
+      subject: message.subject,
+      body: message.body,
       ok: result.ok,
       error: result.error ?? null,
       sent_by: userId,
