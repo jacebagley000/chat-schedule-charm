@@ -3,3 +3,4 @@
 - Keep visitor journey funnels on dedicated admin routes and link them to account-level outcome reports. Why: step drop-off analysis and customer outcome analysis serve different decisions.
 - Send browser funnel analytics through src/lib/analytics.ts and keep Lovable Cloud funnel events in parallel. Why: one event contract prevents inconsistent Google Analytics naming while preserving first-party reports.
 - Derive canonical, structured-data and sitemap origins from the shared public-routes/SEO helpers, not hardcoded route hosts. Why: public search signals must stay consistent when the primary domain changes.
+- Lead follow-up previews and sending share the approved template builder; the sending function accepts only a lead ID and allowlisted template ID and reloads recipient details under authenticated RLS. Why: browser-supplied content must never control outbound follow-up messages.
