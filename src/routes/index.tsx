@@ -1,5 +1,5 @@
 import { faqs } from "@/content/home-faqs";
-import { pageMeta } from "@/lib/seo";
+import { absoluteUrl, pageMeta } from "@/lib/seo";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { brandJsonLd } from "@/lib/structured-data";
 import { toast } from "sonner";
@@ -21,11 +21,11 @@ export const Route = createFileRoute("/")({
         "Answer every call and DM. Book every appointment. Lose nothing while you work.",
       path: "/",
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/" }],
+    links: [{ rel: "canonical", href: absoluteUrl("/") }],
     scripts: [
       brandJsonLd({
         "@type": "FAQPage",
-        "@id": "https://www.frontdeskai.com/#faq",
+        "@id": absoluteUrl("/#faq"),
         mainEntity: faqs.map((f) => ({
           "@type": "Question",
           name: f.q,

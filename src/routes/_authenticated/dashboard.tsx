@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       path: "/dashboard",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/dashboard" }],
+    links: [canonicalLink("/dashboard")],
   }),
 });
 

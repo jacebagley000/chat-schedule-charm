@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/invite/$token")({
       noindex: true,
     }),
     links: [
-      { rel: "canonical", href: `https://www.frontdeskai.com/invite/${params.token}` },
+      canonicalLink(`/invite/${params.token}`),
     ],
   }),
 });

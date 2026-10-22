@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/seo";
+import { absoluteUrl, pageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/_authenticated/workspaces/$businessId/mem
     links: [
       {
         rel: "canonical",
-        href: `https://www.frontdeskai.com/workspaces/${params.businessId}/members`,
+        href: absoluteUrl(`/workspaces/${params.businessId}/members`),
       },
     ],
   }),

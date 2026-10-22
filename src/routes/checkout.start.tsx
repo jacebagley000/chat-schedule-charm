@@ -1,4 +1,4 @@
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/checkout/start")({
       path: "/checkout/start",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/checkout/start" }],
+    links: [canonicalLink("/checkout/start")],
   }),
 
 });
