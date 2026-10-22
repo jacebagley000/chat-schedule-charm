@@ -1,6 +1,9 @@
 {
   "baseUrl": "https://businessbuddyconnect.app",
   "allow": [
+    { "path": "/privacy", "changefreq": "yearly", "priority": "0.3" },
+    { "path": "/terms", "changefreq": "yearly", "priority": "0.3" },
+    { "path": "/refund", "changefreq": "yearly", "priority": "0.3" },
     {
       "path": "/",
       "changefreq": "weekly",

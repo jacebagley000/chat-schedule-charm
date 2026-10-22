@@ -39,6 +39,10 @@ describe("normalizePath", () => {
 });
 
 describe("isCrawlablePath", () => {
+  it.each(["/privacy", "/terms", "/refund"])("keeps the payment policy %s publicly crawlable", (path) => {
+    expect(isCrawlablePath(path)).toBe(true);
+    expect(sitemapUrls()).toContain(`https://businessbuddyconnect.app${path}`);
+  });
   it("allows every public route, including trailing-slash and query variants", () => {
     for (const { path } of PUBLIC_ROUTES) {
       expect(isCrawlablePath(path)).toBe(true);
