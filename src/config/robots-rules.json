@@ -1,5 +1,5 @@
 {
-  "baseUrl": "https://www.frontdeskai.com",
+  "baseUrl": "https://businessbuddyconnect.app",
   "allow": [
     {
       "path": "/",
@@ -113,6 +113,6 @@
     "/_authenticated/"
   ],
   "sitemaps": [
-    "https://www.frontdeskai.com/sitemap.xml"
+    "https://businessbuddyconnect.app/sitemap.xml"
   ]
 }

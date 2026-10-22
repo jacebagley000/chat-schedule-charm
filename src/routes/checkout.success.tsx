@@ -1,4 +1,4 @@
-import { pageMeta } from "@/lib/seo";
+import { canonicalLink, pageMeta } from "@/lib/seo";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/checkout/success")({
       path: "/checkout/success",
       noindex: true,
     }),
-    links: [{ rel: "canonical", href: "https://www.frontdeskai.com/checkout/success" }],
+    links: [canonicalLink("/checkout/success")],
   }),
 
   component: CheckoutSuccess,

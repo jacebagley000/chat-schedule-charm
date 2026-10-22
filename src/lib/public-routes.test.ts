@@ -1,5 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { isCrawlablePath, normalizePath, PUBLIC_ROUTES } from "./public-routes";
+import { isCrawlablePath, normalizePath, PUBLIC_ROUTES, ROBOTS_RULES, renderSitemapXml, renderRobotsTxt, sitemapUrls } from "./public-routes";
+
+describe("public search origin", () => {
+  it("uses businessbuddyconnect.app for every sitemap page", () => {
+    expect(ROBOTS_RULES.baseUrl).toBe("https://businessbuddyconnect.app");
+    const urls = sitemapUrls();
+    expect(urls.length).toBeGreaterThan(0);
+    for (const url of urls) expect(new URL(url).origin).toBe("https://businessbuddyconnect.app");
+  });
+
+  it("advertises the current domain's sitemap", () => {
+    expect(renderRobotsTxt()).toContain("Sitemap: https://businessbuddyconnect.app/sitemap.xml");
+    expect(renderRobotsTxt()).not.toContain("frontdeskai.com");
+  });
+
+  it("omits fabricated modification dates and private pages", () => {
+    const xml = renderSitemapXml();
+    expect(xml).not.toContain("<lastmod>");
+    for (const path of ["/admin/", "/dashboard", "/checkout/", "/workspaces/"]) {
+      expect(xml).not.toContain(`https://businessbuddyconnect.app${path}`);
+    }
+  });
+});
 
 describe("normalizePath", () => {
   it.each([
