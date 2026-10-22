@@ -57,6 +57,13 @@
       "when": 1792681543839,
       "tag": "0007_validate_public_lead_submissions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792681773664,
+      "tag": "0008_validate_public_funnel_events",
+      "breakpoints": true
     }
   ]
 }
