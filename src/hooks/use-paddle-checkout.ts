@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { prepareCheckout } from "@/lib/billing.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import { useServerFn } from "@tanstack/react-start";
 
 export function usePaddleCheckout() {
   const [loading, setLoading] = useState(false);
+  const prepare = useServerFn(prepareCheckout);
 
   const openCheckout = async (options: {
     priceId: string;
@@ -14,12 +18,10 @@ export function usePaddleCheckout() {
     setLoading(true);
     try {
       await initializePaddle();
-      const paddlePriceId = await getPaddlePriceId(options.priceId);
+      const {transactionId} = await prepare({data:{priceId:options.priceId as "soloist_monthly"|"professional_monthly"|"multi_location_monthly",environment:getPaddleEnvironment()}});
 
       window.Paddle.Checkout.open({
-        items: [{ priceId: paddlePriceId, quantity: options.quantity ?? 1 }],
-        customer: options.customerEmail ? { email: options.customerEmail } : undefined,
-        customData: options.customData,
+        transactionId,
         settings: {
           displayMode: "overlay",
           successUrl:

@@ -64,6 +64,20 @@
       "when": 1792681773664,
       "tag": "0008_validate_public_funnel_events",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794930198101,
+      "tag": "0009_protect_ownership_and_booking_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794930228377,
+      "tag": "0010_durable_billing_records",
+      "breakpoints": true
     }
   ]
 }

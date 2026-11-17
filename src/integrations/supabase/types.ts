@@ -144,6 +144,87 @@ export type Database = {
           },
         ]
       }
+      billing_checkouts: {
+        Row: {
+          environment: string
+          price_id: string
+          started_at: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          environment: string
+          price_id: string
+          started_at?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          environment?: string
+          price_id?: string
+          started_at?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_events: {
+        Row: {
+          environment: string
+          event_id: string
+          occurred_at: string
+          payload: Json
+          processed_at: string | null
+        }
+        Insert: {
+          environment: string
+          event_id: string
+          occurred_at: string
+          payload: Json
+          processed_at?: string | null
+        }
+        Update: {
+          environment?: string
+          event_id?: string
+          occurred_at?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Relationships: []
+      }
+      billing_payments: {
+        Row: {
+          amount_cents: number
+          currency: string
+          environment: string
+          occurred_at: string
+          status: string
+          subscription_id: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          currency?: string
+          environment: string
+          occurred_at: string
+          status: string
+          subscription_id?: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          currency?: string
+          environment?: string
+          occurred_at?: string
+          status?: string
+          subscription_id?: string | null
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_funnel_events: {
         Row: {
           booking_status: string | null
@@ -973,11 +1054,15 @@ export type Database = {
           current_period_start: string | null
           environment: string
           id: string
+          last_event_at: string | null
+          next_billed_at: string | null
           paddle_customer_id: string
           paddle_subscription_id: string
           price_id: string
           product_id: string
           status: string
+          trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string | null
           user_id: string
         }
@@ -988,11 +1073,15 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: string | null
+          next_billed_at?: string | null
           paddle_customer_id: string
           paddle_subscription_id: string
           price_id: string
           product_id: string
           status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1003,11 +1092,15 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: string | null
+          next_billed_at?: string | null
           paddle_customer_id?: string
           paddle_subscription_id?: string
           price_id?: string
           product_id?: string
           status?: string
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1123,6 +1216,17 @@ export type Database = {
           trial_started: number
           visitors: number
         }[]
+      }
+      apply_billing_event: {
+        Args: {
+          at_time: string
+          eid: string
+          env: string
+          event_payload: Json
+          payment_data?: Json
+          subscription_data?: Json
+        }
+        Returns: boolean
       }
       create_business_invitation: {
         Args: {
